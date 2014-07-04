@@ -1,5 +1,7 @@
-#' Performance measures.
+#' @title Performance measures.
+#' @name measures
 #'
+#' @description
 #' A performance measure is evaluated after a single train/predict step and returns a single number to assess the quality
 #' of the prediction (or maybe only the model, think AIC).
 #' The measure itself knows whether it wants to be minimized or maximized and for what tasks it is applicable.
@@ -9,180 +11,279 @@
 #'
 #' Classification:
 #' \itemize{
-#' 		\item{\bold{mmce}}{\cr Mean misclassification error.}
-#' 		\item{\bold{acc}}{\cr Accuracy.}
-#'    \item{\bold{ber}}{\cr Balanced error rate. Mean of misclassification error rates on all individual classes.}
-#' 		\item{\bold{tp}}{\cr True positives.}
-#' 		\item{\bold{tpr}}{\cr True positive rate, also called hit rate or recall.}
-#' 		\item{\bold{fp}}{\cr False positives, also called false alarms.}
-#' 		\item{\bold{fpr}}{\cr False positive rate, also called false alarm rate or fall-out.}
-#' 		\item{\bold{tn}}{\cr True negatives, also called correct rejections.}
-#' 		\item{\bold{tnr}}{\cr True negative rate. Also called specificity.}
-#' 		\item{\bold{fn}}{\cr False negatives, also called misses.}
-#' 		\item{\bold{fnr}}{\cr False negative rate.}
-#' 		\item{\bold{ppv}}{\cr Positive predictive value, also called precision.}
-#' 		\item{\bold{npv}}{\cr Negative predictive value.}
-#' 		\item{\bold{fdr}}{\cr False discovery rate.}
-#' 		\item{\bold{f1}}{\cr F1 measure.}
-#' 		\item{\bold{mcc}}{\cr Matthews correlation coefficient.}
-#' 		\item{\bold{gmean}}{\cr G-mean, geomentric mean of recall and specificity.}
-#' 		\item{\bold{gpr}}{\cr Geometric mean of precision and recall.}
-#' 		\item{\bold{auc}}{\cr Area under the curve.}
+#'   \item{\bold{mmce}}{\cr Mean misclassification error.}
+#'   \item{\bold{acc}}{\cr Accuracy.}
+#'   \item{\bold{ber}}{\cr Balanced error rate. Mean of misclassification error rates on all individual classes.}
+#'   \item{\bold{tp}}{\cr True positives.}
+#'   \item{\bold{tpr}}{\cr True positive rate, also called hit rate or recall.}
+#'   \item{\bold{fp}}{\cr False positives, also called false alarms.}
+#'   \item{\bold{fpr}}{\cr False positive rate, also called false alarm rate or fall-out.}
+#'   \item{\bold{tn}}{\cr True negatives, also called correct rejections.}
+#'   \item{\bold{tnr}}{\cr True negative rate. Also called specificity.}
+#'   \item{\bold{fn}}{\cr False negatives, also called misses.}
+#'   \item{\bold{fnr}}{\cr False negative rate.}
+#'   \item{\bold{ppv}}{\cr Positive predictive value, also called precision.}
+#'   \item{\bold{npv}}{\cr Negative predictive value.}
+#'   \item{\bold{fdr}}{\cr False discovery rate.}
+#'   \item{\bold{f1}}{\cr F1 measure.}
+#'   \item{\bold{mcc}}{\cr Matthews correlation coefficient.}
+#'   \item{\bold{gmean}}{\cr G-mean, geometric mean of recall and specificity.}
+#'   \item{\bold{gpr}}{\cr Geometric mean of precision and recall.}
+#'   \item{\bold{auc}}{\cr Area under the curve.}
+#'   \item{\bold{multiclass.auc}}{\cr Area under the curve for multiclass problems. Calls \code{pROC::multiclass.roc}.}
 #' }
-#' Only \code{mmce}, \code{acc} and \code{ber} can be used for multiclass problems.
+#' Only \code{mmce}, \code{acc}, \code{multiclass.auc} and \code{ber} can be used for multiclass problems.
 #'
 #' Regression:
 #' \itemize{
-#' 		\item{\bold{sse}}{\cr Sum of squared errors}
-#' 		\item{\bold{mse}}{\cr Mean of squared errors}
-#' 		\item{\bold{medse}}{\cr Median of squared errors}
-#' 		\item{\bold{sae}}{\cr Sum of absolute errors}
-#' 		\item{\bold{mae}}{\cr Mean of absolute errors}
-#' 		\item{\bold{medae}}{\cr Median of absolute errors}
-#'    \item{\bold{rmse}}{\cr Root mean square error}
+#'   \item{\bold{sse}}{\cr Sum of squared errors}
+#'   \item{\bold{mse}}{\cr Mean of squared errors}
+#'   \item{\bold{medse}}{\cr Median of squared errors}
+#'   \item{\bold{sae}}{\cr Sum of absolute errors}
+#'   \item{\bold{mae}}{\cr Mean of absolute errors}
+#'   \item{\bold{medae}}{\cr Median of absolute errors}
+#'   \item{\bold{rmse}}{\cr Root mean square error}
+#' }
+#'
+#' Survival:
+#' \itemize{
+#'   \item{\bold{cindex}}{\cr Concordance index}
+#' }
+#'
+#' Cost-sensitive:
+#' \itemize{
+#'   \item{\bold{meancosts}}{\cr Mean costs of the predicted choices.}
+#'   \item{\bold{mcp}}{\cr Misclassification penalty, i.e. average difference between
+#'     costs of oracle and model prediction.}
 #' }
 #'
 #' General:
 #' \itemize{
-#' 		\item{\bold{timetrain}}{\cr Time of fitting the model}
-#' 		\item{\bold{timepredict}}{\cr Time of predicting test set}
-#' 		\item{\bold{timeboth}}{\cr timetrain + trainpredict}
-#'   	\item{\bold{featperc}}{\cr Percentage of original features used for model, useful for feature selection.}
+#'   \item{\bold{timetrain}}{\cr Time of fitting the model}
+#'   \item{\bold{timepredict}}{\cr Time of predicting test set}
+#'   \item{\bold{timeboth}}{\cr timetrain + trainpredict}
+#'   \item{\bold{featperc}}{\cr Percentage of original features used for model, useful for feature selection.}
 #' }
-#' @export
-measures = function() {}
+#' @usage none
+#' @format none
+#' @family performance
+NULL
 
-#general
+###############################################################################
+### general ###
+###############################################################################
 #' @export featperc
 #' @rdname measures
-featperc = makeMeasure(id="featperc", minimize=TRUE, classif=TRUE, regr=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
+#' @usage none
+#' @format none
+featperc = makeMeasure(id = "featperc", minimize = TRUE, best = 0, worst = 1,
+  properties = c("classif", "classif.multi", "regr", "surv", "costsens"),
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
     length(model$features) / sum(pred$task.desc$n.feat)
   }
 )
 
 #' @export timetrain
 #' @rdname measures
-timetrain = makeMeasure(id="timetrain", minimize=TRUE, classif=TRUE, regr=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
+#' @usage none
+#' @format none
+timetrain = makeMeasure(id = "timetrain", minimize = TRUE, best = 0, worst = Inf,
+  properties = c("classif", "classif.multi", "regr", "surv", "costsens"),
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
     model$time
   }
 )
 
 #' @export timepredict
 #' @rdname measures
-timepredict = makeMeasure(id="timepredict", minimize=TRUE, classif=TRUE, regr=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
+#' @usage none
+#' @format none
+timepredict = makeMeasure(id = "timepredict", minimize = TRUE, best = 0, worst = Inf,
+  properties = c("classif", "classif.multi", "regr", "surv", "costsens"),
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
     pred$time
   }
 )
 
 #' @export timeboth
 #' @rdname measures
-timeboth = makeMeasure(id="timeboth", minimize=TRUE, classif=TRUE, regr=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
+#' @usage none
+#' @format none
+timeboth = makeMeasure(id = "timeboth", minimize = TRUE, best = 0, worst = Inf,
+  properties = c("classif", "classif.multi", "regr", "surv", "costsens"),
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
     model$time + pred$time
   }
 )
 
+###############################################################################
 ### regression ###
-
+###############################################################################
 #' @export sse
 #' @rdname measures
-sse = makeMeasure(id="sse", minimize=TRUE, regr=TRUE, allowed.pred.types=c("response", "se"),
-  fun=function(task, model, pred, extra.args) {
+#' @usage none
+#' @format none
+sse = makeMeasure(id = "sse", minimize = TRUE, best = 0, worst = Inf,
+  properties = "regr",
+  allowed.pred.types = c("response", "se"),
+  fun = function(task, model, pred, extra.args) {
     sum((pred$data$response - pred$data$truth)^2)
   }
 )
 
 #' @export mse
 #' @rdname measures
-mse = makeMeasure(id="mse", minimize=TRUE, regr=TRUE, allowed.pred.types=c("response", "se"),
-  fun=function(task, model, pred, extra.args) {
+#' @usage none
+#' @format none
+mse = makeMeasure(id = "mse", minimize = TRUE, best = 0, worst = Inf,
+  properties = "regr",
+  allowed.pred.types = c("response", "se"),
+  fun = function(task, model, pred, extra.args) {
     mean((pred$data$response - pred$data$truth)^2)
   }
 )
 
 #' @export rmse
+#' @format none
 #' @rdname measures
-rmse = makeMeasure(id="rmse", minimize=TRUE, regr=TRUE, allowed.pred.types=c("response", "se"),
-  fun=function(task, model, pred, extra.args) {
+#' @usage none
+#' @format none
+rmse = makeMeasure(id = "rmse", minimize = TRUE, best = 0, worst = Inf,
+  properties = "regr",
+  allowed.pred.types = c("response", "se"),
+  fun = function(task, model, pred, extra.args) {
     mean((pred$data$response - pred$data$truth)^2)
   },
-  aggr = test.sqrt.of.mean 
+  aggr = test.sqrt.of.mean
 )
 
 #' @export medse
 #' @rdname measures
-medse = makeMeasure(id="medse", minimize=TRUE, regr=TRUE, allowed.pred.types=c("response", "se"),
-  fun=function(task, model, pred, extra.args) {
+#' @usage none
+#' @format none
+medse = makeMeasure(id = "medse", minimize = TRUE, best = 0, worst = Inf,
+  properties = "regr",
+  allowed.pred.types = c("response", "se"),
+  fun = function(task, model, pred, extra.args) {
     median((pred$data$response - pred$data$truth)^2)
   }
 )
 
 #' @export sae
 #' @rdname measures
-sae = makeMeasure(id="sae", minimize=TRUE, regr=TRUE, allowed.pred.types=c("response", "se"),
-  fun=function(task, model, pred, extra.args) {
+#' @usage none
+#' @format none
+sae = makeMeasure(id = "sae", minimize = TRUE, best = 0, worst = Inf,
+  properties = "regr",
+  allowed.pred.types = c("response", "se"),
+  fun = function(task, model, pred, extra.args) {
     sum(abs(pred$data$response - pred$data$truth))
   }
 )
 
 #' @export mae
 #' @rdname measures
-mae = makeMeasure(id="mae", minimize=TRUE, regr=TRUE, allowed.pred.types=c("response", "se"),
-  fun=function(task, model, pred, extra.args) {
+#' @usage none
+#' @format none
+mae = makeMeasure(id = "mae", minimize = TRUE, best = 0, worst = Inf,
+  properties = "regr",
+  allowed.pred.types = c("response", "se"),
+  fun = function(task, model, pred, extra.args) {
     mean(abs(pred$data$response - pred$data$truth))
   }
 )
 
 #' @export medae
 #' @rdname measures
-medae = makeMeasure(id="medae", minimize=TRUE, regr=TRUE, allowed.pred.types=c("response", "se"),
-  fun=function(task, model, pred, extra.args) {
+#' @usage none
+#' @format none
+medae = makeMeasure(id = "medae", minimize = TRUE, best = 0, worst = Inf,
+  properties = "regr",
+  allowed.pred.types = c("response", "se"),
+  fun = function(task, model, pred, extra.args) {
     median(abs(pred$data$response - pred$data$truth))
   }
 )
 
-
-# classif_multi
-
+###############################################################################
+### classif multi ###
+###############################################################################
 #' @export mmce
 #' @rdname measures
-mmce = makeMeasure(id="mmce", minimize=TRUE, classif=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
+#' @usage none
+#' @format none
+mmce = makeMeasure(id = "mmce", minimize = TRUE, best = 0, worst = 1,
+  properties = c("classif", "classif.multi"),
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
     mean(pred$data$response != pred$data$truth)
   }
 )
 
 #' @export acc
 #' @rdname measures
-acc = makeMeasure(id="acc", minimize=FALSE, classif=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
+#' @usage none
+#' @format none
+acc = makeMeasure(id = "acc", minimize = FALSE, best = 1, worst = 0,
+  properties = c("classif", "classif.multi"),
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
     mean(pred$data$response == pred$data$truth)
   }
 )
 
 #' @export ber
 #' @rdname measures
-ber = makeMeasure(id="ber", minimize=TRUE, classif=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
+#' @usage none
+#' @format none
+ber = makeMeasure(id = "ber", minimize = TRUE, best = 0, worst = 1,
+  properties = c("classif", "classif.multi"),
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
     n = length(pred$task.desc$class.levels) + 1L
-    mean(getConfMatrix(pred, relative=TRUE)[-n, n])
+    mean(getConfMatrix(pred, relative = TRUE)[-n, n])
   }
 )
 
+#' @export multiclass.auc
+#' @rdname measures
+#' @usage none
+#' @format none
+multiclass.auc = makeMeasure(id = "multiclass.auc", minimize = FALSE, best = 1, worst = 0,
+  properties = c("classif", "classif.multi"),
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
+    # pROC does allow NAs
+    requirePackages("pROC", "multiclass.auc")
+    resp = pred$data$response
+    predP = getProbabilities(pred)
+    # choose the probablity of the choosen response
+    predV = sapply(seq_row(predP), function(i) {
+      predP[i, resp[i]]
+    })
+    auc = multiclass.roc(response = resp, predictor = predV)$auc
+    as.numeric(auc)
+  }
+)
 
-# classif_two
-
+###############################################################################
+### classif binary ###
+###############################################################################
 #' @export auc
 #' @rdname measures
-auc = makeMeasure(id="auc", minimize=FALSE, classif=TRUE, only.binary=TRUE, allowed.pred.types="prob",
-  fun=function(task, model, pred, extra.args) {
+#' @usage none
+#' @format none
+auc = makeMeasure(id = "auc", minimize = FALSE, best = 1, worst = 0,
+  properties = "classif",
+  allowed.pred.types = "prob",
+  fun = function(task, model, pred, extra.args) {
     # ROCR does not work with NAs
     if (any(is.na(pred$data$response)) || length(unique(pred$data$truth)) == 1L)
       return(NA_real_)
-
     rpreds = asROCRPrediction(pred)
     ROCR::performance(rpreds, "auc")@y.values[[1L]]
   }
@@ -190,135 +291,234 @@ auc = makeMeasure(id="auc", minimize=FALSE, classif=TRUE, only.binary=TRUE, allo
 
 #' @export tp
 #' @rdname measures
-tp = makeMeasure(id="tp", minimize=FALSE, classif=TRUE, only.binary=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
+#' @usage none
+#' @format none
+tp = makeMeasure(id = "tp", minimize = FALSE, best = Inf, worst = 0,
+  properties = "classif",
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
     sum(pred$data$truth == pred$data$response & pred$data$response == pred$task.desc$positive)
   }
 )
 
 #' @export tn
 #' @rdname measures
-tn = makeMeasure(id="tn", minimize=FALSE, classif=TRUE, only.binary=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
+#' @usage none
+#' @format none
+tn = makeMeasure(id = "tn", minimize = FALSE, best = Inf, worst = 0,
+  properties = "classif",
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
     sum(pred$data$truth == pred$data$response & pred$data$response == pred$task.desc$negative)
   }
 )
 
 #' @export fp
 #' @rdname measures
-fp = makeMeasure(id="fp", minimize=TRUE, classif=TRUE, only.binary=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
+#' @usage none
+#' @format none
+fp = makeMeasure(id = "fp", minimize = TRUE, best = 0, worst = Inf,
+  properties = "classif",
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
     sum(pred$data$truth != pred$data$response & pred$data$response == pred$task.desc$positive)
   }
 )
 
 #' @export fn
 #' @rdname measures
-fn = makeMeasure(id="fn", minimize=TRUE, classif=TRUE, only.binary=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
+#' @usage none
+#' @format none
+fn = makeMeasure(id = "fn", minimize = TRUE, best = 0, worst = Inf,
+  properties = "classif",
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
     sum(pred$data$truth != pred$data$response & pred$data$response == pred$task.desc$negative)
   }
 )
 
-
 #' @export tpr
 #' @rdname measures
-tpr = makeMeasure(id="tpr", minimize=FALSE, classif=TRUE, only.binary=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
-    tp$fun(pred=pred) /
-      sum(pred$data$truth == pred$task.desc$positive)
+#' @usage none
+#' @format none
+tpr = makeMeasure(id = "tpr", minimize = FALSE, best = 1, worst = 0,
+  properties = "classif",
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
+    tp$fun(pred = pred) / sum(pred$data$truth == pred$task.desc$positive)
   }
 )
 
 #' @export tnr
 #' @rdname measures
-tnr = makeMeasure(id="tnr", minimize=FALSE, classif=TRUE, only.binary=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
-    tn$fun(pred=pred) /
-      sum(pred$data$truth == pred$task.desc$negative)
+#' @usage none
+#' @format none
+tnr = makeMeasure(id = "tnr", minimize = FALSE, best = 1, worst = 0,
+  properties = "classif",
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
+    tn$fun(pred = pred) / sum(pred$data$truth == pred$task.desc$negative)
   }
 )
 
 #' @export fpr
 #' @rdname measures
-fpr = makeMeasure(id="fpr", minimize=TRUE, classif=TRUE, only.binary=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
-    fp$fun(pred=pred) /
-      sum(pred$data$truth == pred$task.desc$negative)
+#' @usage none
+#' @format none
+fpr = makeMeasure(id = "fpr", minimize = TRUE, best = 0, worst = 1,
+  properties = "classif",
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
+    fp$fun(pred = pred) / sum(pred$data$truth == pred$task.desc$negative)
   }
 )
 
 #' @export fnr
 #' @rdname measures
-fnr = makeMeasure(id="fnr", minimize=TRUE, classif=TRUE, only.binary=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
-    fn$fun(pred=pred) /
-      sum(pred$data$truth == pred$task.desc$positive)
+#' @usage none
+#' @format none
+fnr = makeMeasure(id = "fnr", minimize = TRUE, best = 0, worst = 1,
+  properties = "classif",
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
+    fn$fun(pred = pred) / sum(pred$data$truth == pred$task.desc$positive)
   }
 )
 
 #' @export ppv
 #' @rdname measures
-ppv = makeMeasure(id="ppv", minimize=FALSE, classif=TRUE, only.binary=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
-    tp$fun(pred=pred) /
-      sum(pred$data$response == pred$task.desc$positive)
+#' @usage none
+#' @format none
+ppv = makeMeasure(id = "ppv", minimize = FALSE, best = 1, worst = 0,
+  properties = "classif",
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
+    tp$fun(pred = pred) / sum(pred$data$response == pred$task.desc$positive)
   }
 )
 
 #' @export npv
 #' @rdname measures
-npv = makeMeasure(id="npv", minimize=FALSE, classif=TRUE, only.binary=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
-    tn$fun(pred=pred) /
-      sum(pred$data$response == pred$task.desc$negative)
+#' @usage none
+#' @format none
+npv = makeMeasure(id = "npv", minimize = FALSE, best = 1, worst = 0,
+  properties = "classif",
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
+    tn$fun(pred = pred) / sum(pred$data$response == pred$task.desc$negative)
   }
 )
 
 #' @export fdr
 #' @rdname measures
-fdr = makeMeasure(id="fdr", minimize=TRUE, classif=TRUE, only.binary=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
-    fp$fun(pred=pred) /
-      sum(pred$data$response == pred$task.desc$positive)
+#' @usage none
+#' @format none
+fdr = makeMeasure(id = "fdr", minimize = TRUE, best = 0, worst = 1,
+  properties = "classif",
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
+    fp$fun(pred = pred) / sum(pred$data$response == pred$task.desc$positive)
   }
 )
 
 #' @export mcc
 #' @rdname measures
-mcc = makeMeasure(id="mcc", minimize=FALSE, classif=TRUE, only.binary=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
-    (tp$fun(pred=pred) *
-    tn$fun(pred=pred) -
-    fp$fun(pred=pred) *
-    fn$fun(pred=pred)) /
+#' @usage none
+#' @format none
+mcc = makeMeasure(id = "mcc", minimize = FALSE,
+  properties = "classif",
+  allowed.pred.types = c("response", "prob"), best = 1, worst = -1,
+  fun = function(task, model, pred, extra.args) {
+    (tp$fun(pred = pred) *
+    tn$fun(pred = pred) -
+    fp$fun(pred = pred) *
+    fn$fun(pred = pred)) /
     sqrt(prod(table(pred$data$truth, pred$data$response)))
   }
 )
 
 #' @export f1
 #' @rdname measures
-f1 = makeMeasure(id="f1", minimize=FALSE, classif=TRUE, only.binary=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
-    2*tp$fun(pred=pred) /
-    (sum(pred$data$truth == pred$task.desc$positive) + sum(pred$data$response == pred$task.desc$positive))
+#' @usage none
+#' @format none
+f1 = makeMeasure(id = "f1", minimize = FALSE, best = 1, worst = 0,
+  properties = "classif",
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
+    2 * tp$fun(pred = pred) /
+      (sum(pred$data$truth == pred$task.desc$positive) + sum(pred$data$response == pred$task.desc$positive))
   }
 )
 
 #' @export gmean
 #' @rdname measures
-gmean = makeMeasure(id="gmean", minimize=FALSE, classif=TRUE, only.binary=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
-    sqrt(tpr$fun(pred=pred) *
-         tnr$fun(pred=pred))
+#' @usage none
+#' @format none
+gmean = makeMeasure(id = "gmean", minimize = FALSE, best = 1, worst = 0,
+  properties = "classif",
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
+    sqrt(tpr$fun(pred = pred) * tnr$fun(pred = pred))
   }
 )
 
 #' @export gpr
 #' @rdname measures
-gpr = makeMeasure(id="gpr", minimize=FALSE, classif=TRUE, only.binary=TRUE, allowed.pred.types=c("response", "prob"),
-  fun=function(task, model, pred, extra.args) {
-    sqrt(ppv$fun(pred=pred) *
-         tpr$fun(pred=pred))
+#' @usage none
+#' @format none
+gpr = makeMeasure(id = "gpr", minimize = FALSE, best = 1, worst = 0,
+  properties = "classif",
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
+    sqrt(ppv$fun(pred = pred) * tpr$fun(pred = pred))
+  }
+)
+
+###############################################################################
+### survival ###
+###############################################################################
+#' @export cindex
+#' @rdname measures
+#' @usage none
+#' @format none
+cindex = makeMeasure(id = "cindex", minimize = FALSE, best = 1, worst = 0,
+  properties = "surv",
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
+    requirePackages("Hmisc")
+    # FIXME: this will break after switch to interval2 format
+    s = Surv(pred$data$truth.time, pred$data$truth.event)
+    rcorr.cens(-1 * pred$data$response, s)[["C Index"]]
+  }
+)
+
+###############################################################################
+### cost-sensitive ###
+###############################################################################
+#' @export meancosts
+#' @rdname measures
+meancosts = makeMeasure(id = "meancosts", minimize = TRUE, best = 0, worst = Inf,
+  properties = "costsens",
+  allowed.pred.types = "response",
+  fun = function(task, model, pred, extra.args) {
+    classes = as.character(pred$data$response)
+    ids = pred$data$id
+    costs = task$env$costs
+    y = mapply(function(id, cl) {
+      costs[id, cl]
+    }, ids, classes, SIMPLIFY = TRUE, USE.NAMES = FALSE)
+    mean(y)
+  }
+)
+
+#' @export mcp
+#' @rdname measures
+mcp = makeMeasure(id = "mcp", minimize = TRUE, best = 0, worst = Inf,
+  properties = "costsens",
+  allowed.pred.types = "response",
+  fun = function(task, model, pred, extra.args) {
+    mc = meancosts$fun(task, NULL, pred, extra.args)
+    oc = mean(apply(task$env$costs, 1L, min))
+    mc - oc
   }
 )

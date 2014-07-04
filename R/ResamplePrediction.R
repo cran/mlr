@@ -11,36 +11,35 @@
 #' a numeric vector, its length equals the number of iterations.
 #' @name ResamplePrediction
 #' @rdname ResamplePrediction
+#' @family resample
 NULL
 
 makeResamplePrediction = function(instance, preds.test, preds.train) {
+  # FIXME: prealloc
   data = data.frame()
   for (i in seq_len(instance$desc$iters)) {
     if (!is.null(preds.test[[i]]))
-      data = rbind(data, cbind(preds.test[[i]]$data, iter=i, set="test"))
+      data = rbind(data, cbind(preds.test[[i]]$data, iter = i, set = "test"))
     if (!is.null(preds.train[[i]]))
-      data = rbind(data, cbind(preds.train[[i]]$data, iter=i, set="train"))
+      data = rbind(data, cbind(preds.train[[i]]$data, iter = i, set = "train"))
   }
   p1 = preds.test[[1L]]
-  time =
-  structure(list(
+  setClasses(list(
     instance = instance,
     predict.type = p1$predict.type,
     data = data,
     threshold = p1$threshold,
     task.desc = p1$task.desc,
     time = extractSubList(preds.test, "time")
-  ), class=c("ResamplePrediction", "Prediction"))
+  ), c("ResamplePrediction", "Prediction"))
 }
 
-#' @S3method print ResamplePrediction
+#' @export
 print.ResamplePrediction = function(x, ...) {
   cat("Resampled Prediction for:\n")
   print(x$instance$desc)
   catf("predict.type: %s", x$predict.type)
   catf("threshold: %s", collapse(sprintf("%s=%.2f", names(x$threshold), x$threshold)))
   catf("time (mean): %.2f", mean(x$time))
-  catf(printStrToChar(as.data.frame(x)))
+  print(head(as.data.frame(x)))
 }
-
-

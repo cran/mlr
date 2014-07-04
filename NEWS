@@ -1,0 +1,79 @@
+mlr_2.0:
+- mlr now supports survival analysis models (experimental)
+- mlr now supports cost-sensitive learning with example-specific costs (experimental)
+- mlr now suppo
+- added FeatSelWrapper and getFeatSelResult
+- performance functions now allows to compute multiple measures
+- added multiclass.roc performance measure
+- observation weights can now also be specified in the task
+- added option on.learner.warning to configureMlr to suppress warnings in learners
+- fixed a bug in stratified CV where elements where not distributed as evenly as possible
+  when the split number did not divide the number of observation
+- added class.weights param for classif.svm
+- add fix.factors option to randomForest
+- generic standard error estimation in randomForest and BaggingWrapper
+- added fixup.data option to task constructors, so basic data cleanup can be performed
+- show.info is now an option in configureMlr
+- learners now support taggable properties that can be queried and changed. also see below.
+- listLearners(forTask) was unified
+- removed tuning via R' optim method (makeTuneControlOptim), as the optimizers in there really make
+  no sense for tuning
+- Grid search was improved so one does not have to discretize parameters manually anymore
+  (although this is still possible). Instead one now passes a 'resolution' argument. Internally we 
+  now use ParamHelpers::generateGridDesign for this.
+- toy tasks were added for convenient usage: iris.task, sonar.task, bh.task
+  they also also have corresponding resampling instances, so you directly start working, e.g., iris.rin
+
+- new learners:
+-- classif.knn
+-- classif.IBk
+-- classif.LiblineaRBinary
+-- classif.LiblineaRLogReg
+-- classif.LiblineaRMultiClass
+-- classif.linDA
+-- classif.plr
+-- classif.plsDA
+-- classif.rrlda
+-- regr.crs
+-- regr.IBk
+-- regr.mob
+-- surv.CoxBoost
+-- surv.coxph
+-- surv.glmboost
+-- surv.glmnet
+-- surv.penalized
+-- surv.randomForestSRC
+
+- new measures
+-- multiauc
+-- cindex
+--  meancosts, mcp
+
+- new functions
+-- removeConstantFeatures, normalizeFeatures, dropFeatures
+-- getTaskNFeats
+-- hasProperties, getProperties, setProperties, addProperties, removeProperties
+-- showHyperPars
+-- setId
+-- listMeasures
+-- isFailureModel
+-- plotLearnerPrediction
+-- plotThreshVsPerf
+-- holdout, subsample, crossval, repcv, bootstrapOOB, bootstrapB632, bootstrapB632plus
+-- listFilterMethods, getFilterValues, filterFeatures, makeFilterWrapper, plotFilterValues
+-- benchmark
+-- getPerformances, getAggrPerformances, getPredictions, getFilterResult, getTuneResult, getFeatSelResult
+-- oversample, undersample, makeOversampleWrapper, makeUndersampleWrapper
+-- smote, makeSmoteWrapper
+-- downsample, makeDownsampleWrapper
+-- makeWeightedClassesWrapper
+-- makeTuneControlGenSA
+-- makeModelMultiplexer, makeModelMultiplexerParamSet
+-- makeCostSensTask, makeCostSensClassifWrapper, makeCostSensRegrWrapper, makeCostsSensWeightedPairsLearner
+-- makeSurvTask
+-- normalizeFeatures
+-- createDummyFeatures
+-- impute, reimpute, makeImputeWrapper, lots of impute<Method>, makeImputeMethod 
+
+mlr_1.1:
+- Initial release to CRAN

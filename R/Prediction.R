@@ -1,8 +1,9 @@
-#' Prediction object.
+#' @title Prediction object.
 #'
-#' Result from \code{\link{predict}}.
+#' @description
+#' Result from \code{\link{predict.WrappedModel}}.
 #' Use \code{as.data.frame} to access all information in a convenient format.
-#' The function \code{\link{getProbabilities}} is useful to access predicted probabilities..
+#' The function \code{\link{getProbabilities}} is useful to access predicted probabilities.
 #'
 #' The \code{data} member of the object contains always the following columns:
 #' \code{id}, index numbers of predicted cases from the task, \code{response}
@@ -25,46 +26,103 @@
 NULL
 
 makePrediction = function(task.desc, id, truth, predict.type, y, time) {
-	data = list()
-	# if null no col in data present
-	data[["id"]] = id
-	data[["truth"]] = truth
-  if (predict.type == "response") {
-    data[["response"]] = y
-  } else if (predict.type == "prob") {
-		data[["prob"]] = y
-  } else if (predict.type == "se"){
-    data[["response"]] = y[,1L]
-    data[["se"]] = y[,2L]
-  }
-  data = as.data.frame(data)
-  # fix columnnames for prob if strage chars are in factor levels
-	i = grep("prob.", colnames(data))
-	if (length(i))
-		colnames(data)[i] = paste("prob.", colnames(y), sep="")
+  UseMethod("makePrediction")
+}
 
-  p = structure(list(
+#' @export
+makePrediction.TaskDescRegr = function(task.desc, id, truth, predict.type, y, time) {
+  data = namedList(c("id", "truth", "response", "se"))
+  data$id = id
+  data$truth = truth
+  if (predict.type == "response") {
+    data$response = y
+  } else {
+    data$response = y[, 1L]
+    data$se = y[, 2L]
+  }
+
+  makeS3Obj(c("PredictionRegr", "Prediction"),
+    predict.type = predict.type,
+    data = as.data.frame(filterNull(data)),
+    threshold = NA_real_,
+    task.desc = task.desc,
+    time = time
+  )
+}
+
+#' @export
+makePrediction.TaskDescClassif = function(task.desc, id, truth, predict.type, y, time) {
+  data = namedList(c("id", "truth", "response", "prob"))
+  data$id = id
+  data$truth = truth
+  if (predict.type == "response") {
+    data$response = y
+    data = as.data.frame(filterNull(data))
+  } else {
+    data$prob = y
+    data = as.data.frame(filterNull(data))
+    # fix columnnames for prob if strage chars are in factor levels
+    i = grep("prob.", names(data), fixed = TRUE)
+    if (length(i))
+      names(data)[i] = paste0("prob.", colnames(y))
+  }
+
+  p = makeS3Obj(c("PredictionClassif", "Prediction"),
     predict.type = predict.type,
     data = data,
     threshold = NA_real_,
     task.desc = task.desc,
     time = time
-  ), class="Prediction")
+  )
 
   if (predict.type == "prob") {
     th = rep(1/length(task.desc$class.levels), length(task.desc$class.levels))
     names(th) = task.desc$class.levels
     p = setThreshold(p, th)
   }
+
   return(p)
 }
 
-#' @S3method print Prediction
+#' @export
+makePrediction.TaskDescSurv = function(task.desc, id, truth, predict.type, y, time) {
+  data = namedList(c("id", "truth.time", "truth.event", "response"))
+  data$id = id
+  # FIXME: recode times
+  data$truth.time = truth[, 1L]
+  data$truth.event = truth[, 2L]
+  data$response = y
+
+  makeS3Obj(c("PredictionSurv", "Prediction"),
+    predict.type = predict.type,
+    data = as.data.frame(filterNull(data)),
+    threshold = NA_real_,
+    task.desc = task.desc,
+    time = time
+  )
+}
+
+#' @export
+makePrediction.TaskDescCostSens = function(task.desc, id, truth, predict.type, y, time) {
+  data = namedList(c("id", "response"))
+  data$id = id
+  data$response = y
+  data = as.data.frame(filterNull(data))
+
+  makeS3Obj(c("PredictionCostSens", "Prediction"),
+    predict.type = predict.type,
+    data = data,
+    threshold = NA_real_,
+    task.desc = task.desc,
+    time = time
+  )
+}
+
+#' @export
 print.Prediction = function(x, ...) {
   catf("Prediction:")
   catf("predict.type: %s", x$predict.type)
   catf("threshold: %s", collapse(sprintf("%s=%.2f", names(x$threshold), x$threshold)))
   catf("time: %.2f", x$time)
-  catf(printStrToChar(as.data.frame(x)))
+  print(head(as.data.frame(x)))
 }
-

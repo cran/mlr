@@ -1,86 +1,79 @@
-#' Fuse learner with filter method.
-#' 
+#' @title Fuse learner with a feature filter method.
+#'
+#' @description
 #' Fuses a base learner with a filter method. Creates a learner object, which can be
-#' used like any other learner object. 
-#' Internally Uses \code{\link{filterFeatures}} before every model fit. 
-#' 
-#' Look at package FSelector for details on the filter algorithms. 
-#' 
-#' After training, the selected features can be retrieved with 
-#' \code{\link{getTuneResult}}.
-#' 
-#' @param learner [\code{\link[mlr]{Learner}}]\cr 
-#'   The learner.  
+#' used like any other learner object.
+#' Internally uses \code{\link{filterFeatures}} before every model fit.
+#'
+#' After training, the selected features can be retrieved with
+#' \code{\link{getFilteredFeatures}}.
+#'
+#' Note that observation weights do not influence the filtering and are simply passed
+#' down to the next learner.
+#'
+#' @template arg_learner
 #' @param fw.method [\code{character(1)}]\cr
-#'   Filter method. Available are:
-#'   linear.correlation, rank.correlation, information.gain, gain.ratio, symmetrical.uncertainty, chi.squared, random.forest.importance, relief, oneR
-#'   Default is random.forest.importance.
-#' @param fw.perc [\code{numeric(1)}]\cr
-#'   Percentage of highest ranking features to select after filtering.  
-#'   Default is 1 (=100 percent).
-#' @return [\code{\link{Learner}}].
+#'   See \code{\link{getFilterValues}}.
+#'   Default is \dQuote{random.forest.importance}.
+#' @param fw.select [\code{character(1)}]\cr
+#'   See \code{\link{filterFeatures}}.
+#'   Default is \dQuote{perc}.
+#' @param fw.val [\code{numeric(1)}]\cr
+#'   See \code{\link{filterFeatures}}.
+#' @template ret_learner
 #' @export
+#' @family filter
 #' @examples
-#' task = makeClassifTask(data=iris, target="Species")
+#' task = makeClassifTask(data = iris, target = "Species")
 #' lrn = makeLearner("classif.lda")
 #' inner = makeResampleDesc("Holdout")
 #' outer = makeResampleDesc("CV", iters = 2)
-#' lrn = makeFilterWrapper(lrn, fw.perc=0.5)
+#' lrn = makeFilterWrapper(lrn, fw.val = 0.5)
 #' mod = train(lrn, task)
 #' print(getFilteredFeatures(mod))
+#' # now nested resampling, where we extract the features that the filter method selected
 #' r = resample(lrn, task, outer, extract = function(model) {
-#' getFilteredFeatures(model)
+#'   getFilteredFeatures(model)
 #' })
 #' print(r$extract)
-makeFilterWrapper = function(learner, fw.method="random.forest.importance", fw.perc=1) {
-  checkArg(learner, "Learner")
-  meths = c("linear.correlation", "rank.correlation", "information.gain", "gain.ratio", 
-    "symmetrical.uncertainty", "chi.squared", "random.forest.importance", "relief", "oneR")
-  checkArg(fw.method, choices=meths)
-  checkArg(fw.perc, "numeric", len=1L, na.ok=FALSE, lower=0, upper=1)
-  id = paste(learner$id, "filtered", sep=".")
+makeFilterWrapper = function(learner, fw.method = "random.forest.importance", fw.select = "perc", fw.val) {
+  learner = checkLearner(learner)
+  assertChoice(fw.method, choices = listFilterMethods())
+  checkFilterArguments(select = fw.select, val = fw.val)
+  id = paste(learner$id, "filtered", sep = ".")
   ps = makeParamSet(
-    makeDiscreteLearnerParam(id="fw.method", values=meths),
-    makeNumericLearnerParam(id="fw.perc")
+    makeDiscreteLearnerParam(id = "fw.method", values = listFilterMethods()),
+    makeDiscreteLearnerParam(id = "fw.select", values = c("perc", "abs", "threshold")),
+    makeNumericLearnerParam(id = "fw.val")
   )
-  pv = list(fw.method=fw.method, fw.perc=fw.perc)
-  # fixme scale to 0,1
-  makeBaseWrapper(id, learner, package="FSelector", par.set=ps, par.vals=pv, 
-    cl="FilterWrapper")
-  # fixme: check that for some the inputs have to be all num. or accept error in train and NA in predict?
+  pv = list(fw.method = fw.method, fw.select = fw.select, fw.val = fw.val)
+  makeBaseWrapper(id, learner, package = "FSelector", par.set = ps, par.vals = pv, cl = "FilterWrapper")
 }
 
-#' @S3method trainLearner FilterWrapper
-trainLearner.FilterWrapper = function(.learner, .task, .subset, fw.method, fw.perc, ...) {
-  .task = subsetTask(.task, subset=.subset)  
-  tn = .task$task.desc$target
-  vals = filterFeatures(.task)
-  # fixme: are all filter vales high=good?
-  vals = sort(vals, decreasing=TRUE)
-  inds = seq_len(round(fw.perc*length(vals)))
-  features = names(vals)[inds]
-  # we have already subsetted obs
-  .task = subsetTask(.task, features=features)  
-  m = train(.learner$next.learner, .task)
-  # fixme: enter correct obejcts (features, etc)
-  x = makeChainModel(next.model=m, cl = "FilterModel")
-  return(x)
+
+#' @export
+trainLearner.FilterWrapper = function(.learner, .task, .subset, .weights = NULL, fw.method = "random.forest.importance", fw.select = "perc", fw.val, ...) {
+  .task = subsetTask(.task, subset = .subset)
+  .task = filterFeatures(.task, method = fw.method, select = fw.select, val = fw.val)
+  m = train(.learner$next.learner, .task, weights = .weights)
+  makeChainModel(next.model = m, cl = "FilterModel")
 }
 
-#' @S3method predictLearner FilterWrapper
+
+#' @export
 predictLearner.FilterWrapper = function(.learner, .model, .newdata, ...) {
-  .newdata = .newdata[, .model$learner.model$next.model$features, drop=FALSE]  
-  NextMethod(.newdata=.newdata)
+  NextMethod(.newdata = .newdata[, .model$learner.model$next.model$features, drop = FALSE])
 }
+
 
 #' Returns the filtered features.
-#' 
-#' @param model [\code{\link[mlr]{WrappedModel}}]\cr 
+#'
+#' @param model [\code{\link{WrappedModel}}]\cr
 #'   Trained Model created with \code{\link{makeFilterWrapper}}.
 #' @return [\code{character}].
 #' @export
+#' @family filter
 getFilteredFeatures = function(model) {
   model$learner.model$next.model$features
 }
-
 

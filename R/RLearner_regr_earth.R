@@ -1,28 +1,24 @@
-#' @S3method makeRLearner regr.earth
+#' @export
 makeRLearner.regr.earth = function() {
   makeRLearnerRegr(
     cl = "regr.earth",
     package = "earth",
     par.set = makeParamSet(
-      makeIntegerLearnerParam(id="degree", default=1L, lower=1L),
-      makeNumericLearnerParam(id="penalty"),
-      makeIntegerLearnerParam(id="nprune")
+      makeIntegerLearnerParam(id = "degree", default = 1L, lower = 1L),
+      makeNumericLearnerParam(id = "penalty"),
+      makeIntegerLearnerParam(id = "nprune")
       ),
-    missings = FALSE,
-    numerics = TRUE,
-    factors = TRUE,
-    se = FALSE,
-    weights = FALSE
+    properties = c("numerics", "factors")
   )
 }
 
-#' @S3method trainLearner regr.earth
-trainLearner.regr.earth = function(.learner, .task, .subset, .weights,  ...) {
+#' @export
+trainLearner.regr.earth = function(.learner, .task, .subset, .weights = NULL,  ...) {
   f = getTaskFormula(.task)
-  earth(f, data=getTaskData(.task, .subset), ...)
+  earth(f, data = getTaskData(.task, .subset), ...)
 }
 
-#' @S3method predictLearner regr.earth
+#' @export
 predictLearner.regr.earth = function(.learner, .model, .newdata, ...) {
-  predict(.model$learner.model, newdata=.newdata)[,1L]
+  predict(.model$learner.model, newdata = .newdata)[, 1L]
 }

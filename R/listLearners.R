@@ -1,110 +1,98 @@
-#' Find matching learning algorithms.
+#' @title Find matching learning algorithms.
 #'
+#' @description
 #' Returns the class names of learning algorithms which have specific characteristics, e.g.
 #' whether they supports missing values, case weights, etc.
 #'
-#' The default for all search parameters is \code{NA}, meaning: property is not required, do not care.
-#'
 #' Note that the packages of all learners are loaded during the search.
 #'
-#' @param type [\code{character(1)}]\cr
-#'   Type of the learning algorithm, either \dQuote{classif} or \dQuote{regr}.
-#' @param numerics [\code{logical(1)}]\cr
-#'   Supports real-valued features?
-#' @param factors [\code{logical(1)}]\cr
-#'   Supports factor features?
-#' @param missings [\code{logical(1)}]\cr
-#'   Supports missing values in features?
-#' @param weights [\code{logical(1)}]\cr
-#'   Supports case weights?
-#' @param oneclass [\code{logical(1)}]\cr
-#'   Supports oneclass problems?
-#' @param twoclass [\code{logical(1)}]\cr
-#'   Supports twoclass problems?
-#' @param multiclass [\code{logical(1)}]\cr
-#'   Supports multiclass problems?
-#' @param prob [\code{logical(1)}]\cr
-#'   Can predict probabilities (classification)?
-#' @param se [\code{logical(1)}]\cr
-#'   Can predict standard errors (regression)?
+#' @template arg_task_or_type
+#' @param properties [\code{character}]\cr
+#'   Set of required properties to filter for. Default is \code{character(0)}.
 #' @param quiet [\code{logical(1)}]\cr
 #'   Construct learners quietly to check their properties, shows no package startup messages.
 #'   Turn off if you suspect errors.
-#'   Default is code{TRUE}.
+#'   Default is \code{TRUE}.
 #' @param warn.missing.packages [\code{logical(1)}]\cr
 #'   If some learner cannot be constructed because its package is missing,
 #'   should a warning be shown?
-#'   Default is code{TRUE}.
-#' @return [\code{character}]. Class names of matching learners.
+#'   Default is \code{TRUE}.
+#' @param create [\code{logical(1)}]\cr
+#'   Instantiate objects (or return strings)?
+#'   Default is \code{FALSE}.
+#' @return [\code{character} | \code{list} of \code{\link{Learner}}]. Class names of matching
+#'   learners or instantiated objects.
 #' @export
-listLearners = function(type=NA, numerics=NA, factors=NA,
-                        missings=NA, weights=NA,
-                        oneclass=NA, twoclass=NA, multiclass=NA,
-                        prob=NA, se=NA, quiet=TRUE,
-                        warn.missing.packages=TRUE) {
+listLearners  = function(obj = NA_character_, properties = character(0L),
+  quiet = TRUE, warn.missing.packages = TRUE, create = FALSE) {
 
-  checkArg(type, choices=list("classif", "regr", NA), NA)
-  checkArg(numerics, "logical", len=1L, na.ok=TRUE)
-  checkArg(factors, "logical", len=1L, na.ok=TRUE)
-  checkArg(missings, "logical", len=1L, na.ok=TRUE)
-  checkArg(weights, "logical", len=1L, na.ok=TRUE)
-  checkArg(oneclass, "logical", len=1L, na.ok=TRUE)
-  checkArg(twoclass, "logical", len=1L, na.ok=TRUE)
-  checkArg(multiclass, "logical", len=1L, na.ok=TRUE)
-  checkArg(prob, "logical", len=1L, na.ok=TRUE)
-  checkArg(se, "logical", len=1L, na.ok=TRUE)
-  checkArg(warn.missing.packages, "logical", len=1L, na.ok=FALSE)
-
-  meths = as.character(methods("makeRLearner"))
-  # FIXME preallocate
-  res = list()
-  errs = list()
-  for (m in meths) {
-    if (quiet)
-      suppressAll(lrn <- try(do.call(m, list()), silent=TRUE))
-    else
-      lrn = try(do.call(m, list()))
-    if (is.error(lrn)) {
-      errs = c(errs, strsplit(as.character(m), "makeRLearner.")[[1L]][2L])
-    } else {
-      if (
-        ( is.na(type) || type == lrn$type ) &&
-          ( is.na(numerics) || numerics == lrn$numerics ) &&
-          ( is.na(factors) || factors == lrn$factors ) &&
-          ( is.na(missings) || missings == lrn$missings ) &&
-          ( is.na(weights) || weights == lrn$weights  ) &&
-          ( is.na(oneclass) || oneclass == lrn$oneclass ) &&
-          ( is.na(twoclass) || twoclass == lrn$twoclass ) &&
-          ( is.na(multiclass) || multiclass == lrn$multiclass ) &&
-          ( is.na(prob) || prob == lrn$prob ) &&
-          ( is.na(se) || se == lrn$se )
-      ) {
-        res[[length(res)+1L]] = lrn
-      }
-    }
-  }
-  if (warn.missing.packages && length(errs))
-    warningf("The following learners could not be constructed, probably because their packages are not installed:\n%s\nCheck ?learners to see which packages you need or install mlr with all suggestions.", collapse(errs))
-  sapply(res, function(lrn) class(lrn)[1L])
+  if (!missing(obj))
+    assert(checkCharacter(obj), checkClass(obj, "SupervisedTask"))
+  assertCharacter(properties, any.missing = FALSE)
+  assertFlag(warn.missing.packages)
+  assertFlag(create)
+  UseMethod("listLearners")
 }
 
-#' @param task [\code{\link{SupervisedTask}}]\cr
-#'   The task. Learners are returned that are applicable.
+
 #' @export
 #' @rdname listLearners
-listLearnersForTask = function(task, weights=NA, prob=NA, se=NA, warn.missing.packages=TRUE) {
-  checkArg(task, "SupervisedTask")
+listLearners.default  = function(obj, properties = character(0L),
+  quiet = TRUE, warn.missing.packages = TRUE, create = FALSE) {
+
+  listLearners.character(obj = NA_character_, properties, quiet, warn.missing.packages, create)
+}
+
+#' @export
+#' @rdname listLearners
+listLearners.character  = function(obj, properties = character(0L),
+  quiet = TRUE, warn.missing.packages = TRUE, create = FALSE) {
+
+  assertChoice(obj, choices = c("classif", "regr", "surv", "costsens", NA_character_))
+  type = obj
+  meths = as.character(methods("makeRLearner"))
+  res = err = vector("list", length(meths))
+  for (i in seq_along(meths)) {
+    m = meths[[i]]
+    if (quiet)
+      suppressAll(lrn <- try(do.call(m, list()), silent = TRUE))
+    else
+      lrn = try(do.call(m, list()))
+
+    if (is.error(lrn)) {
+      err[[i]] = strsplit(as.character(m), "makeRLearner.")[[1L]][2L]
+    } else if ((is.na(type) || type == lrn$type) && all(properties %in% lrn$properties)) {
+        res[[i]] = lrn
+    }
+  }
+  res = filterNull(res)
+  err = filterNull(err)
+  if (warn.missing.packages && length(err))
+    warningf("The following learners could not be constructed, probably because their packages are not installed:\n%s\nCheck ?learners to see which packages you need or install mlr with all suggestions.", collapse(err))
+  if (create)
+    return(res)
+  else
+    return(vcapply(res, getClass1))
+}
+
+#' @export
+#' @rdname listLearners
+listLearners.SupervisedTask = function(obj, properties = character(0L),
+  quiet = TRUE, warn.missing.packages = TRUE, create = FALSE) {
+
+  task = obj
+  assertCharacter(properties, any.missing = FALSE)
   td = task$task.desc
 
-  numerics = ifelse(td$n.feat["numerics"] > 0L, TRUE, NA)
-  factors = ifelse(td$n.feat["factors"] > 0L, TRUE, NA)
-  missings = ifelse(td$has.missings, TRUE, NA)
-  oneclass = ifelse(td$type=="classif" && length(td$class.levels) == 1L, TRUE, NA)
-  twoclass = ifelse(td$type=="classif" && length(td$class.levels) == 2L, TRUE, NA)
-  multiclass = ifelse(td$type=="classif" && length(td$class.levels) > 2L, TRUE, NA)
+  props = character(0L)
+  if (td$n.feat["numerics"] > 0L) props = c(props, "numerics")
+  if (td$n.feat["factors"] > 0L) props = c(props, "factors")
+  if (td$has.missings) props = c(props, "missings")
+  if (td$type == "classif") {
+    if (length(td$class.levels) == 1L) props = c(props, "oneclass")
+    if (length(td$class.levels) == 2L) props = c(props, "twoclass")
+    if (length(td$class.levels) >= 3L) props = c(props, "multiclass")
+  }
 
-  listLearners(type=td$type, numerics=numerics, factors=factors,
-               missings=missings, weights=weights,
-               oneclass=oneclass, twoclass=twoclass, multiclass=multiclass,
-               prob=prob, se=se, warn.missing.packages=warn.missing.packages)
+  listLearners.character(td$type, union(props, properties), quiet, warn.missing.packages, create)
 }

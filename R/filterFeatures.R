@@ -1,35 +1,49 @@
-#FIXME for which tasks do the filters work?
-
-#' Filter features by using a numerical importance criterion.
-#' Calculates numerical importance values for all features. 
-#' Thresholding of these values can be used to select \dQuote{useful} features.
-#' Look at package FSelector for details on the filter algorithms. 
-#' 
-#' @param task [\code{\link[mlr]{SupervisedTask}}]\cr 
-#'   The task.  
+#' @title Filter features by thresholding filter values.
+#'
+#' @description
+#' First, calls \code{\link{getFilterValues}}.
+#' Features are then selected via \code{select} and \code{val}.
+#'
+#' @template arg_task
 #' @param method [\code{character(1)}]\cr
-#'   Filter method. Available are:
-#'   \dQuote{linear.correlation}, \dQuote{rank.correlation}, \dQuote{information.gain}, 
-#'   \dQuote{gain.ratio}, \dQuote{symmetrical.uncertainty}, \dQuote{chi.squared}, 
-#'   \dQuote{random.forest.importance}, \dQuote{relief}, \dQuote{oneR}
+#'   See \code{\link{getFilterValues}}.
 #'   Default is \dQuote{random.forest.importance}.
-#' @return [\code{numeric}]. A named numeric vector that contains an importance value 
-#'   for each feature.
+#' @param select [\code{character(1)}]\cr
+#'   How to select top-scoring features.
+#'   \dQuote{perc} = select top-scoring percentage, \dQuote{abs} = select absolute number
+#'   of top-scoring features, \dQuote{threshold} = select all features whose
+#'   criterion value is >= \code{val}.
+#'   Default is \dQuote{perc}.
+#' @param val  [\code{numeric(1)}]\cr
+#'   Depends on \code{select}:
+#'   Either a percentage from [0, 1], a number of features or a threshold value for the criterion.
+#' @param ... [any]\cr
+#'   Passed down to selected method.
+#' @template ret_task
 #' @export
-filterFeatures = function(task, method="random.forest.importance") {
-  requirePackages("FSelector", "filterFeatures")
-  checkArg(task, "SupervisedTask") 
-  checkArg(method, choices=c("linear.correlation", "rank.correlation", "information.gain", 
-    "gain.ratio", "symmetrical.uncertainty", "chi.squared", "random.forest.importance", 
-    "relief", "oneR"))
-  tn = task$task.desc$target
-  f = getTaskFormulaAsString(task)
-  data = getTaskData(task)
-  fun = get(method, envir=getNamespace("FSelector"))
-  y = fun(as.formula(f), data)  
-  vals = y[,1]
-  names(vals) = rownames(y)
-  return(vals)
-} 
- 
+#' @family filter
+filterFeatures = function(task, method = "random.forest.importance", select = "perc", val, ...) {
+  # does checks + loads FSelector
+  assertChoice(method, choices = listFilterMethods())
+  checkFilterArguments(select = select, val = val)
+  fvals = getFilterValues(task = task, method = method, ...)
+  d = fvals$data
+  p = nrow(d)
+  nfirst = switch(select,
+    perc = round(val * p),
+    abs = val,
+    sum(d$val >= val)
+  )
+  nfirst = min(max(0, nfirst), p)
+  d = sortByCol(d, "val", asc = FALSE)
+  subsetTask(task, features = d$name[seq_len(nfirst)])
+}
 
+checkFilterArguments = function(select, val) {
+  assertChoice(select, choices = c("perc", "abs", "threshold"))
+  switch(select,
+    perc = assertNumber(val, lower = 0, upper = 1),
+    abs = assertCount(val),
+    threshold = assertNumber(val)
+  )
+}

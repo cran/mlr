@@ -1,34 +1,41 @@
-#' @S3method makeRLearner regr.nnet
+#' @export
 makeRLearner.regr.nnet = function() {
   makeRLearnerRegr(
     cl = "regr.nnet",
     package = "nnet",
     par.set = makeParamSet(
-      makeIntegerLearnerParam(id="size", default=3L, lower=0),
-      makeIntegerLearnerParam(id="maxit", default=100L, lower=1L),
-      makeNumericLearnerParam(id="decay", default=0, lower=0)
+      makeIntegerLearnerParam(id = "size", default = 3L, lower = 0L),
+      makeIntegerLearnerParam(id = "maxit", default = 100L, lower = 1L),
+      makeLogicalLearnerParam(id = "linout", default = FALSE, requires = expression(entropy==FALSE && softmax==FALSE && censored==FALSE)),
+      makeLogicalLearnerParam(id = "entropy", default = FALSE, requires = expression(linout==FALSE && softmax==FALSE && censored==FALSE)),
+      makeLogicalLearnerParam(id = "softmax", default = FALSE, requires = expression(entropy==FALSE && linout==FALSE && censored==FALSE)),
+      makeLogicalLearnerParam(id = "censored", default = FALSE, requires = expression(linout==FALSE && softmax==FALSE && entropy==FALSE)),
+      makeLogicalLearnerParam(id = "skip", default = FALSE),
+      makeNumericLearnerParam(id = "rang", default = 0.7),
+      makeNumericLearnerParam(id = "decay", default = 0, lower = 0),
+      makeLogicalLearnerParam(id = "Hess", default = FALSE),
+      makeLogicalLearnerParam(id = "trace", default = TRUE),
+      makeIntegerLearnerParam(id = "MaxNWts", default = 1000L, lower = 1L),
+      makeNumericLearnerParam(id = "abstoll", default = 1.0e-4),
+      makeNumericLearnerParam(id = "reltoll", default = 1.0e-8)
     ),
-    par.vals = list(size=3L),
-    missings = FALSE,
-    numerics = TRUE,
-    factors = TRUE,
-    se = FALSE,
-    weights = TRUE
+    par.vals = list(size = 3L),
+    properties = c("numerics", "factors", "weights")
   )
 }
 
-#' @S3method trainLearner regr.nnet
-trainLearner.regr.nnet = function(.learner, .task, .subset, .weights,  ...) {
-  if (missing(.weights)) {
+#' @export
+trainLearner.regr.nnet = function(.learner, .task, .subset, .weights = NULL,  ...) {
+  if (is.null(.weights)) {
     f = getTaskFormula(.task)
-    nnet(f, data=getTaskData(.task, .subset), linout=TRUE, ...)
+    nnet(f, data = getTaskData(.task, .subset), linout = TRUE, ...)
   } else  {
     f = as.formula(getTaskFormulaAsString(.task))
-    nnet(f, data=getTaskData(.task, .subset), linout=TRUE, weights=.weights, ...)
+    nnet(f, data = getTaskData(.task, .subset), linout = TRUE, weights = .weights, ...)
   }
 }
 
-#' @S3method predictLearner regr.nnet
+#' @export
 predictLearner.regr.nnet = function(.learner, .model, .newdata, ...) {
-  predict(.model$learner.model, newdata=.newdata, ...)[,1L]
+  predict(.model$learner.model, newdata = .newdata, ...)[, 1L]
 }

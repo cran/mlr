@@ -1,23 +1,24 @@
-#' @S3method getParamSet BaseWrapper
+#' @export
 getParamSet.BaseWrapper = function(learner) {
   c(learner$par.set, getParamSet(learner$next.learner))
-} 
+}
 
-#' @S3method getHyperPars BaseWrapper
-getHyperPars.BaseWrapper = function(learner, for.fun="train") {
-  x = getHyperPars.Learner(learner, for.fun)
+
+#' @export
+getHyperPars.BaseWrapper = function(learner, for.fun = "train") {
   c(getHyperPars(learner$next.learner, for.fun), getHyperPars.Learner(learner, for.fun))
 }
 
-#' @S3method setHyperPars2 BaseWrapper
+
+#' @export
 setHyperPars2.BaseWrapper = function(learner, par.vals) {
   ns = names(par.vals)
   pds.n = names(learner$par.set$pars)
-  for (i in seq(length=length(par.vals))) {
+  for (i in seq_along(par.vals)) {
     if (ns[i] %in% pds.n) {
-      learner = setHyperPars2.Learner(learner, par.vals=par.vals[i])
-    } else {	
-      learner$next.learner = setHyperPars2(learner$next.learner, par.vals=par.vals[i])
+      learner = setHyperPars2.Learner(learner, par.vals = par.vals[i])
+    } else {
+      learner$next.learner = setHyperPars2(learner$next.learner, par.vals = par.vals[i])
     }
   }
   return(learner)
@@ -27,9 +28,16 @@ setHyperPars2.BaseWrapper = function(learner, par.vals) {
 getLeafLearner = function(learner) {
   if (inherits(learner, "BaseWrapper"))
     return(getLeafLearner(learner$next.learner))
-  else 
-    return(learner)
+  return(learner)
 }
 
 
+# default is to set the predict.type for the wrapper and recursively for all learners inside
+# if one does not want this, one must override
+#' @export
+setPredictType.BaseWrapper = function(learner, predict.type) {
+  learner$next.learner = setPredictType(learner$next.learner, predict.type)
+  learner = setPredictType.Learner(learner, predict.type)
+  return(learner)
+}
 

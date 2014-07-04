@@ -7,48 +7,33 @@
 #'
 #' @param id [\code{character(1)}]\cr
 #'   Name of aggregated measure.
-#' @param minimize [\code{logical(1)}]\cr
-#'   Should the measure be minimized?
-#'   Default is \code{TRUE}.
-#' @param classif [\code{logical(1)}]\cr
-#'   Is the measure applicable for classification?
-#'   Default is \code{FALSE}.
-#' @param regr [\code{logical(1)}]\cr
-#'   Is the measure applicable for regression?
-#'   Default is \code{FALSE}.
-#' @param only.binary [\code{logical(1)}]\cr
-#'   Is the measure only applicable to binary classification?
-#'   Only reasonable if \code{classif} is \code{TRUE}.
-#'   Default is \code{FALSE}.
-#' @param allowed.pred.types [\code{character}]
-#'   Which prediction types are allowed for this measure?
-#'   Subset of \dQuote{response},\dQuote{prob},\dQuote{se}.
-#'   Default is none.
+#' @inheritParams makeMeasure
 #' @param fun [\code{function(task, pred, group, pred, extra.args)}]\cr
 #'   Calculates performance value from \code{\link{ResamplePrediction}} object.
 #'   For rare case you can also use the task, the grouping or the extra arguments \code{extra.args}.
 #' @param extra.args [\code{list}]\cr
 #'   List of extra arguments which will always be passed to \code{fun}.
 #'   Default is empty list.
-#' @return \code{\link{Measure}}
+#' @template ret_measure
+#' @family performance
 #' @export
-makeCustomResampledMeasure = function(id, minimize=TRUE, classif=FALSE, regr=FALSE,
-    only.binary=FALSE, allowed.pred.types=character(0L), fun, extra.args=list()) {
-    checkArg(id, "character", len=1L, na.ok=FALSE)
-    checkArg(minimize, "logical", len=1L, na.ok=FALSE)
-    checkArg(classif, "logical", len=1L, na.ok=FALSE)
-    checkArg(regr, "logical", len=1L, na.ok=FALSE)
-    checkArg(only.binary, len=1L, "logical", na.ok=FALSE)
-    checkArg(allowed.pred.types, subset=c("response", "prob", "se"))
-    checkArg(fun, "function")
-    checkArg(extra.args, "list")
+makeCustomResampledMeasure = function(id, minimize = TRUE, properties = character(0L),
+  allowed.pred.types = character(0L), fun, extra.args = list(), best = NULL, worst = NULL) {
 
-    force(fun)
-    fun1 = function(task, model, pred, extra.args) NA_real_
-    # args are checked here
-    custom = makeMeasure(id="custom", minimize, classif, regr, only.binary, allowed.pred.types, fun1, extra.args)
-    fun2 = function(task, perf.test, perf.train, measure, group, pred)
-      fun(task, group, pred, extra.args)
-    aggr = makeAggregation(id=id, fun=fun2)
-    setAggregation(custom, aggr)
+  assertString(id)
+  assertFlag(minimize)
+  assertCharacter(properties, any.missing = FALSE)
+  assertSubset(allowed.pred.types, choices = c("response", "prob", "se"))
+  assertFunction(fun)
+  assertList(extra.args)
+
+  force(fun)
+  fun1 = function(task, model, pred, extra.args) NA_real_
+  # args are checked here
+  custom = makeMeasure(id = "custom", minimize, properties, allowed.pred.types, fun1, extra.args,
+   best = best, worst = worst)
+  fun2 = function(task, perf.test, perf.train, measure, group, pred)
+    fun(task, group, pred, extra.args)
+  aggr = makeAggregation(id = id, fun = fun2)
+  setAggregation(custom, aggr)
 }

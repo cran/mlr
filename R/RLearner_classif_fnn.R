@@ -1,30 +1,28 @@
 #FIXME: probs can only be predicted for two class problems (winning class)
-#' @S3method makeRLearner classif.fnn
+#' @export
 makeRLearner.classif.fnn = function() {
   makeRLearnerClassif(
     cl = "classif.fnn",
     package = "FNN",
     par.set = makeParamSet(
-      makeIntegerLearnerParam(id="k", default=1L, lower=1L),
-      makeLogicalLearnerParam(id="use.all", default=TRUE, requires=expression(algorithm == "VR")),
-      makeDiscreteLearnerParam(id="algorithm", default="cover_tree", values=list("cover_tree", "kd_tree", "VR"))
-    ), 
-    twoclass = TRUE,
-    multiclass = TRUE,
-    numerics = TRUE,
+      makeIntegerLearnerParam(id = "k", default = 1L, lower = 1L),
+      makeLogicalLearnerParam(id = "use.all", default = TRUE, requires = expression(algorithm == "VR")),
+      makeDiscreteLearnerParam(id = "algorithm", default = "cover_tree", values = list("cover_tree", "kd_tree", "VR"))
+    ),
+    properties = c("twoclass", "multiclass", "numerics")
   )
 }
 
-#' @S3method trainLearner classif.fnn
-trainLearner.classif.fnn = function(.learner, .task, .subset, .weights,  ...) {
-  d = getTaskData(.task, .subset, target.extra=TRUE)
-  list(train=d, parset=list(...))
+#' @export
+trainLearner.classif.fnn = function(.learner, .task, .subset, .weights = NULL,  ...) {
+  d = getTaskData(.task, .subset, target.extra = TRUE)
+  list(train = d, parset = list(...))
 }
 
-#' @S3method predictLearner classif.fnn
+#' @export
 predictLearner.classif.fnn = function(.learner, .model, .newdata, ...) {
   m = .model$learner.model
-  pars = list(train=m$train$data, test=.newdata, cl=m$train$target)  
+  pars = list(train = m$train$data, test = .newdata, cl = m$train$target)
   pars = c(pars, m$parset, list(...))
   p = do.call(FNN::knn, pars)
   attr(p, "nn.index") = NULL

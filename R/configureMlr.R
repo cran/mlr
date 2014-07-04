@@ -1,13 +1,29 @@
-#' Configures the behaviour of the package.
+#' @title Configures the behavior of the package.
 #'
+#' @description
 #' Configuration is done by setting custom \code{\link{options}}.
 #'
+#' If you do not set an option here, its current value will be kept.
+#'
+#' If you call this function with an empty argument list, everything is set to its defaults.
+#'
+#' @param show.info [\code{logical(1)}]\cr
+#'   Some methods of mlr support a \code{show.info} argument to enable
+#'   verbose output on the console. This option sets the default value for these arguments.
+#'   Setting the argument manually in one of these functions will overwrite the default
+#'   value for that specific function call.
+#'   Default is \code{TRUE}.
 #' @param on.learner.error [\code{character(1)}]\cr
 #'   What should happen if an error in an underlying learning algorithm is caught:\cr
 #'   \dQuote{stop}: R exception is generated.\cr
 #'   \dQuote{warn}: A \code{FailureModel} will be created, which predicts only NAs and a warning will be generated.\cr
 #'   \dQuote{quiet}: Same as \dQuote{warn} but without the warning.\cr
 #'   Default is \dQuote{stop}.
+#' @param on.learner.warning [\code{character(1)}]\cr
+#'   What should happen if a warning in an underlying learning algorithm is generated:\cr
+#'   \dQuote{warn}: The warning is generated as usual.\cr
+#'   \dQuote{quiet}: The warning is suppressed.\cr
+#'   Default is \dQuote{warn}.
 #' @param on.par.without.desc [\code{character(1)}]\cr
 #'   What should happen if a parameter of a learner is set to a value, but no parameter description object exists,
 #'   indicating a possibly wrong name:\cr
@@ -19,16 +35,48 @@
 #'   Should the output of the learning algorithm during training and prediction be shown or captured and
 #'   suppressed?
 #'   Default is \code{TRUE}.
-#' @return Nothing.
+#' @template ret_inv_null
+#' @family configure
 #' @export
-configureMlr = function(on.learner.error="stop", on.par.without.desc="stop", show.learner.output=TRUE) {
-  checkArg(on.learner.error, choices=c("quiet", "warn", "stop"))
-  checkArg(on.par.without.desc, choices= c("quiet", "warn", "stop"))
-  checkArg(show.learner.output, "logical", len=1L, na.ok=FALSE)
-  options(
-    mlr.on.learner.error = on.learner.error,
-    mlr.on.par.without.desc = on.par.without.desc,
-    mlr.show.learner.output = show.learner.output
+configureMlr = function(show.info, on.learner.error, on.learner.warning, on.par.without.desc, show.learner.output) {
+
+  defaults = list(
+    show.info = TRUE,
+    on.learner.error = "stop",
+    on.learner.warning = "warn",
+    on.par.without.desc = "stop",
+    show.learner.output = TRUE
   )
+
+  any.change = FALSE
+  if (!missing(show.info)) {
+    assertFlag(show.info)
+    setMlrOption("show.info", show.info)
+    any.change = TRUE
+  }
+  if (!missing(on.learner.error)) {
+    assertChoice(on.learner.error, choices = c("quiet", "warn", "stop"))
+    setMlrOption("on.learner.error", on.learner.error)
+    any.change = TRUE
+  }
+  if (!missing(on.learner.warning)) {
+    assertChoice(on.learner.warning, choices = c("warn", "quiet"))
+    setMlrOption("on.learner.warning", on.learner.warning)
+    any.change = TRUE
+  }
+  if (!missing(on.par.without.desc)) {
+    assertChoice(on.par.without.desc, choices = c("quiet", "warn", "stop"))
+    setMlrOption("on.par.without.desc", on.par.without.desc)
+    any.change = TRUE
+  }
+  if (!missing(show.learner.output)) {
+    assertFlag(show.learner.output)
+    setMlrOption("show.learner.output", show.learner.output)
+    any.change = TRUE
+  }
+
+  # na change, set everything to defaults
+  if (!any.change)
+    Map(setMlrOption, names(defaults), defaults)
   invisible(NULL)
 }

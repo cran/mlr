@@ -1,22 +1,21 @@
 #' Converts predictions to a format package ROCR can handle.
 #'
-#' @param pred [\code{\link{Prediction}} | \code{\link{Prediction}}] \cr
-#'		Prediction object.
+#' @template arg_pred
 #' @export
 asROCRPrediction = function(pred) {
   UseMethod("asROCRPrediction")
 }
 
-#' @S3method asROCRPrediction Prediction
+#' @export
 asROCRPrediction.Prediction = function(pred) {
   if(length(pred$task.desc$class.levels) != 2L) {
     stop("More than 2 classes!")
   }
   p = getProbabilities(pred)
-  ROCR::prediction(p, pred$data$truth, label.ordering=c(pred$task.desc$negative, pred$task.desc$positive))
+  ROCR::prediction(p, pred$data$truth, label.ordering = c(pred$task.desc$negative, pred$task.desc$positive))
 }
 
-#' @S3method asROCRPrediction ResamplePrediction
+#' @export
 asROCRPrediction.ResamplePrediction = function(pred) {
   if(length(pred$task.desc$class.levels) != 2L) {
     stop("More than 2 classes!")
@@ -25,6 +24,5 @@ asROCRPrediction.ResamplePrediction = function(pred) {
   iter = pred$data$iter
   prob = split(prob, iter)
   truth = split(pred$data$truth, iter)
-  ROCR::prediction(prob, truth, label.ordering=c(pred$task.desc$negative, pred$task.desc$positive))
+  ROCR::prediction(prob, truth, label.ordering = c(pred$task.desc$negative, pred$task.desc$positive))
 }
-

@@ -1,82 +1,85 @@
-#' @S3method makeRLearner regr.randomForest
+# FIXME document BS options
+
+#' @export
 makeRLearner.regr.randomForest = function() {
   makeRLearnerRegr(
     cl = "regr.randomForest",
     package = "randomForest",
     par.set = makeParamSet(
-      makeIntegerLearnerParam(id="ntree", default=500L, lower=1L),
-      makeIntegerLearnerParam(id="ntree.for.se", default=100L, lower=1L),
-      makeDiscreteLearnerParam(id="se.method", default="bootstrap", values=c("bootstrap", "jackknife", "noisy.bootstrap")),
-      makeIntegerLearnerParam(id="nr.of.bootstrap.samples", default=5L, lower=1L),
-      makeIntegerLearnerParam(id="mtry", lower=1L),
-      makeLogicalLearnerParam(id="replace", default=TRUE),
-      makeIntegerLearnerParam(id="sampsize", lower=1L),
-      makeIntegerLearnerParam(id="nodesize", default=1L, lower=1L),
-      makeIntegerLearnerParam(id="maxnodes", lower=1L),
-      makeLogicalLearnerParam(id="importance", default=FALSE),
-      makeLogicalLearnerParam(id="localImp", default=FALSE),
-      makeLogicalLearnerParam(id="keep.inbag", default=FALSE)
+      makeIntegerLearnerParam(id = "ntree", default = 500L, lower = 1L),
+      makeIntegerLearnerParam(id = "ntree.for.se", default = 100L, lower = 1L),
+      makeDiscreteLearnerParam(id = "se.method", default = "bootstrap", values = c("bootstrap", "jackknife", "noisy.bootstrap")),
+      makeIntegerLearnerParam(id = "nr.of.bootstrap.samples", default = 5L, lower = 1L),
+      makeIntegerLearnerParam(id = "mtry", lower = 1L),
+      makeLogicalLearnerParam(id = "replace", default = TRUE),
+      makeIntegerLearnerParam(id = "sampsize", lower = 1L),
+      makeIntegerLearnerParam(id = "nodesize", default = 1L, lower = 1L),
+      makeIntegerLearnerParam(id = "maxnodes", lower = 1L),
+      makeLogicalLearnerParam(id = "importance", default = FALSE),
+      makeLogicalLearnerParam(id = "localImp", default = FALSE),
+      makeLogicalLearnerParam(id = "keep.inbag", default = FALSE),
+      makeLogicalLearnerParam(id = "fix.factors", default = FALSE)
     ),
     par.vals = list(
+      fix.factors = FALSE,
       se.method = "bootstrap",
       nr.of.bootstrap.samples = 5L
     ),
-    missings = FALSE,
-    numerics = TRUE,
-    factors = TRUE,
-    se = TRUE,
-    weights = FALSE
+    properties = c("numerics", "factors", "se")
   )
 }
 
-#' @S3method trainLearner regr.randomForest
-trainLearner.regr.randomForest = function(.learner, .task, .subset, .weights, ...) {
+#' @export
+trainLearner.regr.randomForest = function(.learner, .task, .subset, .weights = NULL, ...) {
   f = getTaskFormula(.task)
   par.vals = .learner$par.vals
 
-  m = randomForest(f, data=getTaskData(.task, .subset), ...)
+  m = randomForest(f, data = getTaskData(.task, .subset), ...)
 
   # we have to do some preprocessing here if we need the standard error
   if (.learner$predict.type == "se") {
-    train = getTaskData(.task, .subset)
-    models = list()
-
     if (par.vals$se.method %in% c("bootstrap", "noisy.bootstrap")) {
+      train = getTaskData(.task, .subset)
+
       # set some params for bootstraping
       numberOfBootstraps = par.vals[["nr.of.bootstrap.samples"]]
       bootstrapSize = nrow(train)
 
       # generate bootstrap samples
-      samplesIdx = replicate(numberOfBootstraps, sample(1:bootstrapSize, replace=TRUE))
+      samplesIdx = replicate(numberOfBootstraps, sample(1:bootstrapSize, replace = TRUE))
 
       # determine whether we work with reduced ensemble size (noisy bootstrap) or not
       ntree = if (par.vals$se.method == "bootstrap") par.vals$ntree else par.vals$ntree.for.se
 
       # fit models on the bootstrap samples
       models = apply(samplesIdx, 2, function(bootstrapIdx) {
-        randomForest(f, data=train[bootstrapIdx,],...)
+        randomForest(f, data = train[bootstrapIdx,],...)
       })
 
       # save models in attrribute
       attr(m, "mlr.se.bootstrap.models") = models
-    } 
-  } 
+    }
+  }
   return(m)
 }
 
-#' @S3method predictLearner regr.randomForest
+#' @export
 predictLearner.regr.randomForest = function(.learner, .model, .newdata, ...) {
+  if (.learner$par.vals$fix.factors) {
+    factors = Filter(is.character, .model$learner.model$forest$xlevels)
+    .newdata[names(factors)] = mapply(factor, x = .newdata[names(factors)],
+      levels = factors, SIMPLIFY = FALSE)
+  }
+
   if (.learner$predict.type == "se") {
-    par.vals = .learner$par.vals
-    model = .model$learner.model
-    se.fun = switch(par.vals$se.method,
+    se.fun = switch(.learner$par.vals$se.method,
       bootstrap = bootstrapStandardError,
       noisy.bootstrap = bootstrapStandardError,
       jackknife = jackknifeStandardError
     )
     se.fun(.learner, .model, .newdata, ...)
   } else {
-    predict(.model$learner.model, newdata=.newdata, ...)
+    predict(.model$learner.model, newdata = .newdata, ...)
   }
 }
 
@@ -94,15 +97,14 @@ bootstrapStandardError = function(.learner, .model, .newdata, ...) {
     # make predictions for newdata based on each "bootstrap model"
     preds = lapply(models, function(model) {
       # save predictions of every single ensemble member, i.e., decision tree
-      predict(model, .newdata, predict.all=TRUE)
+      predict(model, .newdata, predict.all = TRUE)
     })
-    
+
     # n x B matrix of reponses of B forests
-    aggr.responses = extractSubList(preds, "aggregate",  simplify=TRUE)
-    names(aggr.responses) = 1:B
+    aggr.responses = extractSubList(preds, "aggregate", simplify = "cols")
     mean.responses = rowMeans(aggr.responses)
     # list of n x M matrices of ensemble responses
-    ind.responses = extractSubList(preds, "individual", simplify=FALSE, use.names=FALSE)
+    ind.responses = extractSubList(preds, "individual", simplify = FALSE, use.names = FALSE)
 
     # R substracts columnswise matrix - vector, 2nd is actually apply(aggr.responses, 1, var)
     res = cbind(mean.responses, rowSums((aggr.responses - mean.responses)^2) / (B-1))
@@ -112,22 +114,21 @@ bootstrapStandardError = function(.learner, .model, .newdata, ...) {
       # Thus, compute a corrected version
       # FIXME: check if this works properly
       const = ((1/R) - (1/M))/(B*R*(R-1))
-      for (i in 1:nrow(.newdata)) {
+      for (i in seq_row(.newdata)) {
         bias = 0
-        for (b in 1:B) {
-          for (r in 1:R) {
+        for (b in seq_len(B)) {
+          for (r in seq_len(R)) {
             bias = bias + (ind.responses[[b]][i,r] - aggr.responses[i,b])^2
           }
         }
 
         bias = bias * const
-        res[i,2] = res[i,2] - bias
+        res[i,2L] = res[i,2L] - bias
       }
     }
-    
-    # var --> sd
-    res[,2] = sqrt(res[,2])
 
+    # var --> sd
+    res[,2L] = sqrt(res[,2L])
     return(res)
 }
 
@@ -143,24 +144,24 @@ jackknifeStandardError = function(.learner, .model, .newdata, ...) {
     n = nrow(inbag)
 
     # keep predictions of all ensemble members
-    rf.preds = predict(model, .newdata, predict.all=TRUE)
+    rf.preds = predict(model, .newdata, predict.all = TRUE)
 
     # determine number of participating ensembles
-    M = lapply(1:n, function(i) sum(abs(inbag[i,]-1)))
+    # FIXME: formula looks strange. proof read ALL code in this file!
+    M = lapply(seq_len(n), function(i) sum(abs(inbag[i,]-1)))
+    # determine ensemlbe members, where observation i is not included
+    idx = lapply(seq_len(n), function(i) which(inbag[i,] == 0L))
 
-    # determine ensemlbe members, where observation i is not included 
-    idx = lapply(1:n, function(i) which(inbag[i,] == 0))
-
-    # estimate 
-    res = matrix(NA, ncol=n, nrow=nrow(.newdata))
-    for (j in 1:nrow(.newdata)) {
-      for (i in 1:n) {
-        res[j,i] = sum(rf.preds$individual[j,idx[[i]]]) / M[[i]]
+    # estimate
+    res = matrix(NA_real_, ncol = n, nrow = nrow(.newdata))
+    for (j in seq_row(.newdata)) {
+      for (i in seq_len(n)) {
+        res[j,i] = sum(rf.preds$individual[j, idx[[i]]]) / M[[i]]
       }
     }
 
     mean.responses = rf.preds$aggregate
-    se.preds = apply(res, 1, function(row) {
+    se.preds = apply(res, 1L, function(row) {
       sum((row - mean(row))^2)  / n
     })
     return(cbind(mean.responses, se.preds))

@@ -5,17 +5,14 @@
 #' value selects the label. The threshold used to assign the label can later be changed using the
 #' \code{\link{setThreshold}} function.
 #'
-#' @param cl [\code{character(1)}]\cr
-#'   Class of learner to create. By convention, all classification learners
-#'   start with \dQuote{classif.} and all regression learners with
-#'   \dQuote{regr.}. A list of all learners is available on the
-#'   \code{\link{learners}} help page.
+#' @template arg_lrncl
 #' @param id [\code{character(1)}]\cr
 #'   Id string for object. Used to display object.
 #'   Default is \code{cl}.
 #' @param predict.type [\code{character(1)}]\cr
 #'   Classification: \dQuote{response} (= labels) or \dQuote{prob} (= probabilities and labels by selecting the ones with maximal probability).
 #'   Regression: \dQuote{response} (= mean response) or \dQuote{se} (= standard errors and mean response).
+#'   Survival: \dQuote{response} (= some sort of orderable risk) or \dQuote{prob} (= time dependent probabilities).
 #'   Default is \dQuote{response}.
 #' @param ... [any]\cr
 #'   Optional named (hyper)parameters.
@@ -28,54 +25,41 @@
 #' @return [\code{\link{Learner}}].
 #' @export
 #' @aliases Learner
+#' @seealso [\code{\link{resample}}], [\code{\link{predict.WrappedModel}}]
 #' @examples
 #' makeLearner("classif.rpart")
 #' makeLearner("classif.lda", predict.type = "prob")
-#'
-#' lrn <- makeLearner("classif.rpart", minsplit = 5)
+#' lrn = makeLearner("classif.lda", method = "t", nu = 10)
 #' print(lrn$par.vals)
-#' lrn <- makeLearner("classif.lda", method = "mle")
-#' print(lrn$par.vals)
-#' lrn <- makeLearner("classif.lda", method = "t", nu = 10)
-#' print(lrn$par.vals)
-makeLearner = function(cl, id=cl, predict.type="response", ..., par.vals=list()) {
-  checkArg(cl, "character", len=1L, na.ok=FALSE)
-  constructor = getS3method("makeRLearner", class=cl)
-  # FIXME wl = constructor()
+makeLearner = function(cl, id = cl, predict.type = "response", ..., par.vals = list()) {
+  assertString(cl)
+  constructor = getS3method("makeRLearner", class = cl)
   wl = do.call(constructor, list())
 
   if (!missing(id)) {
-    checkArg(id, "character", len=1L, na.ok=FALSE)
+    assertString(id)
     wl$id = id
   }
-  checkArg(par.vals, "list")
-  if (cl == "")
+  assertList(par.vals)
+  if (!nzchar(cl))
     stop("Cannot create learner from empty string!")
   if (!inherits(wl, "RLearner"))
     stop("Learner must be a basic RLearner!")
-  wl = setHyperPars(wl, ..., par.vals=par.vals)
-  wl = setPredictType(wl, predict.type)
+  wl = setHyperPars(learner = wl, ..., par.vals = par.vals)
+  wl = setPredictType(learner = wl, predict.type = predict.type)
   return(wl)
 }
 
-#' @S3method print Learner
+#' @export
 print.Learner = function(x, ...) {
+  # FIXME: the "old" printer was a little bit more informative...
   cat(
     "Learner ", x$id, " from package ", collapse(x$package), "\n",
     "Type: ", x$type, "\n",
     "Class: ", class(x)[1L], "\n",
+    "Properties: ", collapse(x$properties), "\n",
     "Predict-Type: ", x$predict.type, "\n",
     "Hyperparameters: ", getHyperParsString(x), "\n\n",
-    "Supported features Numerics:", x$numerics, " Factors:", x$factors, "\n",
-    "Supports missings: ", x$missings, "\n",
-    "Supports weights: ", x$weights, "\n",
     sep =""
   )
-  if (x$type == "classif") {
-    catf("Supports classes: %s",
-         collapse(c("one", "two", "multi")[c(x$oneclass, x$twoclass, x$multiclass)]))
-    catf("Supports probabilities: %s", x$prob)
-  } else if (x$type == "regr") {
-    catf("Supports standard errs: %s", x$se)
-  }
 }

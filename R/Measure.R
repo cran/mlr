@@ -1,26 +1,28 @@
-#' Construct performance measure.
+#' @title Construct performance measure.
 #'
+#' @description
 #' A measure object encapsulates a function to evaluate the performance of a prediction.
 #' Information about already implemented measures can be obtained here: \code{\link{measures}}.
 #'
-#' A learner is trained on a a training set d1, results in a model m, predicts another set d2 (which may be a different one
-#' or the training set), resulting in the prediction. The performance measure can now be defined using all of the information of
-#' the original task, the fitted model and the prediction.
+#' A learner is trained on a a training set d1, results in a model m, predicts another set d2
+#' (which may be a different one or the training set), resulting in the prediction.
+#' The performance measure can now be defined using all of the information of the original task,
+#' the fitted model and the prediction.
 #'
 #' Object slots:
 #' \describe{
-#' \item{id [\code{character(1)}]}{See argument.}
-#' \item{minimize [\code{logical(1)}]}{See argument.}
-#' \item{classif [\code{logical(1)}]}{See argument.}
-#' \item{regr [\code{logical(1)}]}{See argument.}
-#' \item{only.binary [\code{logical(1)}]}{See argument.}
-#' \item{allowed.pred.types [\code{character}]}{See argument.}
-#' \item{req.pred [\code{logical(1)}]}{Is prediction object required in calculation?}
-#' \item{req.task [\code{logical(1)}]}{Is task object required in calculation?.}
-#' \item{req.model [\code{logical(1)}]}{Is model object required in calculation?}
-#' \item{fun [\code{function}]}{See argument.}
-#' \item{extra.args [\code{list}]}{See argument.}
-#' \item{aggr [\code{\link{Aggregation}}]}{See argument.}.
+#'   \item{id [\code{character(1)}]}{See argument.}
+#'   \item{minimize [\code{logical(1)}]}{See argument.}
+#'   \item{properties [\code{character}]}{See argument.}
+#'   \item{allowed.pred.types [\code{character}]}{See argument.}
+#'   \item{req.pred [\code{logical(1)}]}{Is prediction object required in calculation?}
+#'   \item{req.task [\code{logical(1)}]}{Is task object required in calculation?.}
+#'   \item{req.model [\code{logical(1)}]}{Is model object required in calculation?}
+#'   \item{fun [\code{function}]}{See argument.}
+#'   \item{extra.args [\code{list}]}{See argument.}
+#'   \item{aggr [\code{\link{Aggregation}}]}{See argument.}.
+#'   \item{best [\code{numeric(1)}]}{See argument.}
+#'   \item{worst [\code{numeric(1)}]}{See argument.}
 #' }
 #'
 #' @param id [\code{character(1)}]\cr
@@ -28,16 +30,16 @@
 #' @param minimize [\code{logical(1)}]\cr
 #'   Should the measure be minimized?
 #'   Default is in \code{TRUE}.
-#' @param classif [\code{logical(1)}]\cr
-#'   Is the measure applicable for classification?
-#'   Default is \code{FALSE}.
-#' @param regr [\code{logical(1)}]\cr
-#'   Is the measure applicable for regression?
-#'   Default is \code{FALSE}.
-#' @param only.binary [\code{logical(1)}]\cr
-#'   Is the measure only applicable to binary classification?
-#'   Only reasonable if \code{classif} is \code{TRUE}.
-#'   Default is \code{FALSE}.
+#' @param properties [\code{character}]\cr
+#'   Set of measure properties. Some standard property names include:
+#'   \describe{
+#'     \item{classif}{Is the measure applicable for classification?}
+#'     \item{classif.multi}{Is the measure applicable for multi-class classification?}
+#'     \item{regr}{Is the measure applicable for regression?}
+#'     \item{surv}{Is the measure applicable for survival?}
+#'     \item{costsens}{Is the measure applicable for cost-sensitve learning?}
+#'   }
+#'   Default is \code{character(0)}.
 #' @param allowed.pred.types [\code{character}]\cr
 #'   Which prediction types are allowed for this measure?
 #'   Subset of \dQuote{response},\dQuote{prob}, \dQuote{se}.
@@ -51,62 +53,71 @@
 #'   Aggregation funtion, which is used to aggregate the values measured
 #'   on test / training sets of the measure to a single value.
 #'   Default is \code{\link{test.mean}}.
-#' @return [\code{\link{Measure}}].
+#' @param best [\code{numeric(1)}]\cr
+#'   Best obtainable value for measure.
+#'   Default is -\code{Inf} or \code{Inf}, depending on \code{minimize}.
+#' @param worst [\code{numeric(1)}]\cr
+#'   Worst obtainable value for measure.
+#'   Default is \code{Inf} or -\code{Inf}, depending on \code{minimize}.
+#' @template ret_measure
 #' @export
+#' @family performance
 #' @aliases Measure
 #' @examples
-#' f <- function(task, model, pred, extra.args)
+#' f = function(task, model, pred, extra.args)
 #'   sum((pred$data$response - pred$data$truth)^2)
-#' makeMeasure(id="my.sse", minimize=TRUE, regr=TRUE, allowed.pred.types="response", fun=f)
-makeMeasure = function(id, minimize, classif=FALSE, regr=FALSE,
-  only.binary=FALSE, allowed.pred.types=character(0L), fun, extra.args=list(), aggr=test.mean) {
+#' makeMeasure(id = "my.sse", minimize = TRUE, properties = c("regr", "response"), fun = f)
+makeMeasure = function(id, minimize, properties = character(0L), allowed.pred.types = character(0L),
+  fun, extra.args = list(), aggr = test.mean, best = NULL, worst = NULL) {
+  assertString(id)
+  assertFlag(minimize)
+  assertCharacter(properties, any.missing = FALSE)
+  assertSubset(allowed.pred.types, choices = c("response", "prob", "se"))
+  assertFunction(fun)
+  assertList(extra.args)
+  if (is.null(best))
+    best = ifelse(minimize, -Inf, Inf)
+  else
+    assertNumber(best)
+  if (is.null(worst))
+    worst = ifelse(minimize, Inf, -Inf)
+  else
+    assertNumber(worst)
 
-  checkArg(id, "character", len=1L, na.ok=FALSE)
-  checkArg(minimize, "logical", len=1L, na.ok=FALSE)
-  checkArg(classif, "logical", len=1L, na.ok=FALSE)
-  checkArg(regr, "logical", len=1L, na.ok=FALSE)
-  checkArg(only.binary, "logical", len=1L, na.ok=FALSE)
-  checkArg(allowed.pred.types, subset=c("response", "prob", "se"))
-  checkArg(fun, "function")
-  checkArg(extra.args, "list")
-
+  # FIXME: I think this is never used...
   fun1 = fun
   formals(fun1) = list()
-  v = codetools::findGlobals(fun1, merge=FALSE)$variables
-  if (only.binary && !classif)
-    stop("only.binary can only be set to TRUE, if 'classif' is set to TRUE!")
+  v = codetools::findGlobals(fun1, merge = FALSE)$variables
 
-  m = structure(list(
-    id=id,
-    minimize=minimize,
-    classif=classif,
-    regr=regr,
-    only.binary=only.binary,
-    allowed.pred.types=allowed.pred.types,
-    req.pred="pred" %in% v,
-    req.model="model" %in% v,
-    req.task="task" %in% v,
-    fun=fun,
-    extra.args=extra.args
-  ), class="Measure")
-  setAggregation(m, test.mean)
+  m = makeS3Obj("Measure",
+    id = id,
+    minimize = minimize,
+    properties = properties,
+    allowed.pred.types = allowed.pred.types,
+    req.pred = "pred" %in% v,
+    req.model = "model" %in% v,
+    req.task = "task" %in% v,
+    fun = fun,
+    extra.args = extra.args,
+    best = best,
+    worst = worst
+  )
+  setAggregation(m, aggr)
 }
 
 default.measures = function(x) {
-  if (inherits(x, "SupervisedTask")) {
-    if (x$task.desc$type == "classif")
-      return(list(mmce))
-    if (x$task.desc$type == "regr")
-      return(list(mse))
-    stop("Should not happen!")
-  }
-  if (inherits(x, "Learner")) {
-    if (x$type == "classif")
-      return(list(mmce))
-    if (x$type == "regr")
-      return(list(mse))
-    stop("Should not happen!")
-  }
+  type = if (inherits(x, "TaskDesc"))
+    x$type
+  else if (inherits(x, "SupervisedTask"))
+    x$task.desc$type
+  else if (inherits(x, "Learner"))
+    x$type
+  switch(type,
+    classif = list(mmce),
+    regr = list(mse),
+    costsens = list(mcp),
+    surv = list(cindex)
+  )
 }
 
 
@@ -115,23 +126,22 @@ default.measures = function(x) {
 #' Set how this measure will be aggregated after resampling.
 #' To see possible aggregation functions: \code{\link{aggregations}}.
 #'
-#' @param measure [\code{\link{Measure}}]\cr
-#'   Performance measure.
-#' @param aggr [\code{\link{Aggregation}}]\cr
-#'   Aggregation function.
+#' @template arg_measure
+#' @template arg_aggr
 #' @return [\code{\link{Measure}}] with changed aggregation behaviour.
 #' @export
 setAggregation = function(measure, aggr) {
-  checkArg(measure, "Measure")
-  checkArg(aggr, "Aggregation")
+  assertClass(measure, classes = "Measure")
+  assertClass(aggr, classes = "Aggregation")
   measure$aggr = aggr
   return(measure)
 }
 
-#' @S3method print Measure
+#' @export
 print.Measure = function(x, ...) {
   catf("Performance measure: %s", x$id)
+  catf("Properties: %s", collapse(x$properties))
   catf("Minimize: %s", x$minimize)
+  catf("Best: %g; Worst: %g", x$best, x$worst)
   catf("Aggregated by: %s", x$aggr$id)
 }
-

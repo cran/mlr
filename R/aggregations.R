@@ -15,8 +15,11 @@
 #' \item{\bold{train.sum}}{\cr Sum of performance values on training sets.}
 #' \item{\bold{b632}}{\cr Aggregation for B632 bootstrap.}
 #' \item{\bold{b632plus}}{\cr Aggregation for B632+ bootstrap.}
-#' \item{\bold{testgroup.mean}}{\cr Performance values on test sets are grouped according to resampling method. The mean for very group is calculated, then the mean of those means. Mainly used for repeated CV.}
+#' \item{\bold{testgroup.mean}}{\cr Performance values on test sets are grouped according
+#'   to resampling method. The mean for very group is calculated, then the mean of those means.
+#'   Mainly used for repeated CV.}
 #' }
+#' @format None
 #' @seealso \code{\link{Aggregation}}
 #' @name aggregations
 #' @rdname aggregations
@@ -62,6 +65,13 @@ test.max = makeAggregation(
 test.sum = makeAggregation(
   id = "test.sum",
   fun = function(task, perf.test, perf.train, measure, group, pred) sum(perf.test)
+)
+
+#' @export
+#' @rdname aggregations
+test.range = makeAggregation(
+  id = "test.range",
+  fun = function(task, perf.test, perf.train, measure, group, pred) diff(range(perf.test))
 )
 
 #' @export
@@ -113,15 +123,26 @@ train.sum = makeAggregation(
   fun = function(task, perf.test, perf.train, measure, group, pred) sum(perf.train)
 )
 
+#' @export
+#' @rdname aggregations
+train.range = makeAggregation(
+  id = "train.range",
+  fun = function(task, perf.test, perf.train, measure, group, pred) diff(range(perf.train))
+)
 
-
+#' @export
+#' @rdname aggregations
+train.sqrt.of.mean = makeAggregation(
+  id = "train.sqrt.of.mean",
+  fun = function(task, perf.test, perf.train, measure, group, pred) sqrt(mean(perf.train))
+)
 
 #' @export
 #' @rdname aggregations
 b632 = makeAggregation(
   id = "b632",
   fun = function(task, perf.test, perf.train, measure, group, pred) {
-    mean(0.632*perf.test + (1-0.632)*perf.train)
+    mean(0.632*perf.test + 0.368*perf.train)
   }
 )
 
@@ -138,11 +159,11 @@ b632plus = makeAggregation(
       df2 = df[df$iter == i, ]
       y1 = df2$truth
       y2 = df2$response
-      grid = expand.grid(y1, y2, KEEP.OUT.ATTRS=FALSE)
-      pred2 = makePrediction(task.desc=pred$task.desc,
-        id=NULL, truth=grid[,1], predict.type="response", y=grid[,2],
-        time=as.numeric(NA))
-      gamma = performance(pred2, measure=measure)
+      grid = expand.grid(y1, y2, KEEP.OUT.ATTRS = FALSE)
+      pred2 = makePrediction(task.desc = pred$task.desc,
+        id = NULL, truth = grid[, 1L], predict.type = "response", y = grid[, 2L],
+        time = NA_real_)
+      gamma = performance(pred2, measures = measure)
       R = (perf.test[i] - perf.train[i]) / (gamma - perf.train[i])
       w = 0.632 / (1 - 0.368*R)
       a[i] = (1-w) * perf.train[i] + w*perf.test[i]

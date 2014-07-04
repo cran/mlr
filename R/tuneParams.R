@@ -2,9 +2,10 @@
 # FIXME check trafo
 # FIXME: example missing
 
-#' Hyperparameter tuning.
-#' 
-#' Optimizes the hyperparameters of a learner for a classification or regression problem.
+#' @title Hyperparameter tuning.
+#'
+#' @description
+#' Optimizes the hyperparameters of a learner.
 #' Allows for different optimization methods, such as grid search, evolutionary strategies, etc.
 #' You can select such an algorithm (and its settings)
 #' by passing a corresponding control object. For a complete list of implemented algorithms look at
@@ -12,62 +13,58 @@
 #'
 #' Note that if tranformations are associated with the parameters, the returned result will contain
 #' transformed values in the optimal result and the path.
-#' 
-#' @param learner [\code{\link[mlr]{Learner}}]\cr 
-#'   The learner.
-#' @param task [\code{\link[mlr]{SupervisedTask}}]\cr
-#'   The task.
-#' @param resampling [\code{\link[mlr]{ResampleInstance}} | \code{\link{ResampleDesc}}]\cr
-#'   Resampling strategy to evaluate points in hyperparameter space. If you pass a description, 
-#'   it is instantiated once at the beginning by default, so all points are evaluated on the same training/test sets.
-#'   If you want to change that behaviour, look at \code{\link{TuneControl}}. 	
+#'
+#' @template arg_learner
+#' @template arg_task
+#' @param resampling [\code{\link{ResampleInstance}} | \code{\link{ResampleDesc}}]\cr
+#'   Resampling strategy to evaluate points in hyperparameter space. If you pass a description,
+#'   it is instantiated once at the beginning by default, so all points are
+#'   evaluated on the same training/test sets.
+#'   If you want to change that behaviour, look at \code{\link{TuneControl}}.
+#' @template arg_measures_opt
 #' @param par.set [\code{\link[ParamHelpers]{ParamSet}}]\cr
-#'   Collection of parameters and their constraints for optimization.   
+#'   Collection of parameters and their constraints for optimization.
 #' @param control [\code{\link{TuneControl}}]\cr
-#'   Control object for search method. Also selects the optimization algorithm for tuning.   
-#' @param measures [list of \code{\link[mlr]{Measure}}]\cr
-#'   Performance measures to evaluate. The first measure, aggregated by the first aggregation function
-#'   is optimized during tuning, others are simply evaluated.  
-#' @param show.info [\code{logical(1)}]\cr
-#'   Show info message after each hyperparameter evaluation?
-#'   Default is \code{TRUE}.
+#'   Control object for search method. Also selects the optimization algorithm for tuning.
+#' @template arg_showinfo
 #' @return [\code{\link{TuneResult}}].
+#' @family tune
 #' @export
-tuneParams = function(learner, task, resampling, measures, par.set, control, show.info=TRUE) {
-  checkArg(learner, "Learner")
-  checkArg(task, "SupervisedTask")
-  if (missing(measures))
-    measures = default.measures(task)
-  if (is(measures, "Measure"))
-    measures = list(measures)   
-  checkListElementClass(measures, "Measure")
-  checkArg(par.set, "ParamSet")
-  checkArg(control, "TuneControl")
+tuneParams = function(learner, task, resampling, measures, par.set, control, show.info = getMlrOption("show.info")) {
+  learner = checkLearner(learner)
+  assertClass(task, classes = "SupervisedTask")
+  measures = checkMeasures(measures, learner)
+  assertClass(par.set, classes = "ParamSet")
+  assertClass(control, classes = "TuneControl")
   if (!inherits(resampling, "ResampleDesc") &&  !inherits(resampling, "ResampleInstance"))
     stop("Argument resampling must be of class ResampleDesc or ResampleInstance!")
   if (inherits(resampling, "ResampleDesc") && control$same.resampling.instance)
-    resampling = makeResampleInstance(resampling, task=task)
-  checkArg(show.info, "logical", len=1L, na.ok=FALSE)
-  checkTunerParset(learner, par.set, control)  
-  cl = as.character(class(control))[1]
-	sel.func = switch(cl,
+    resampling = makeResampleInstance(resampling, task = task)
+  assertFlag(show.info)
+  checkTunerParset(learner, par.set, control)
+  control = setDefaultImputeVal(control, measures)
+
+  cl = getClass1(control)
+  sel.func = switch(cl,
+    TuneControlRandom = tuneRandom,
     TuneControlGrid = tuneGrid,
-    TuneControlOptim = tuneOptim,
     TuneControlCMAES = tuneCMAES,
+    TuneControlGenSA = tuneGenSA,
     TuneControlMBO = tuneMBO,
-	  TuneControlIrace = tuneIrace,
-	  TuneControlRandom = tuneRandom
-	)		
+    TuneControlIrace = tuneIrace,
+    stopf("Tuning algorithm for '%s' does not exist!", cl)
+  )
   opt.path = makeOptPathDFFromMeasures(par.set, measures)
   if (show.info) {
     messagef("[Tune] Started tuning learner %s for parameter set:", learner$id)
     messagef(printToChar(par.set))
-    messagef("With control class: %s",  cl)
+    messagef("With control class: %s", cl)
+    messagef("Imputation value: %g", control$impute.val)
   }
   or = sel.func(learner, task, resampling, measures, par.set, control, opt.path, show.info)
   if (show.info)
     messagef("[Tune] Result: %s : %s", paramValueToString(par.set, or$x), perfsToString(or$y))
-	return(or)			
+  return(or)
 }
 
 

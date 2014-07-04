@@ -9,16 +9,11 @@
 #' @return [\code{\link{ResampleInstance}}].
 #' @export
 makeFixedHoldoutInstance = function(train.inds, test.inds, size) {
-  train.inds = convertIntegers(train.inds)
-  test.inds = convertIntegers(test.inds)
-  size = convertInteger(size)
-  # FIXME min.len
-  checkArg(train.inds, "integer", na.ok=FALSE)
-  checkArg(test.inds, "integer", na.ok=FALSE)
-  checkArg(size, "integer", len=1L, na.ok=FALSE)
-  # FIXME DIV/0
-  rdesc = makeResampleDesc("Holdout", split=length(train.inds)/size)
-  rin = makeResampleInstance(rdesc, size=size)
+  train.inds = asInteger(train.inds, any.missing = FALSE)
+  test.inds = asInteger(test.inds, any.missing = FALSE)
+  size = asInt(size, lower = 1L)
+  rdesc = makeResampleDesc("Holdout", split = length(train.inds)/size)
+  rin = makeResampleInstance(rdesc, size = size)
   rin$train.inds[[1L]] = train.inds
   rin$test.inds[[1L]] = test.inds
   return(rin)
