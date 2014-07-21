@@ -6,6 +6,10 @@
 #'
 #' Note that the packages of all learners are loaded during the search.
 #'
+#' Note that for general cost-sensitive learning, mlr currently supports mainly
+#' \dQuote{wrapper} approaches like \code{\link{CostSensWeightedPairsWrapper}},
+#' which are not listed, as they are not basic R learning algorithms.
+#'
 #' @template arg_task_or_type
 #' @param properties [\code{character}]\cr
 #'   Set of required properties to filter for. Default is \code{character(0)}.
@@ -27,7 +31,7 @@ listLearners  = function(obj = NA_character_, properties = character(0L),
   quiet = TRUE, warn.missing.packages = TRUE, create = FALSE) {
 
   if (!missing(obj))
-    assert(checkCharacter(obj), checkClass(obj, "SupervisedTask"))
+    assert(checkCharacter(obj), checkClass(obj, "Task"))
   assertCharacter(properties, any.missing = FALSE)
   assertFlag(warn.missing.packages)
   assertFlag(create)
@@ -48,19 +52,20 @@ listLearners.default  = function(obj, properties = character(0L),
 listLearners.character  = function(obj, properties = character(0L),
   quiet = TRUE, warn.missing.packages = TRUE, create = FALSE) {
 
-  assertChoice(obj, choices = c("classif", "regr", "surv", "costsens", NA_character_))
+  assertChoice(obj, choices = c("classif", "regr", "surv", "costsens", "cluster", NA_character_))
   type = obj
   meths = as.character(methods("makeRLearner"))
   res = err = vector("list", length(meths))
+  learner.classes = sapply(strsplit(meths, "makeRLearner\\."), function(x) x[2L])
   for (i in seq_along(meths)) {
-    m = meths[[i]]
+    cl = learner.classes[[i]]
     if (quiet)
-      suppressAll(lrn <- try(do.call(m, list()), silent = TRUE))
+      suppressAll(lrn <- try(makeLearner(cl), silent = TRUE))
     else
-      lrn = try(do.call(m, list()))
+      lrn = try(makeLearner(cl))
 
     if (is.error(lrn)) {
-      err[[i]] = strsplit(as.character(m), "makeRLearner.")[[1L]][2L]
+      err[[i]] = cl
     } else if ((is.na(type) || type == lrn$type) && all(properties %in% lrn$properties)) {
         res[[i]] = lrn
     }
@@ -77,7 +82,7 @@ listLearners.character  = function(obj, properties = character(0L),
 
 #' @export
 #' @rdname listLearners
-listLearners.SupervisedTask = function(obj, properties = character(0L),
+listLearners.Task = function(obj, properties = character(0L),
   quiet = TRUE, warn.missing.packages = TRUE, create = FALSE) {
 
   task = obj

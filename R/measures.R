@@ -13,6 +13,7 @@
 #' \itemize{
 #'   \item{\bold{mmce}}{\cr Mean misclassification error.}
 #'   \item{\bold{acc}}{\cr Accuracy.}
+#'   \item{\bold{bac}}{\cr Balanced accuracy. Mean of true positive rate and true negative rate}
 #'   \item{\bold{ber}}{\cr Balanced error rate. Mean of misclassification error rates on all individual classes.}
 #'   \item{\bold{tp}}{\cr True positives.}
 #'   \item{\bold{tpr}}{\cr True positive rate, also called hit rate or recall.}
@@ -57,6 +58,15 @@
 #'     costs of oracle and model prediction.}
 #' }
 #'
+#' Clustering:
+#' \itemize{
+#'   \item{\bold{db}}{\cr Davies-Bouldin cluster separation measure, see \code{\link[clusterSim]{index.DB}}}
+#'   \item{\bold{dunn}}{\cr Dunn index, see \code{\link[clValid]{dunn}}}
+#'   \item{\bold{G1}}{\cr Calinski-Harabasz pseudo F statistic, see \code{\link[clusterSim]{index.G1}}}
+#'   \item{\bold{G2}}{\cr Baker and Hubert adaptation of Goodman-Kruskal's gamma statistic, see \code{\link[clusterSim]{index.G2}}}
+#'   \item{\bold{silhouette}}{\cr Rousseeuw's silhouette internal cluster quality index, see \code{\link[clusterSim]{index.S}}}
+#' }
+#'
 #' General:
 #' \itemize{
 #'   \item{\bold{timetrain}}{\cr Time of fitting the model}
@@ -77,7 +87,7 @@ NULL
 #' @usage none
 #' @format none
 featperc = makeMeasure(id = "featperc", minimize = TRUE, best = 0, worst = 1,
-  properties = c("classif", "classif.multi", "regr", "surv", "costsens"),
+  properties = c("classif", "classif.multi", "regr", "surv", "costsens", "cluster"),
   allowed.pred.types = c("response", "prob"),
   fun = function(task, model, pred, extra.args) {
     length(model$features) / sum(pred$task.desc$n.feat)
@@ -89,7 +99,7 @@ featperc = makeMeasure(id = "featperc", minimize = TRUE, best = 0, worst = 1,
 #' @usage none
 #' @format none
 timetrain = makeMeasure(id = "timetrain", minimize = TRUE, best = 0, worst = Inf,
-  properties = c("classif", "classif.multi", "regr", "surv", "costsens"),
+  properties = c("classif", "classif.multi", "regr", "surv", "costsens", "cluster"),
   allowed.pred.types = c("response", "prob"),
   fun = function(task, model, pred, extra.args) {
     model$time
@@ -101,7 +111,7 @@ timetrain = makeMeasure(id = "timetrain", minimize = TRUE, best = 0, worst = Inf
 #' @usage none
 #' @format none
 timepredict = makeMeasure(id = "timepredict", minimize = TRUE, best = 0, worst = Inf,
-  properties = c("classif", "classif.multi", "regr", "surv", "costsens"),
+  properties = c("classif", "classif.multi", "regr", "surv", "costsens", "cluster"),
   allowed.pred.types = c("response", "prob"),
   fun = function(task, model, pred, extra.args) {
     pred$time
@@ -113,7 +123,7 @@ timepredict = makeMeasure(id = "timepredict", minimize = TRUE, best = 0, worst =
 #' @usage none
 #' @format none
 timeboth = makeMeasure(id = "timeboth", minimize = TRUE, best = 0, worst = Inf,
-  properties = c("classif", "classif.multi", "regr", "surv", "costsens"),
+  properties = c("classif", "classif.multi", "regr", "surv", "costsens", "cluster"),
   allowed.pred.types = c("response", "prob"),
   fun = function(task, model, pred, extra.args) {
     model$time + pred$time
@@ -286,6 +296,19 @@ auc = makeMeasure(id = "auc", minimize = FALSE, best = 1, worst = 0,
       return(NA_real_)
     rpreds = asROCRPrediction(pred)
     ROCR::performance(rpreds, "auc")@y.values[[1L]]
+  }
+)
+
+#' @export bac
+#' @rdname measures
+#' @usage none
+#' @format none
+bac = makeMeasure(id = "bac", minimize = FALSE, best = 1, worst = 0,
+  properties = c("classif"),
+  allowed.pred.types = c("response", "prob"),
+  fun = function(task, model, pred, extra.args) {
+    mean(c(tp$fun(pred = pred) / sum(pred$data$truth == pred$task.desc$positive),
+           tn$fun(pred = pred) / sum(pred$data$truth == pred$task.desc$negative)))
   }
 )
 
@@ -522,3 +545,77 @@ mcp = makeMeasure(id = "mcp", minimize = TRUE, best = 0, worst = Inf,
     mc - oc
   }
 )
+
+###############################################################################
+### clustering ###
+###############################################################################
+#' @export db
+#' @rdname measures
+#' @usage none
+#' @format none
+db = makeMeasure(id = "db", minimize = TRUE, best = 0, worst = Inf,
+  properties = "cluster",
+  allowed.pred.types = c("response"),
+  fun = function(task, model, pred, extra.args) {
+    requirePackages("clusterSim")
+    d = task$env$data
+    index.DB(d[pred$data$id,, drop = FALSE], pred$data$response)$DB
+  }
+)
+
+#' @export dunn
+#' @rdname measures
+#' @usage none
+#' @format none
+dunn = makeMeasure(id = "dunn", minimize = FALSE, best = Inf, worst = 0,
+  properties = "cluster",
+  allowed.pred.types = c("response"),
+  fun = function(task, model, pred, extra.args) {
+    requirePackages("clValid")
+    d = task$env$data
+    dunn(Data = d[pred$data$id,, drop = FALSE], clusters = pred$data$response)
+  }
+)
+
+#' @export G1
+#' @rdname measures
+#' @usage none
+#' @format none
+G1 = makeMeasure(id = "G1", minimize = FALSE, best = Inf, worst = 0,
+  properties = "cluster",
+  allowed.pred.types = c("response"),
+  fun = function(task, model, pred, extra.args) {
+    requirePackages("clusterSim")
+    d = task$env$data
+    index.G1(d[pred$data$id,, drop = FALSE], pred$data$response)
+  }
+)
+
+#' @export G2
+#' @rdname measures
+#' @usage none
+#' @format none
+G2 = makeMeasure(id = "G2", minimize = FALSE, best = Inf, worst = 0,
+  properties = "cluster",
+  allowed.pred.types = c("response"),
+  fun = function(task, model, pred, extra.args) {
+    requirePackages("clusterSim")
+    d = task$env$data
+    index.G2(dist.GDM(d[pred$data$id,, drop = FALSE]), pred$data$response)
+  }
+)
+
+#' @export silhouette
+#' @rdname measures
+#' @usage none
+#' @format none
+silhouette = makeMeasure(id = "silhouette", minimize = FALSE, best = Inf, worst = 0,
+  properties = "cluster",
+  allowed.pred.types = c("response"),
+  fun = function(task, model, pred, extra.args) {
+    requirePackages("clusterSim")
+    d = task$env$data
+    index.S(dist.GDM(d[pred$data$id,, drop = FALSE]), pred$data$response)
+  }
+)
+
