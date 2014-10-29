@@ -6,13 +6,17 @@ makeRLearner.classif.plsdaCaret = function() {
       makeIntegerLearnerParam(id = "ncomp", default = 2, lower = 1),
       makeDiscreteLearnerParam(id = "probMethod", values = c("softmax", "Bayes"), default = "softmax")
     ),
-    properties = c("numerics", "prob", "twoclass"))
+    properties = c("numerics", "prob", "twoclass"),
+    name = "Partial Least Squares (PLS) Discriminant Analysis",
+    short.name = "plsdacaret",
+    note = ""
+  )
 }
 
 #' @export
 trainLearner.classif.plsdaCaret = function(.learner, .task, .subset, .weights, ...) {
   d = getTaskData(.task, .subset, target.extra = TRUE)
-  plsda(d$data, d$target, method = "oscorespls", ...)
+  caret::plsda(d$data, d$target, method = "oscorespls", ...)
 }
 
 #' @export

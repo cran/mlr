@@ -8,20 +8,23 @@ makeRLearner.classif.plsDA = function() {
       makeIntegerLearnerParam(id = "comps", lower = 1L, default = 2L, requires = expression(autosel==TRUE)),
       makeLogicalLearnerParam(id = "retain.models", default = FALSE)
       ),
-    properties = c("twoclass", "multiclass", "numerics")
+    properties = c("twoclass", "multiclass", "numerics"),
+    name = "Partial Least Squares (PLS) Discriminant Analysis",
+    short.name = "plsda",
+    note = ""
   )
 }
 
 #' @export
 trainLearner.classif.plsDA = function(.learner, .task, .subset, .weights = NULL,  ...) {
   d = getTaskData(.task, .subset, target.extra = TRUE)
-  plsDA(variables = d$data, group = d$target, ...)
+  DiscriMiner::plsDA(variables = d$data, group = d$target, ...)
 }
 
 #' @export
 predictLearner.classif.plsDA = function(.learner, .model, .newdata, ...) {
   m = .model$learner.model
-  p = classify(m, newdata = .newdata)
+  p = DiscriMiner::classify(m, newdata = .newdata)
   #p$scores #we loose this information
   p$pred_class
 }

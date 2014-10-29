@@ -21,14 +21,16 @@ makeRLearner.cluster.SimpleKMeans = function() {
       makeNumericLearnerParam(id = "t1", default = -1.5),
       makeLogicalLearnerParam(id = "V")
     ),
-    properties = c("numerics")
+    properties = c("numerics"),
+    name = "K-Means Clustering",
+    short.name = "simplekmeans"
   )
 }
 
 #' @export
 trainLearner.cluster.SimpleKMeans = function(.learner, .task, .subset, .weights = NULL,  ...) {
-  ctrl = Weka_control(...)
-  SimpleKMeans(getTaskData(.task, .subset), control = ctrl)
+  ctrl = RWeka::Weka_control(...)
+  RWeka::SimpleKMeans(getTaskData(.task, .subset), control = ctrl)
 }
 
 #' @export

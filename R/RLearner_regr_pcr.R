@@ -13,14 +13,17 @@ makeRLearner.regr.pcr = function() {
       makeLogicalLearnerParam(id = "y", default = FALSE)
     ),
     par.vals = list(model = FALSE),
-    properties = c("numerics", "factors")
+    properties = c("numerics", "factors"),
+    name = "Principal Component Regression",
+    short.name = "pcr",
+    note = "`model` has been set to `FALSE` by default for speed."
   )
 }
 
 #' @export
 trainLearner.regr.pcr = function(.learner, .task, .subset, .weights = NULL,  ...) {
   f = getTaskFormula(.task)
-  pcr(f, data = getTaskData(.task, .subset), ...)
+  pls::pcr(f, data = getTaskData(.task, .subset), ...)
 }
 
 #' @export

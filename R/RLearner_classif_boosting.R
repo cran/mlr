@@ -3,7 +3,7 @@
 makeRLearner.classif.boosting = function() {
   makeRLearnerClassif(
     cl = "classif.boosting",
-    package = "adabag",
+    package = c("adabag", "rpart"),
     par.set = makeParamSet(
       makeLogicalLearnerParam(id = "boos", default = TRUE),
       makeIntegerLearnerParam(id = "mfinal", default = 100L, lower = 1L),
@@ -21,15 +21,18 @@ makeRLearner.classif.boosting = function() {
       makeIntegerLearnerParam(id = "xval", default = 0L, lower = 0L)
     ),
     par.vals = list(xval = 0L),
-    properties = c("twoclass", "multiclass", "missings", "numerics", "factors", "prob")
+    properties = c("twoclass", "multiclass", "missings", "numerics", "factors", "prob"),
+    name = "Adabag Boosting",
+    short.name = "adabag",
+    note = "`xval` has been set to 0 by default for speed."
   )
 }
 
 #' @export
 trainLearner.classif.boosting= function(.learner, .task, .subset, .weights = NULL, minsplit, minbucket, cp, maxcompete, maxsurrogate, usesurrogate, surrogatestyle, maxdepth, xval, ...) {
   f = getTaskFormula(.task)
-  ctrl = learnerArgsToControl(rpart.control, minsplit, minbucket, cp, maxcompete, maxsurrogate, usesurrogate, surrogatestyle, maxdepth, xval)
-  boosting(f, data = getTaskData(.task, .subset), control = ctrl, ...)
+  ctrl = learnerArgsToControl(rpart::rpart.control, minsplit, minbucket, cp, maxcompete, maxsurrogate, usesurrogate, surrogatestyle, maxdepth, xval)
+  adabag::boosting(f, data = getTaskData(.task, .subset), control = ctrl, ...)
 }
 
 #' @export

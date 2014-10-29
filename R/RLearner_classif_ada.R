@@ -22,14 +22,16 @@ makeRLearner.classif.ada = function() {
       # we use 30 as upper limit, see docs of rpart.control
       makeIntegerLearnerParam(id = "maxdepth", default = 30L, lower = 1L, upper = 30L)
     ),
-    properties = c("twoclass", "multiclass", "numerics", "factors", "prob", "weights")
+    properties = c("twoclass", "multiclass", "numerics", "factors", "prob", "weights"),
+    name = "ada Boosting",
+    short.name = "ada"
   )
 }
 
 #' @export
 trainLearner.classif.ada = function(.learner, .task, .subset, .weights = NULL,  ...) {
   f = getTaskFormula(.task)
-  ada(f, data = getTaskData(.task, .subset), ...)
+  ada::ada(f, data = getTaskData(.task, .subset), ...)
 }
 
 #' @export

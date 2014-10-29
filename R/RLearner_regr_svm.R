@@ -17,14 +17,17 @@ makeRLearner.regr.svm = function() {
       makeNumericLearnerParam(id = "cachesize", default = 40L)
 
     ),
-    properties = c("numerics", "factors")
+    properties = c("numerics", "factors"),
+    name = "Support Vector Machines (libsvm)",
+    short.name = "svm",
+    note = ""
   )
 }
 
 #' @export
 trainLearner.regr.svm = function(.learner, .task, .subset, .weights = NULL,  ...) {
   f = getTaskFormula(.task)
-  svm(f, data = getTaskData(.task, .subset), ...)
+  e1071::svm(f, data = getTaskData(.task, .subset), ...)
 }
 
 #' @export

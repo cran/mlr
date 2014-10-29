@@ -1,7 +1,30 @@
-context("clustering")
+context("clustering extra")
+
+test_that("clustering predict",  {
+  lrn = makeLearner("cluster.cmeans", predict.type = "prob")
+  model = train(lrn, noclass.task)
+  pred = predict(model, task = noclass.task)
+  y = pred$data$response
+  expect_true(is.integer(y))
+  p = getProbabilities(pred)
+  expect_true(is.data.frame(p) && nrow(noclass.df) && ncol(p) == max(y))
+})
+
+
+test_that("clustering performance",  {
+  lrn = makeLearner("cluster.SimpleKMeans")
+  model = train(lrn, noclass.task)
+  pred = predict(model, task = noclass.task)
+
+  expect_true(is.numeric(performance(pred, task = noclass.task, measures = db)))
+  expect_true(is.numeric(performance(pred, task = noclass.task, measures = dunn)))
+  expect_true(is.numeric(performance(pred, task = noclass.task, measures = G1)))
+  expect_true(is.numeric(performance(pred, task = noclass.task, measures = G2)))
+  expect_true(is.numeric(performance(pred, task = noclass.task, measures = silhouette)))
+})
 
 test_that("clustering resample",  {
-  rdesc = makeResampleDesc("Bootstrap", iters = 5)
+  rdesc = makeResampleDesc("Subsample", split = 0.3, iters = 2)
   lrn = makeLearner("cluster.SimpleKMeans")
   res = resample(lrn, noclass.task, rdesc)
 
@@ -14,7 +37,7 @@ test_that("clustering benchmark", {
   tasks = list(noclass.task)
   learner.names = c("cluster.SimpleKMeans")
   learners = lapply(learner.names, makeLearner)
-  rin = makeResampleDesc("CV", iters = 3L)
+  rin = makeResampleDesc("CV", iters = 2L)
 
   res = benchmark(learners = learners, task = tasks, resamplings = makeResampleDesc("CV", iters = 2L))
   expect_true("BenchmarkResult" %in% class(res))
@@ -38,14 +61,3 @@ test_that("clustering tune", {
   expect_true(!is.na(tr$y))
 })
 
-test_that("clustering performance",  {
-  lrn = makeLearner("cluster.SimpleKMeans")
-  model = train(lrn, noclass.task)
-  pred = predict(model, task = noclass.task)
-
-  expect_true(is.numeric(performance(pred, task = noclass.task, measures = mlr::db)))
-  expect_true(is.numeric(performance(pred, task = noclass.task, measures = mlr::dunn)))
-  expect_true(is.numeric(performance(pred, task = noclass.task, measures = mlr::G1)))
-  expect_true(is.numeric(performance(pred, task = noclass.task, measures = mlr::G2)))
-  expect_true(is.numeric(performance(pred, task = noclass.task, measures = mlr::silhouette)))
-})

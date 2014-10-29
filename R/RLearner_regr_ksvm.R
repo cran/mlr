@@ -28,7 +28,10 @@ makeRLearner.regr.ksvm = function() {
       makeLogicalLearnerParam(id = "fit", default = TRUE)
     ),
     par.vals = list(fit = FALSE),
-    properties = c("numerics", "factors")
+    properties = c("numerics", "factors"),
+    name = "Support Vector Machines",
+    short.name = "ksvm",
+    note = "Kernel parameters have to be passed directly and not by using the kpar list in ksvm. Note that `fit` has been set to `FALSE` by default for speed."
   )
 }
 
@@ -38,9 +41,9 @@ trainLearner.regr.ksvm = function(.learner, .task, .subset, .weights = NULL, deg
   f = getTaskFormula(.task)
   # difference in missing(kpar) and kpar = list()!
   if (base::length(kpar))
-    ksvm(f, data = getTaskData(.task, .subset), kpar = kpar, ...)
+    kernlab::ksvm(f, data = getTaskData(.task, .subset), kpar = kpar, ...)
   else
-    ksvm(f, data = getTaskData(.task, .subset), ...)
+    kernlab::ksvm(f, data = getTaskData(.task, .subset), ...)
 }
 
 #' @export

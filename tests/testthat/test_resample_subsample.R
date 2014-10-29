@@ -16,10 +16,4 @@ test_that("subsampling instance works", {
     expect_true(max(i2) <= 20)
 		expect_equal(sort(c(i1, i2)), 1:20)
 	}
-  # check that resampling is really stochastic
-  if (interactive()) {
-    rin1 = makeResampleInstance(makeResampleDesc("Subsample", iters=3), size=500)
-    rin2 = makeResampleInstance(makeResampleDesc("Subsample", iters=3), size=500)
-    expect_true(!all(sort(rin1$test.inds[[1]])== sort(rin2$test.inds[[1]])))
-  }
 })

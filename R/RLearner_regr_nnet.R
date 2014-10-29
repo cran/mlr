@@ -20,7 +20,10 @@ makeRLearner.regr.nnet = function() {
       makeNumericLearnerParam(id = "reltoll", default = 1.0e-8)
     ),
     par.vals = list(size = 3L),
-    properties = c("numerics", "factors", "weights")
+    properties = c("numerics", "factors", "weights"),
+    name = "Neural Network",
+    short.name = "nnet",
+    note = "`size` has been set to 3 by default."
   )
 }
 
@@ -28,10 +31,10 @@ makeRLearner.regr.nnet = function() {
 trainLearner.regr.nnet = function(.learner, .task, .subset, .weights = NULL,  ...) {
   if (is.null(.weights)) {
     f = getTaskFormula(.task)
-    nnet(f, data = getTaskData(.task, .subset), linout = TRUE, ...)
+    nnet::nnet(f, data = getTaskData(.task, .subset), linout = TRUE, ...)
   } else  {
     f = as.formula(getTaskFormulaAsString(.task))
-    nnet(f, data = getTaskData(.task, .subset), linout = TRUE, weights = .weights, ...)
+    nnet::nnet(f, data = getTaskData(.task, .subset), linout = TRUE, weights = .weights, ...)
   }
 }
 

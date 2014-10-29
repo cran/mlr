@@ -13,7 +13,10 @@ makeRLearner.regr.gbm = function() {
       makeNumericLearnerParam(id = "train.fraction", default = 1, lower = 0, upper = 1)
     ),
     par.vals = list(distribution = "gaussian"),
-    properties = c("missings", "numerics", "factors", "weights")
+    properties = c("missings", "numerics", "factors", "weights"),
+    name = "Gradient Boosting Machine",
+    short.name = "gbm",
+    note = "`distribution` has been set to *gaussian* by default."
   )
 }
 
@@ -22,10 +25,10 @@ trainLearner.regr.gbm = function(.learner, .task, .subset, .weights = NULL,  ...
   f = getTaskFormula(.task)
   if (is.null(.weights)) {
     f = getTaskFormula(.task)
-    gbm(f, data = getTaskData(.task, .subset), keep.data = FALSE, ...)
+    gbm::gbm(f, data = getTaskData(.task, .subset), keep.data = FALSE, ...)
   } else  {
     f = as.formula(getTaskFormulaAsString(.task))
-    gbm(f, data = getTaskData(.task, .subset), keep.data = FALSE, weights = .weights, ...)
+    gbm::gbm(f, data = getTaskData(.task, .subset), keep.data = FALSE, weights = .weights, ...)
   }
 }
 

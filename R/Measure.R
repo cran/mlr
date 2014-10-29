@@ -16,11 +16,12 @@
 #'   \item{properties [\code{character}]}{See argument.}
 #'   \item{allowed.pred.types [\code{character}]}{See argument.}
 #'   \item{req.pred [\code{logical(1)}]}{Is prediction object required in calculation?}
-#'   \item{req.task [\code{logical(1)}]}{Is task object required in calculation?.}
+#'   \item{req.task [\code{logical(1)}]}{Is task object required in calculation?}
 #'   \item{req.model [\code{logical(1)}]}{Is model object required in calculation?}
+#'   \item{req.feats [\code{logical(1)}]}{Is feature object required in calculation?}
 #'   \item{fun [\code{function}]}{See argument.}
 #'   \item{extra.args [\code{list}]}{See argument.}
-#'   \item{aggr [\code{\link{Aggregation}}]}{See argument.}.
+#'   \item{aggr [\code{\link{Aggregation}}]}{See argument.}
 #'   \item{best [\code{numeric(1)}]}{See argument.}
 #'   \item{worst [\code{numeric(1)}]}{See argument.}
 #' }
@@ -59,6 +60,8 @@
 #' @param worst [\code{numeric(1)}]\cr
 #'   Worst obtainable value for measure.
 #'   Default is \code{Inf} or -\code{Inf}, depending on \code{minimize}.
+#' @param note [\code{character}] \cr
+#'   Name (and description) of the measure. Default is \dQuote{}.
 #' @template ret_measure
 #' @export
 #' @family performance
@@ -68,13 +71,14 @@
 #'   sum((pred$data$response - pred$data$truth)^2)
 #' makeMeasure(id = "my.sse", minimize = TRUE, properties = c("regr", "response"), fun = f)
 makeMeasure = function(id, minimize, properties = character(0L), allowed.pred.types = character(0L),
-  fun, extra.args = list(), aggr = test.mean, best = NULL, worst = NULL) {
+  fun, extra.args = list(), aggr = test.mean, best = NULL, worst = NULL, note = "") {
   assertString(id)
   assertFlag(minimize)
   assertCharacter(properties, any.missing = FALSE)
   assertSubset(allowed.pred.types, choices = c("response", "prob", "se"))
   assertFunction(fun)
   assertList(extra.args)
+  assertString(note)
   if (is.null(best))
     best = ifelse(minimize, -Inf, Inf)
   else
@@ -97,10 +101,12 @@ makeMeasure = function(id, minimize, properties = character(0L), allowed.pred.ty
     req.pred = "pred" %in% v,
     req.model = "model" %in% v,
     req.task = "task" %in% v,
+    req.feats = "feats" %in% v,
     fun = fun,
     extra.args = extra.args,
     best = best,
-    worst = worst
+    worst = worst,
+    note = note
   )
   setAggregation(m, aggr)
 }
@@ -145,4 +151,5 @@ print.Measure = function(x, ...) {
   catf("Minimize: %s", x$minimize)
   catf("Best: %g; Worst: %g", x$best, x$worst)
   catf("Aggregated by: %s", x$aggr$id)
+  catf("Note: %s", x$note)
 }

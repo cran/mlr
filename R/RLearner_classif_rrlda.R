@@ -11,14 +11,17 @@ makeRLearner.classif.rrlda = function() {
       makeIntegerLearnerParam(id = "maxit", default = 50L, lower = 1L),
       makeDiscreteLearnerParam(id = "penalty", default = "L2", values = c("L1", "L2"))
     ),
-    properties = c("twoclass", "multiclass", "numerics")
+    properties = c("twoclass", "multiclass", "numerics"),
+    name = "Robust Regularized Linear Discriminant Analysis",
+    short.name = "rrlda",
+    note = ""
   )
 }
 
 #' @export
 trainLearner.classif.rrlda = function(.learner, .task, .subset, .weights = NULL,  ...) {
   d = getTaskData(.task, .subset, target.extra = TRUE)
-  rrlda(x = d$data, grouping = d$target, ...)
+  rrlda::rrlda(x = d$data, grouping = d$target, ...)
 }
 
 #' @export

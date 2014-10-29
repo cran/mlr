@@ -16,10 +16,18 @@ convertXNumeric = function(x, par.set) {
 convertXMatrixCols = function(xs, par.set) {
   rownames(xs) = colnames(xs) = NULL
   xs = lapply(seq_col(xs), function(i) {
-    convertXNumeric(xs[,i], par.set)
+    convertXNumeric(xs[, i], par.set)
   })
 }
 
+# convert logical param values from chars to true logicals, eg irace produces strings in tuning
+convertXLogicalsNotAsStrings = function(x, par.set) {
+  types = getParamTypes(par.set, use.names = TRUE)
+  j = types %in% c("logical", "logicalvector")
+  if (any(j))
+    x[j] = lapply(x[j], as.logical)
+  return(x)
+}
 
 roundIntegers = function(x, par.set) {
   Map(function(par, v) {

@@ -21,7 +21,10 @@ makeRLearner.classif.nnet = function() {
       makeNumericLearnerParam(id = "reltoll", default = 1.0e-8)
     ),
     par.vals = list(size = 3L),
-    properties = c("twoclass", "multiclass", "numerics", "factors", "prob", "weights")
+    properties = c("twoclass", "multiclass", "numerics", "factors", "prob", "weights"),
+    name = "Neural Network",
+    short.name = "nnet",
+    note = "`size` has been set to 3 by default."
   )
 }
 
@@ -29,10 +32,10 @@ makeRLearner.classif.nnet = function() {
 trainLearner.classif.nnet = function(.learner, .task, .subset, .weights = NULL,  ...) {
   if (is.null(.weights)) {
     f = getTaskFormula(.task)
-    nnet(f, data = getTaskData(.task, .subset), ...)
+    nnet::nnet(f, data = getTaskData(.task, .subset), ...)
   } else  {
     f = as.formula(getTaskFormulaAsString(.task))
-    nnet(f, data = getTaskData(.task, .subset), weights = .weights, ...)
+    nnet::nnet(f, data = getTaskData(.task, .subset), weights = .weights, ...)
   }
 }
 

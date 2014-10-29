@@ -1,11 +1,14 @@
-#' Predict new data.
+#' @title Predict new data.
 #'
+#' @description
 #' Predict the target variable of new data using a fitted model.
 #' What is stored exactly in the [\code{\link{Prediction}}] object depends
 #' on the \code{predict.type} setting of the \code{\link{Learner}}.
 #' If \code{predict.type} was set to \dQuote{prob} probability thresholding
 #' can be done calling the \code{\link{setThreshold}} function on the
 #' prediction object.
+#'
+#' The row names of the input \code{task} or \code{newdata} are preserved in the output.
 #'
 #' @param object [\code{\link{WrappedModel}}]\cr
 #'   Wrapped model, result of \code{\link{train}}.
@@ -62,7 +65,7 @@ predict.WrappedModel = function(object, task, newdata, subset, ...) {
   if (missing(newdata)) {
     newdata = getTaskData(task, subset)
   } else {
-    newdata = newdata[subset,,drop = FALSE]
+    newdata = newdata[subset,, drop = FALSE]
   }
 
   # if we saved a model and loaded it later just for prediction this is necessary
@@ -71,7 +74,7 @@ predict.WrappedModel = function(object, task, newdata, subset, ...) {
 
   # get truth and drop target col, if target in newdata
   if (!all(is.na(t.col))) {
-    if (length(t.col) > 1L && any(is.na(t.col)))
+    if (length(t.col) > 1L && anyMissing(t.col))
       stop("Some but not all target columns found in data")
     truth = newdata[, t.col, drop = TRUE]
     newdata = newdata[, -t.col, drop = FALSE]
@@ -80,11 +83,11 @@ predict.WrappedModel = function(object, task, newdata, subset, ...) {
   }
 
   # was there an error in building the model? --> return NAs
-  if (inherits(model, "FailureModel")) {
+  if (isFailureModel(model)) {
     p = predictFailureModel(model, newdata)
     time.predict = NA_real_
   } else {
-    #FIXME this copies newdata
+    #FIXME: this copies newdata
     pars = list(
       .learner = learner,
       .model = model,
@@ -94,25 +97,19 @@ predict.WrappedModel = function(object, task, newdata, subset, ...) {
     debug.seed = getMlrOption("debug.seed", NULL)
     if (!is.null(debug.seed))
       set.seed(debug.seed)
-    opt.ole = getMlrOption("on.learner.error")
-    if (getMlrOption("show.learner.output"))
-      fun1 = identity
-    else
-      fun1 = capture.output
-    if (opt.ole == "stop")
-      fun2 = identity
-    else
-      fun2 = function(x) try(x, silent = TRUE)
-    old.warn.opt = getOption("warn")
-    on.exit(options(warn = old.warn.opt))
-    if (getMlrOption("on.learner.warning") == "quiet") {
+    opts = getLearnerOptions(learner, c("show.learner.output", "on.learner.error", "on.learner.warning"))
+    fun1 = if (opts$show.learner.output) identity else capture.output
+    fun2 = if (opts$on.learner.error == "stop") identity else function(x) try(x, silent = TRUE)
+    if (opts$on.learner.warning == "quiet") {
+      old.warn.opt = getOption("warn")
+      on.exit(options(warn = old.warn.opt))
       options(warn = -1L)
     }
     st = system.time(fun1(p <- fun2(do.call(predictLearner2, pars))), gcFirst = FALSE)
     time.predict = as.numeric(st[3L])
     # was there an error during prediction?
     if (is.error(p)) {
-      if (opt.ole == "warn")
+      if (opts$on.learner.warning == "warn")
         warningf("Could not predict with learner %s: %s", learner$id, as.character(p))
       p = predictFailureModel(model, newdata)
       time.predict = NA_real_
@@ -122,6 +119,6 @@ predict.WrappedModel = function(object, task, newdata, subset, ...) {
     ids = NULL
   else
     ids = subset
-  makePrediction(task.desc = td, id = ids, truth = truth,
+  makePrediction(task.desc = td, row.names = rownames(newdata), id = ids, truth = truth,
     predict.type = learner$predict.type, y = p, time = time.predict)
 }

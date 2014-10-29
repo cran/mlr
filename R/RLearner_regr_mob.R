@@ -9,25 +9,29 @@ makeRLearner.regr.mob = function() {
       makeIntegerLearnerParam(id = "minsplit", default = 20L, lower = 1L),
       makeNumericLearnerParam(id = "trim", default = 0.1, lower = 0, upper = 1),
       makeLogicalLearnerParam(id = "breakties", default = FALSE),
-      makeDiscreteLearnerParam(id = "model", default = glinearModel,
-        values = list(glinearModel = glinearModel, linearModel = linearModel)),
+      makeLogicalLearnerParam(id = "verbose", default = FALSE),
+      makeDiscreteLearnerParam(id = "model", default = modeltools::glinearModel,
+        values = list(glinearModel = modeltools::glinearModel, linearModel = modeltools::linearModel)),
       makeUntypedLearnerParam(id = "part.feats"),
       makeUntypedLearnerParam(id = "term.feats")
     ),
     par.vals = list(),
-    properties = c("numerics", "factors", "weights")
+    properties = c("numerics", "factors", "weights"),
+    name = "Model-based Recursive Partitioning  Yielding a Tree with Fitted Models Associated with each Terminal Node",
+    short.name = "mob",
+    note = ""
   )
 }
 
 #' @export
 trainLearner.regr.mob = function(.learner, .task, .subset, .weights = NULL, alpha, bonferroni, minsplit,
-  trim, breakties, part.feats, term.feats, ...) {
+  trim, breakties, verbose, part.feats, term.feats, ...) {
 
-  cntrl = learnerArgsToControl(mob_control, alpha, bonferroni, minsplit, trim, breakties)
+  cntrl = learnerArgsToControl(party::mob_control, alpha, bonferroni, minsplit, trim, breakties, verbose)
 
   feats = getTaskFeatureNames(.task)
-  # FIXME document stuff
-  # FIXME think about these defaults, also ask julia
+  # FIXME: document stuff
+  # FIXME: think about these defaults, also ask julia
   if (missing(part.feats))
     part.feats = feats
   if (missing(term.feats))
@@ -37,9 +41,9 @@ trainLearner.regr.mob = function(.learner, .task, .subset, .weights = NULL, alph
   f = as.formula(paste(target, "~", collapse(term.feats, sep = " + "), "|", collapse(part.feats, sep = " + ")))
 
   if (is.null(.weights)) {
-    mob(f, data = getTaskData(.task, .subset), control = cntrl, ...)
+    party::mob(f, data = getTaskData(.task, .subset), control = cntrl, ...)
   } else  {
-    mob(f, data = getTaskData(.task, .subset), control = cntrl, weights = .weights, ...)
+    party::mob(f, data = getTaskData(.task, .subset), control = cntrl, weights = .weights, ...)
   }
 }
 

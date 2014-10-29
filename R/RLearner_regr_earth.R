@@ -8,14 +8,17 @@ makeRLearner.regr.earth = function() {
       makeNumericLearnerParam(id = "penalty"),
       makeIntegerLearnerParam(id = "nprune")
       ),
-    properties = c("numerics", "factors")
+    properties = c("numerics", "factors"),
+    name = "Multivariate Adaptive Regression Splines",
+    short.name = "earth",
+    note = ""
   )
 }
 
 #' @export
 trainLearner.regr.earth = function(.learner, .task, .subset, .weights = NULL,  ...) {
   f = getTaskFormula(.task)
-  earth(f, data = getTaskData(.task, .subset), ...)
+  earth::earth(f, data = getTaskData(.task, .subset), ...)
 }
 
 #' @export

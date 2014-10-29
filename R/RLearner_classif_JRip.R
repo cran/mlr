@@ -10,15 +10,18 @@ makeRLearner.classif.JRip = function() {
       makeLogicalLearnerParam(id = "E", default = FALSE),
       makeLogicalLearnerParam(id = "P", default = FALSE)
     ),
-    properties = c("twoclass", "multiclass", "missings", "numerics", "factors", "prob")
+    properties = c("twoclass", "multiclass", "missings", "numerics", "factors", "prob"),
+    name = "Propositional Rule Learner",
+    short.name = "jrip",
+    note = "NAs are directly passed to WEKA with `na.action = na.pass`"
   )
 }
 
 #' @export
 trainLearner.classif.JRip = function(.learner, .task, .subset, .weights = NULL,  ...) {
   f = getTaskFormula(.task)
-  ctrl = Weka_control(..., S = as.integer(runif(1, min = -.Machine$integer.max, max = .Machine$integer.max)))
-  JRip(f, data = getTaskData(.task, .subset), control = ctrl, na.action = na.pass)
+  ctrl = RWeka::Weka_control(..., S = as.integer(runif(1, min = -.Machine$integer.max, max = .Machine$integer.max)))
+  RWeka::JRip(f, data = getTaskData(.task, .subset), control = ctrl, na.action = na.pass)
 }
 
 #' @export

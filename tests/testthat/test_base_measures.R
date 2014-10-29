@@ -4,22 +4,29 @@ test_that("measures", {
   ct = binaryclass.task
 
   mymeasure = makeMeasure(id = "foo", minimize = TRUE, properties = c("classif", "classif.multi", "regr"), allowed.pred.types = c("response", "prob"),
-    fun = function(task, model, pred, extra.args) {
+    fun = function(task, model, pred, feats, extra.args) {
       tt = pred
       1
     }
   )
   ms = list(mmce, acc, bac, tp, fp, tn, fn, tpr, fpr, tnr, fnr, ppv, npv, mcc, f1, mymeasure)
 
-  res = makeResampleDesc("CV", iters = 3)
   lrn = makeLearner("classif.rpart")
   mod = train(lrn, task = ct, subset = binaryclass.train.inds)
   pred = predict(mod, task = ct, subset = binaryclass.test.inds)
   perf = performance(pred, measures = ms)
 
-  r = resample(lrn, ct, res, measures = ms)
+  rdesc = makeResampleDesc("Holdout", split = 0.2)
+  r = resample(lrn, ct, rdesc, measures = ms)
   expect_equal(names(r$measures.test),
     c("iter", "mmce", "acc", "bac", "tp", "fp", "tn", "fn", "tpr", "fpr", "tnr", "fnr", "ppv", "npv", "mcc", "f1", "foo"))
+
+  # test that measures work for se
+  ms = list(mse, timetrain, timepredict, timeboth, featperc)
+  lrn = makeLearner("regr.lm", predict.type = "se")
+  mod = train(lrn, task = regr.task, subset = regr.train.inds)
+  pred = predict(mod, task = regr.task, subset = regr.test.inds)
+  perf = performance(pred, measures = ms, model = mod)
 
   # Test multiclass auc
   lrn = makeLearner("classif.randomForest",predict.type = "prob")

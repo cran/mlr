@@ -8,14 +8,17 @@ makeRLearner.classif.lda = function() {
       makeNumericLearnerParam(id = "nu", lower = 2, requires = expression(method=="t")),
       makeNumericLearnerParam(id = "tol", default = 1e-4, lower = 0)
     ),
-    properties = c("twoclass", "multiclass", "numerics", "factors", "prob")
+    properties = c("twoclass", "multiclass", "numerics", "factors", "prob"),
+    name = "Linear Discriminant Analysis",
+    short.name = "lda",
+    note = ""
   )
 }
 
 #' @export
 trainLearner.classif.lda = function(.learner, .task, .subset, .weights = NULL,  ...) {
   f = getTaskFormula(.task)
-  lda(f, data = getTaskData(.task, .subset), ...)
+  MASS::lda(f, data = getTaskData(.task, .subset), ...)
 }
 
 #' @export

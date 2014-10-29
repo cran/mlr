@@ -17,15 +17,18 @@ makeRLearner.classif.J48 = function() {
       makeLogicalLearnerParam(id = "A"),
       makeLogicalLearnerParam(id = "J")
     ),
-    properties = c("twoclass", "multiclass", "missings", "numerics", "factors", "prob")
+    properties = c("twoclass", "multiclass", "missings", "numerics", "factors", "prob"),
+    name = "J48 Decision Trees",
+    short.name = "j48",
+    note = "NAs are directly passed to WEKA with `na.action = na.pass`"
   )
 }
 
 #' @export
 trainLearner.classif.J48 = function(.learner, .task, .subset, .weights = NULL,  ...) {
-  ctrl = Weka_control(..., Q = as.integer(runif(1, min = -.Machine$integer.max, max = .Machine$integer.max)))
+  ctrl = RWeka::Weka_control(..., Q = as.integer(runif(1, min = -.Machine$integer.max, max = .Machine$integer.max)))
   f = getTaskFormulaAsString(.task)
-  J48(as.formula(f), data = getTaskData(.task, .subset), control = ctrl, na.action = na.pass)
+  RWeka::J48(as.formula(f), data = getTaskData(.task, .subset), control = ctrl, na.action = na.pass)
 }
 
 #' @export

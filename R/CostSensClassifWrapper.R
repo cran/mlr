@@ -14,6 +14,7 @@
 #' @template ret_learner
 #' @export
 #' @family costsens
+#' @family wrapper
 #' @aliases CostSensClassifWrapper CostSensClassifModel
 makeCostSensClassifWrapper = function(learner) {
   learner = checkLearnerClassif(learner)
@@ -34,7 +35,7 @@ trainLearner.CostSensClassifWrapper = function(.learner, .task, .subset, ...) {
   # compute average costs of all classes, then sort labels by it
   cns.costs = colSums(costs)
   cns = cns[order(cns.costs, decreasing = FALSE)]
-  costs = costs[, cns]
+  costs = costs[, cns, drop = FALSE]
   # case of equals best costs, take the one which is better on whole data
   newy = getMinIndexOfRows(costs, ties.method = "first")
   newy = cns[newy]

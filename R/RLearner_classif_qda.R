@@ -7,14 +7,17 @@ makeRLearner.classif.qda = function() {
       makeDiscreteLearnerParam(id = "method", default = "moment", values = c("moment", "mle", "mve", "t")),
       makeNumericLearnerParam(id = "nu", default = 5 , lower = 2, requires = expression(method == "t"))
     ),
-    properties = c("twoclass", "multiclass", "numerics", "factors", "prob")
+    properties = c("twoclass", "multiclass", "numerics", "factors", "prob"),
+    name = "Quadratic Discriminant Analysis",
+    short.name = "qda",
+    note = ""
   )
 }
 
 #' @export
 trainLearner.classif.qda = function(.learner, .task, .subset, .weights = NULL,  ...) {
   f = getTaskFormula(.task)
-  qda(f, data = getTaskData(.task, .subset), ...)
+  MASS::qda(f, data = getTaskData(.task, .subset), ...)
 }
 
 #' @export

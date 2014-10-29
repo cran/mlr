@@ -1,4 +1,4 @@
-#' Get current parameter settings for a learner.
+#' @title Get current parameter settings for a learner.
 #'
 #' @template arg_learner
 #' @param for.fun [\code{character(1)}]\cr
@@ -24,7 +24,7 @@ getHyperPars.Learner = function(learner, for.fun = c("train", "predict", "both")
   pv[ns]
 }
 
-# FIXME what if hyper pars are of complx type?
+# FIXME: what if hyper pars are of complx type?
 getHyperParsString = function(learner) {
   hps = getHyperPars(learner)
   ns = names(hps)

@@ -1,4 +1,4 @@
-#' Creates a measure for non-standard misclassification costs.
+#' @title Creates a measure for non-standard misclassification costs.
 #'
 #' @param id [\code{character(1)}]\cr
 #'   Name of measure.
@@ -39,15 +39,15 @@ makeCostMeasure = function(id = "costs", minimize = TRUE, costs, task, combine =
       stop("Row and column names of cost matrix have to equal class levels!")
   }
 
-  makeMeasure(id = "costs", minimize = minimize, extra.args = list(costs, combine),
+  makeMeasure(id = id, minimize = minimize, extra.args = list(costs, combine),
     properties = c("classif", "classif.multi"),
     allowed.pred.types = c("response", "prob"),
     best = best, worst = worst,
-    fun = function(task, model, pred, extra.args) {
+    fun = function(task, model, pred, feats, extra.args) {
       costs = extra.args[[1L]]
       # cannot index with NA
       r = pred$data$response
-      if (any(is.na(r)))
+      if (anyMissing(is.na(r)))
         return(NA_real_)
       cc = function(truth, pred) {
         costs[truth, pred]

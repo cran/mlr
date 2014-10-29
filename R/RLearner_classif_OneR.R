@@ -6,15 +6,18 @@ makeRLearner.classif.OneR = function() {
     par.set = makeParamSet(
       makeIntegerLearnerParam(id = "B", default = 6L, lower = 1L)
     ),
-    properties = c("twoclass", "multiclass", "missings", "numerics", "factors", "prob")
+    properties = c("twoclass", "multiclass", "missings", "numerics", "factors", "prob"),
+    name = "1-R Classifier",
+    short.name = "oner",
+    note = "NAs are directly passed to WEKA with `na.action = na.pass`"
   )
 }
 
 #' @export
 trainLearner.classif.OneR = function(.learner, .task, .subset, .weights = NULL,  ...) {
   f = getTaskFormula(.task)
-  ctrl = Weka_control(...)
-	OneR(f, data = getTaskData(.task, .subset), control = ctrl, na.action = na.pass)
+  ctrl = RWeka::Weka_control(...)
+	RWeka::OneR(f, data = getTaskData(.task, .subset), control = ctrl, na.action = na.pass)
 }
 
 #' @export

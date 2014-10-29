@@ -13,14 +13,17 @@ makeRLearner.classif.LiblineaRMultiClass = function() {
       makeLogicalLearnerParam(id = "verbose", default = FALSE)
     ),
     par.vals = list(type = 4),
-    properties = c("twoclass", "multiclass", "numerics")
+    properties = c("twoclass", "multiclass", "numerics"),
+    name = "Multi-class Support Vector Classification by Crammer and Singer",
+    short.name = "mcsvc",
+    note = "This model is type 4."
   )
 }
 
 #' @export
 trainLearner.classif.LiblineaRMultiClass = function(.learner, .task, .subset, .weights = NULL, ...) {
   d = getTaskData(.task, .subset, target.extra = TRUE)
-  LiblineaR(data = d$data, labels = d$target, ...)
+  LiblineaR::LiblineaR(data = d$data, labels = d$target, ...)
 }
 
 #' @export

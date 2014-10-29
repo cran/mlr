@@ -17,8 +17,10 @@ makeRLearner.classif.randomForest = function() {
       makeLogicalLearnerParam(id = "norm.votes", default = TRUE),
       makeLogicalLearnerParam(id = "keep.inbag", default = FALSE)
     ),
-    properties = c("twoclass", "multiclass", "numerics", "factors", "prob")
-  )
+    properties = c("twoclass", "multiclass", "numerics", "factors", "ordered", "prob"),
+    name = "Random Forest",
+    short.name = "rf"
+    )
 }
 
 #' @export
@@ -32,7 +34,7 @@ trainLearner.classif.randomForest = function(.learner, .task, .subset, .weights 
     names(classwt) = levs
   if (is.numeric(cutoff) && length(cutoff) == n && is.null(names(cutoff)))
     names(cutoff) = levs
-  randomForest(f, data = getTaskData(.task, .subset), classwt = classwt, cutoff = cutoff, ...)
+  randomForest::randomForest(f, data = getTaskData(.task, .subset), classwt = classwt, cutoff = cutoff, ...)
 }
 
 #' @export

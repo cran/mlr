@@ -16,7 +16,10 @@ makeRLearner.regr.rpart = function() {
       makeIntegerLearnerParam(id = "xval", default = 10L, lower = 0L)
     ),
     par.vals = list(xval = 0L),
-    properties = c("missings", "numerics", "factors", "weights")
+    properties = c("missings", "numerics", "factors", "ordered", "weights"),
+    name = "Decision Tree",
+    short.name = "rpart",
+    note = "`xval` has been set to 0 by default for speed."
   )
 }
 
@@ -25,10 +28,10 @@ trainLearner.regr.rpart = function(.learner, .task, .subset, .weights = NULL,  .
   d = getTaskData(.task, .subset)
   if (is.null(.weights)) {
     f = getTaskFormula(.task)
-    rpart(f, data = d, ...)
+    rpart::rpart(f, data = d, ...)
   } else  {
     f = as.formula(getTaskFormulaAsString(.task))
-    rpart(f, data = d, weights = .weights, ...)
+    rpart::rpart(f, data = d, weights = .weights, ...)
   }
 }
 

@@ -20,12 +20,6 @@ test_that("repcv instance works", {
     }
     expect_equal(sort(unique(bag)), 1:150)
   }
-  # check that resampling is really stochastic
-  if (interactive()) {
-    rin1 = makeResampleInstance(makeResampleDesc("RepCV", folds = 2, reps = 2), size = 500)
-    rin2 = makeResampleInstance(makeResampleDesc("RepCV", folds = 2, reps = 2), size = 500)
-    expect_true(!all(sort(rin1$test.inds[[1]]) == sort(rin2$test.inds[[1]])))
-  }
 })
 
 test_that("repcv resampling works", {

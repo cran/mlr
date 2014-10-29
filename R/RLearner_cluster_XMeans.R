@@ -17,14 +17,17 @@ makeRLearner.cluster.XMeans = function() {
       makeIntegerLearnerParam(id = "U", default = 0L, lower = 0L),
       makeLogicalLearnerParam(id = "use-kdtree")
     ),
-    properties = c("numerics")
+    properties = c("numerics"),
+    name = "XMeans (k-means with automatic determination of k)",
+    short.name = "xmeans",
+    note = "You may have to install the XMeans Weka package: WPM('install-package', 'XMeans')."
   )
 }
 
 #' @export
 trainLearner.cluster.XMeans = function(.learner, .task, .subset, .weights = NULL,  ...) {
-  ctrl = Weka_control(...)
-  XMeans(getTaskData(.task, .subset), control = ctrl)
+  ctrl = RWeka::Weka_control(...)
+  RWeka::XMeans(getTaskData(.task, .subset), control = ctrl)
 }
 
 #' @export

@@ -1,15 +1,20 @@
-getTaskType = function(x) {
+getTaskDescription = function(x) {
   if (inherits(x, "TaskDesc"))
-    x$type
+    x
   else
-    x$task.desc$type
+    x$task.desc
+}
+
+getTaskType = function(x) {
+  getTaskDescription(x)$type
 }
 
 getTargetNames = function(x) {
-  if (inherits(x, "TaskDesc"))
-    x$target
-  else
-    x$task.desc$target
+  getTaskDescription(x)$target
+}
+
+getTarget = function(x) {
+  x$env$data[[getTargetNames(x)]]
 }
 
 #' Get feature names of task.
@@ -21,11 +26,11 @@ getTargetNames = function(x) {
 #' @family task
 #' @export
 getTaskFeatureNames = function(task) {
-  #FIXME argument checks currently not done for speed
+  #FIXME: argument checks currently not done for speed
   setdiff(colnames(task$env$data), task$task.desc$target)
 }
 
-#' Get number of feature in task.
+#' Get number of features in task.
 #'
 #' @template arg_task
 #' @return [\code{integer(1)}].
@@ -38,13 +43,16 @@ getTaskNFeats = function(task) {
 #' @export
 #' @rdname getTaskFormula
 getTaskFormulaAsString = function(x, target = getTargetNames(x)) {
-  type = getTaskType(x)
-  if (type == "surv")
-    target = sprintf("Surv(%s, %s)", target[1L], target[2L])
-  else if (type == "costsens")
+  td = getTaskDescription(x)
+  type = td$type
+  if (type == "surv") {
+    lookup = setNames(c("left", "right", "interval2"), c("lcens", "rcens", "icens"))
+    target = sprintf("Surv(%s, %s, type = \"%s\")", target[1L], target[2L], lookup[td$censoring])
+  } else if (type == "costsens") {
     stop("There is no formula available for cost-sensitive learning.")
-  else if (type == "cluster")
+  } else if (type == "cluster") {
     stop("There is no formula available for clustering.")
+  }
   paste(target, "~.")
 }
 
@@ -67,7 +75,6 @@ getTaskFormulaAsString = function(x, target = getTargetNames(x)) {
 getTaskFormula = function(x, target = getTargetNames(x), env = NULL) {
   as.formula(getTaskFormulaAsString(x, target = target), env = env)
 }
-
 
 #' Get target column of task.
 #'
@@ -94,8 +101,8 @@ getTaskTargets = function(task, subset, recode.target = "no") {
     stop("There is no target available for cost-sensitive learning.")
   if (task$task.desc$type == "cluster")
     stop("There is no target available for cluster.")
-  y = task$env$data[subset, task$task.desc$target]
-  recodeY(y, recode.target, task$task.desc$positive)
+  y = task$env$data[subset, task$task.desc$target, drop = TRUE]
+  recodeY(y, recode.target, task$task.desc)
 }
 
 
@@ -155,7 +162,7 @@ getTaskData = function(task, subset, features, target.extra = FALSE, recode.targ
       features = task.features
     res = list(
       data = indexHelper(task$env$data, subset, setdiff(features, tn), drop = FALSE),
-      target = recodeY(indexHelper(task$env$data, subset, tn), type = recode.target, positive = task$task.desc$positive)
+      target = recodeY(indexHelper(task$env$data, subset, tn), type = recode.target, task$task.desc)
     )
   } else {
     if (missing(features) || identical(features, task.features))
@@ -165,10 +172,58 @@ getTaskData = function(task, subset, features, target.extra = FALSE, recode.targ
 
     res = indexHelper(task$env$data, subset, features, drop = FALSE)
     if (recode.target %nin% c("no", "surv")) {
-      res[, tn] = recodeY(res[, tn], type = recode.target, positive = task$task.desc$positive)
+      res[, tn] = recodeY(res[, tn], type = recode.target, task$task.desc)
     }
   }
   res
+}
+
+recodeY = function(y, type, td) {
+  if (type == "no")
+    return(y)
+  if (type == "01")
+    return(as.numeric(y == td$positive))
+  if (type == "-1+1")
+    return(as.numeric(2L * (y == td$positive) - 1L))
+  if (type %in% c("lcens", "rcens", "icens"))
+    return(recodeSurvivalTimes(y, from = td$censoring, to = type))
+  stopf("Unknown value for 'type': %s", type)
+}
+
+recodeSurvivalTimes = function(y, from, to) {
+  is.neg.infinite = function(x) is.infinite(x) & x < 0
+  is.pos.infinite = function(x) is.infinite(x) & x > 0
+  lookup = setNames(c("left", "right", "interval2"), c("lcens", "rcens", "icens"))
+
+  if (from == to)
+    return(Surv(y[, 1L], y[, 2L], type = lookup[to]))
+  if (setequal(c(from, to), c("lcens", "rcens")))
+    stop("Converting left censored to right censored data (or vice versa) is not possible")
+
+  switch(from,
+    rcens = {
+      time1 = y[, 1L]
+      time2 = ifelse(y[, 2L], y[, 1L], Inf)
+    },
+    lcens = {
+      time1 = ifelse(y[, 2L], y[, 1L], -Inf)
+      time2 = y[, 1L]
+    },
+    icens = {
+      if (to == "lcens") {
+        if (!all(is.neg.infinite(y[, 1L] | y[, 1L] == y[, 2L])))
+          stop("Could not convert interval2 survival data to left censored data")
+        time1 = y[, 2L]
+        time2 = is.infinite(y[, 1L])
+      } else {
+        if (!all(is.pos.infinite(y[, 2L] | y[, 2L] == y[, 1L])))
+          stop("Could not convert interval2 survival data to right censored data")
+        time1 = y[, 1L]
+        time2 = is.infinite(y[, 2L])
+      }
+    }
+  )
+  Surv(time1, time2, type = lookup[to])
 }
 
 #' Extract costs in task.
@@ -186,7 +241,7 @@ getTaskData = function(task, subset, features, target.extra = FALSE, recode.targ
 getTaskCosts = function(task, subset) {
   if (task$task.desc$type != "costsens")
     return(NULL)
-  ms = missing(subset) || identical(subset, 1:task$task.desc$size)
+  ms = missing(subset) || identical(subset, seq_len(task$task.desc$size))
   d = if (ms)
     task$env$costs
   else
@@ -215,7 +270,8 @@ getTaskCosts = function(task, subset) {
 subsetTask = function(task, subset, features) {
   # FIXME: we recompute the taskdesc for each subsetting. do we want that? speed?
   # FIXME: maybe we want this independent of changeData?
-  task = changeData(task, getTaskData(task, subset, features), getTaskCosts(task, subset))
+  td = task$desc
+  task = changeData(task, getTaskData(task, subset, features), getTaskCosts(task, subset), task$weights)
   if (!missing(subset)) {
     if (task$task.desc$has.blocking)
       task$blocking = task$blocking[subset]
@@ -237,13 +293,18 @@ changeData = function(task, data, costs, weights) {
     weights = task$env$weights
   task$env = new.env(parent = emptyenv())
   task$env$data = data
-  task$env$costs = costs
-  task$env$weights = weights
+  # FIXME: I hate R, this is all bad
+  if (!is.null(costs))
+    task$env$costs = costs
+  if (is.null(weights))
+    task["weights"] = list(NULL)
+  else
+    task$weights = weights
   td = task$task.desc
   # FIXME: this is bad style but I see no other way right now
   task$task.desc = switch(td$type,
     "classif" = makeTaskDesc(task, td$id, td$target, td$positive),
-    "surv" = makeTaskDesc(task, td$id, td$target, td$surv.type),
+    "surv" = makeTaskDesc(task, td$id, td$target, td$censoring),
     "cluster" = makeTaskDesc(task, td$id),
     makeTaskDesc(task, td$id, td$target))
   return(task)

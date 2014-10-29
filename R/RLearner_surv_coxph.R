@@ -12,7 +12,10 @@ makeRLearner.surv.coxph = function() {
       makeNumericLearnerParam(id = "toler.inf", default = sqrt(.Machine$double.eps^0.75), lower = 0),
       makeIntegerLearnerParam(id = "outer.max", default = 10L, lower = 1L)
     ),
-    properties = c("missings", "numerics", "factors", "weights", "prob", "rcens")
+    properties = c("missings", "numerics", "factors", "weights", "prob", "rcens"),
+    name = "Cox Proportional Hazard Model",
+    short.name = "coxph",
+    note = ""
   )
 }
 
@@ -21,9 +24,9 @@ trainLearner.surv.coxph = function(.learner, .task, .subset, .weights = NULL,  .
   f = as.formula(getTaskFormulaAsString(.task))
   data = getTaskData(.task, subset = .subset)
   if (is.null(.weights)) {
-    mod = coxph(formula = f, data = data, ...)
+    mod = survival::coxph(formula = f, data = data, ...)
   } else  {
-    mod = coxph(formula = f, data = data, weights = .weights, ...)
+    mod = survival::coxph(formula = f, data = data, weights = .weights, ...)
   }
   if (.learner$predict.type == "prob")
     mod = attachTrainingInfo(mod, list(surv.range = range(getTaskTargets(.task)[, 1L])))
@@ -37,7 +40,7 @@ predictLearner.surv.coxph = function(.learner, .model, .newdata, ...) {
   } else if (.learner$predict.type == "prob") {
     surv.range = getTrainingInfo(.model$learner.model)$surv.range
     times = seq(from = surv.range[1L], to = surv.range[2L], length.out = 1000)
-    t(summary(survfit(.model$learner.model, newdata = .newdata, se.fit = FALSE, conf.int = FALSE), times = times)$surv)
+    t(summary(survival::survfit(.model$learner.model, newdata = .newdata, se.fit = FALSE, conf.int = FALSE), times = times)$surv)
   } else {
     stop("Unknown predict type")
   }

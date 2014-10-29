@@ -15,7 +15,7 @@ test_that("performance", {
   r = resample(lrn, task = binaryclass.task, resampling = res)
 
   mymeasure = makeMeasure(id="mym", minimize=TRUE, properties = c("classif", "classif.multi"), allowed.pred.types = c("response"),
-    fun=function(task, model, pred, extra.args) {
+    fun=function(task, model, pred, feats, extra.args) {
       # normal test error
       e1 = mean(pred$data$truth != pred$data$response)
       # we do this manually
@@ -32,10 +32,11 @@ test_that("performance", {
   res = performance(r$pred, measures = list(ber, acc, tp), task = binaryclass.task)
   expect_true(!any(is.na(res)))
   expect_true(length(res) == 3)
+  expect_equal(names(res), c("ber", "acc", "tp"))
 
   # custom measure
 
-  mymeasure = makeCustomResampledMeasure(id = "mym", fun = function(task, group, pred, extra.args) {
+  mymeasure = makeCustomResampledMeasure(id = "mym", fun = function(task, group, pred, feats, extra.args) {
     mean(pred$data$truth != pred$data$response)
   })
   rdesc = makeResampleDesc("Holdout")

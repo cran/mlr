@@ -8,7 +8,10 @@ makeRLearner.regr.lm = function() {
   			 makeNumericLearnerParam(id = "nu", lower = 2, requires = expression(method=="t")),
       makeNumericLearnerParam(id = "tol", default = 1.0e-4, lower = 0)
     ),
-    properties = c("numerics", "factors", "se", "weights")
+    properties = c("numerics", "factors", "se", "weights"),
+    name = "Simple Linear Regression",
+    short.name = "lm",
+    note = ""
   )
 }
 
@@ -17,10 +20,10 @@ trainLearner.regr.lm = function(.learner, .task, .subset, .weights = NULL,  ...)
   d = getTaskData(.task, .subset)
   if (is.null(.weights)) {
     f = getTaskFormula(.task)
-    lm(f, data = d, ...)
+    stats::lm(f, data = d, ...)
   } else  {
     f = as.formula(getTaskFormulaAsString(.task))
-    lm(f, data = d, weights = .weights, ...)
+    stats::lm(f, data = d, weights = .weights, ...)
   }
 }
 

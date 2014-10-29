@@ -15,14 +15,16 @@ makeRLearner.cluster.EM = function() {
       makeIntegerLearnerParam(id = "X", default = 10L, lower = 1L),
       makeLogicalLearnerParam(id = "V")
     ),
-    properties = c("numerics")
+    properties = c("numerics"),
+    name = "Expectation-Maximization Clustering",
+    short.name = "em"
   )
 }
 
 #' @export
 trainLearner.cluster.EM = function(.learner, .task, .subset, .weights = NULL,  ...) {
-  ctrl = Weka_control(...)
-  make_Weka_clusterer("weka/clusterers/EM")(getTaskData(.task, .subset), control = ctrl)
+  ctrl = RWeka::Weka_control(...)
+  RWeka::make_Weka_clusterer("weka/clusterers/EM")(getTaskData(.task, .subset), control = ctrl)
 }
 
 #' @export

@@ -12,14 +12,14 @@ makeRLearner.classif.glmnet = function() {
       makeNumericVectorLearnerParam(id = "lambda"),
       makeLogicalLearnerParam(id = "standardize", default = TRUE),
       makeLogicalLearnerParam(id = "intercept", default = TRUE),
-      makeNumericLearnerParam(id = "threshold", default = 1e-07, lower = 0),
+      makeNumericLearnerParam(id = "thresh", default = 1e-07, lower = 0),
       makeIntegerLearnerParam(id = "dfmax", lower = 0L),
       makeIntegerLearnerParam(id = "pmax", lower = 0L),
       makeIntegerVectorLearnerParam(id = "exclude", lower = 1L),
       makeNumericVectorLearnerParam(id = "penalty.factor", lower = 0, upper = 1),
       makeNumericVectorLearnerParam(id = "lower.limits", upper = 0),
       makeNumericVectorLearnerParam(id = "upper.limits", lower = 0),
-      makeIntegerLearnerParam(id = "maxit", default = 10^5, lower = 1L),
+      makeIntegerLearnerParam(id = "maxit", default = 100000L, lower = 1L),
       makeDiscreteLearnerParam(id = "type.logistic", values = c("Newton", "modified.Newton")),
       makeDiscreteLearnerParam(id = "type.multinomial", values = c("ungrouped", "grouped")),
       makeNumericLearnerParam(id = "fdev", default = 1.0e-5, lower = 0, upper = 1),
@@ -30,10 +30,13 @@ makeRLearner.classif.glmnet = function() {
       makeNumericLearnerParam(id = "pmin", default = 1.0e-9, lower = 0, upper = 1),
       makeNumericLearnerParam(id = "exmx", default = 250.0),
       makeNumericLearnerParam(id = "prec", default = 1e-10),
-      makeIntegerLearnerParam(id = "mxit", default = 100, lower = 1)
+      makeIntegerLearnerParam(id = "mxit", default = 100L, lower = 1L)
     ),
     properties = c("numerics", "prob", "twoclass", "multiclass", "weights"),
-    par.vals = list(s = 0.01)
+    par.vals = list(s = 0.01),
+    name = "GLM with Lasso or Elasticnet Regularization",
+    short.name = "glmnet",
+    note = ""
   )
 }
 
@@ -41,37 +44,34 @@ makeRLearner.classif.glmnet = function() {
 trainLearner.classif.glmnet = function(.learner, .task, .subset, .weights = NULL, ...) {
   d = getTaskData(.task, .subset, target.extra = TRUE)
   args = c(list(x = as.matrix(d$data), y = d$target), list(...))
-  if (!is.null(.weights)) {
+  rm(d)
+  if (!is.null(.weights))
     args$weights = .weights
+
+  args$family = ifelse(length(.task$task.desc$class.levels) == 2L, "binomial", "multinomial")
+
+  saved.ctrl = glmnet::glmnet.control()
+  is.ctrl.arg = names(args) %in% names(saved.ctrl)
+  if (any(is.ctrl.arg)) {
+    on.exit(do.call(glmnet::glmnet.control, saved.ctrl))
+    do.call(glmnet::glmnet.control, args[is.ctrl.arg])
+    args = args[!is.ctrl.arg]
   }
-  if (length(.task$task.desc$class.levels) == 2) {
-    args$family = "binomial"
-  } else {
-    args$family = "multinomial"
-  }
-  ctrl.args = names(formals(glmnet.control))
-  if (any(names(args) %in% ctrl.args)) {
-    do.call(glmnet.control, args[names(args) %in% ctrl.args])
-    mod = do.call(glmnet, args[!names(args) %in% ctrl.args])  
-    glmnet.control(factory = TRUE)
-  } else {
-    mod = do.call(glmnet, args) 
-  }
-  mod
+
+  do.call(glmnet::glmnet, args)
 }
 
 #' @export
 predictLearner.classif.glmnet = function(.learner, .model, .newdata, ...) {
   if(.learner$predict.type == "prob"){
-    p = predict(.model$learner.model, newx = as.matrix(.newdata), type = "response", ...)
+    p = predict(.model$learner.model, newx = as.matrix(.newdata), type = "response",  ...)
     if (length(.model$task.desc$class.levels) == 2) {
-      p = cbind(1 - p, p)
-      colnames(p) = .model$task.desc$class.levels
+      p = setColNames(cbind(1 - p, p), .model$task.desc$class.levels)
     } else {
       p = p[,,1]
     }
   } else {
-    p = predict(.model$learner.model, newx = as.matrix(.newdata), type = "class", ...)[,1]
+    p = drop(predict(.model$learner.model, newx = as.matrix(.newdata), type = "class", ...))
     p = factor(p, .model$task.desc$class.levels)
   }
   p

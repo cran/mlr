@@ -6,14 +6,17 @@ makeRLearner.regr.penalized.ridge = function() {
     par.set = makeParamSet(
       makeNumericLearnerParam(id = "lambda2", default = 0, lower = 0)
     ),
-    properties = c("numerics", "factors")
+    properties = c("numerics", "factors"),
+    name = "Penalized Ridge Regression",
+    short.name = "ridge",
+    note = ""
   )
 }
 
 #' @export
 trainLearner.regr.penalized.ridge = function(.learner, .task, .subset, .weights = NULL,  ...) {
   f = getTaskFormula(.task)
-  penalized(f, data = getTaskData(.task, .subset), ...)
+  penalized::penalized(f, data = getTaskData(.task, .subset), ...)
 }
 
 #' @export

@@ -13,23 +13,29 @@
 #'
 #' @template arg_learner
 #' @param fw.method [\code{character(1)}]\cr
-#'   See \code{\link{getFilterValues}}.
-#'   Default is \dQuote{random.forest.importance}.
-#' @param fw.select [\code{character(1)}]\cr
-#'   See \code{\link{filterFeatures}}.
-#'   Default is \dQuote{perc}.
-#' @param fw.val [\code{numeric(1)}]\cr
-#'   See \code{\link{filterFeatures}}.
-#'   Default is 1.
+#'   Filter method. See \code{\link{listFilterMethods}}.
+#'   Default is \dQuote{rf.importance}.
+#' @param fw.perc [\code{numeric(1)}]\cr
+#'   If set, select \code{fw.perc}*100 top scoring features.
+#'   Mutually exclusive with arguments \code{fw.abs} and \code{fw.threshold}.
+#' @param fw.abs [\code{numeric(1)}]\cr
+#'   If set, select \code{fw.abs} top scoring features.
+#'   Mutually exclusive with arguments \code{fw.perc} and \code{fw.threshold}.
+#' @param fw.threshold [\code{numeric(1)}]\cr
+#'   If set, select features whose score exceeds \code{fw.threshold}.
+#'   Mutually exclusive with arguments \code{fw.perc} and \code{fw.abs}.
+#' @param ... [any]\cr
+#'   Additional parameters passed down to the filter.
 #' @template ret_learner
 #' @export
 #' @family filter
+#' @family wrapper
 #' @examples
 #' task = makeClassifTask(data = iris, target = "Species")
 #' lrn = makeLearner("classif.lda")
 #' inner = makeResampleDesc("Holdout")
 #' outer = makeResampleDesc("CV", iters = 2)
-#' lrn = makeFilterWrapper(lrn, fw.val = 0.5)
+#' lrn = makeFilterWrapper(lrn, fw.perc = 0.5)
 #' mod = train(lrn, task)
 #' print(getFilteredFeatures(mod))
 #' # now nested resampling, where we extract the features that the filter method selected
@@ -37,34 +43,35 @@
 #'   getFilteredFeatures(model)
 #' })
 #' print(r$extract)
-makeFilterWrapper = function(learner, fw.method = "random.forest.importance", fw.select = "perc", fw.val = 1) {
+makeFilterWrapper = function(learner, fw.method = "rf.importance", fw.perc = NULL, fw.abs = NULL, fw.threshold = NULL, ...) {
   learner = checkLearner(learner)
-  pv = list()
-  if (!missing(fw.method)) {
-    assertChoice(fw.method, choices = listFilterMethods())
-    pv$fw.method = fw.method
-  }
-  checkFilterArguments(select = fw.select, val = fw.val)
-  if (!missing(fw.select))
-    pv$fw.select = fw.select
-  if (!missing(fw.val))
-    pv$fw.val = fw.val
-  id = paste(learner$id, "filtered", sep = ".")
-  ps = makeParamSet(
-    makeDiscreteLearnerParam(id = "fw.method", values = listFilterMethods()),
-    makeDiscreteLearnerParam(id = "fw.select", values = c("perc", "abs", "threshold")),
-    makeNumericLearnerParam(id = "fw.val")
-  )
-  makeBaseWrapper(id, learner, package = "FSelector", par.set = ps, par.vals = pv, cl = "FilterWrapper")
-}
+  assertChoice(fw.method, choices = ls(.FilterRegister))
+  filter = .FilterRegister[[fw.method]]
+  ddd = list(...)
+  assertList(ddd, names = "named")
 
+  lrn = makeBaseWrapper(
+    id = paste(learner$id, "filtered", sep = "."),
+    next.learner = learner,
+    package = filter$pkg,
+    par.set = makeParamSet(
+      makeDiscreteLearnerParam(id = "fw.method", values = ls(.FilterRegister)),
+      makeNumericLearnerParam(id = "fw.perc", lower = 0, upper = 1),
+      makeIntegerLearnerParam(id = "fw.abs", lower = 0),
+      makeNumericLearnerParam(id = "fw.threshold")
+    ),
+    par.vals = filterNull(list(fw.method = fw.method, fw.perc = fw.perc, fw.abs = fw.abs, fw.threshold = fw.threshold)),
+    cl = "FilterWrapper")
+  lrn$more.args = ddd
+  lrn
+}
 
 #' @export
 trainLearner.FilterWrapper = function(.learner, .task, .subset, .weights = NULL,
-  fw.method = "random.forest.importance", fw.select = "perc", fw.val = 1, ...) {
+  fw.method = "rf.importance", fw.perc = NULL, fw.abs = NULL, fw.threshold = NULL, ...) {
 
   .task = subsetTask(.task, subset = .subset)
-  .task = filterFeatures(.task, method = fw.method, select = fw.select, val = fw.val)
+  .task = do.call(filterFeatures, c(list(task = .task, method = fw.method, perc = fw.perc, abs = fw.abs, threshold = fw.threshold), .learner$more.args))
   m = train(.learner$next.learner, .task, weights = .weights)
   makeChainModel(next.model = m, cl = "FilterModel")
 }
@@ -74,7 +81,6 @@ trainLearner.FilterWrapper = function(.learner, .task, .subset, .weights = NULL,
 predictLearner.FilterWrapper = function(.learner, .model, .newdata, ...) {
   NextMethod(.newdata = .newdata[, .model$learner.model$next.model$features, drop = FALSE])
 }
-
 
 #' Returns the filtered features.
 #'
@@ -86,4 +92,3 @@ predictLearner.FilterWrapper = function(.learner, .model, .newdata, ...) {
 getFilteredFeatures = function(model) {
   model$learner.model$next.model$features
 }
-

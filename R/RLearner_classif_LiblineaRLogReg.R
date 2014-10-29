@@ -13,14 +13,17 @@ makeRLearner.classif.LiblineaRLogReg = function() {
       makeIntegerLearnerParam(id = "cross", default = 0L, lower = 0L),
       makeLogicalLearnerParam(id = "verbose", default = FALSE)
     ),
-  properties = c("twoclass", "numerics", "prob")
+  properties = c("twoclass", "numerics", "prob"),
+  name = "Regularized Logistic Regression",
+  short.name = "reglreg",
+  note = "This model subsumes type 0,6,7."
   )
 }
 
 #' @export
 trainLearner.classif.LiblineaRLogReg = function(.learner, .task, .subset, .weights = NULL,  ...) {
   d = getTaskData(.task, .subset, target.extra = TRUE)
-  LiblineaR(data = d$data, labels = d$target, ...)
+  LiblineaR::LiblineaR(data = d$data, labels = d$target, ...)
 }
 
 #' @export

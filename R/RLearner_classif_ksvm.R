@@ -29,15 +29,18 @@ makeRLearner.classif.ksvm = function() {
       makeLogicalLearnerParam(id = "fit", default = TRUE)
     ),
     par.vals = list(fit = FALSE),
-    properties = c("twoclass", "multiclass", "numerics", "factors", "prob")
+    properties = c("twoclass", "multiclass", "numerics", "factors", "prob"),
+    name = "Support Vector Machines",
+    short.name = "ksvm",
+    note = "Kernel parameters have to be passed directly and not by using the kpar list in ksvm. Note that `fit` has been set to `FALSE` by default for speed."
   )
 }
 
 #' @export
 trainLearner.classif.ksvm = function(.learner, .task, .subset, .weights = NULL, degree, offset, scale, sigma, order, length, lambda, normalized,  ...) {
 
-  # FIXME custom kernel. freezes? check mailing list
-  # FIXME unify cla + regr, test all sigma stuff
+  # FIXME: custom kernel. freezes? check mailing list
+  # FIXME: unify cla + regr, test all sigma stuff
 
 #     # there's a strange behaviour in r semantics here wgich forces this, see do.call and the comment about substitute
 #     if (!is.null(args$kernel) && is.function(args$kernel) && !is(args$kernel,"kernel")) {
@@ -47,9 +50,9 @@ trainLearner.classif.ksvm = function(.learner, .task, .subset, .weights = NULL, 
   f = getTaskFormula(.task)
   pm = .learner$predict.type == "prob"
   if (base::length(kpar) > 0L)
-    ksvm(f, data = getTaskData(.task, .subset), kpar = kpar, prob.model = pm, ...)
+    kernlab::ksvm(f, data = getTaskData(.task, .subset), kpar = kpar, prob.model = pm, ...)
   else
-    ksvm(f, data = getTaskData(.task, .subset), prob.model = pm, ...)
+    kernlab::ksvm(f, data = getTaskData(.task, .subset), prob.model = pm, ...)
 }
 
 #' @export

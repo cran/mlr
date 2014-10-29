@@ -17,14 +17,17 @@ makeRLearner.regr.km = function() {
       makeLogicalLearnerParam(id = "jitter", default = FALSE, when = "predict")
     ),
     par.vals = list(jitter = FALSE),
-    properties = c("numerics", "se")
+    properties = c("numerics", "se"),
+    name = "Kriging",
+    short.name = "km",
+    note = "In predict, we currently always use type = 'SK'."
   )
 }
 
 #' @export
 trainLearner.regr.km = function(.learner, .task, .subset, .weights = NULL,  ...) {
   d = getTaskData(.task, .subset, target.extra = TRUE)
-  km(design = d$data, response = d$target, ...)
+  DiceKriging::km(design = d$data, response = d$target, ...)
 }
 
 #' @export

@@ -4,7 +4,7 @@
 #' Such a model is created when one sets the corresponding option in \code{\link{configureMlr}}.
 #' If no failure occurred, \code{NA} is returned.
 #'
-#' For complex wrappers this getter returns the first error essage encountered in ANY model that failed.
+#' For complex wrappers this getter returns the first error message encountered in ANY model that failed.
 #'
 #' @template arg_wrappedmod
 #' @return [\code{character(1)}].
@@ -25,7 +25,7 @@ getFailureModelMsg.WrappedModel = function(model) {
 #' @export
 getFailureModelMsg.BaggingModel = function(model) {
   mods = getBaggingModels(model, learner.models = FALSE)
-  msgs = sapply(mods, getFailureModelMsg)
+  msgs = vcapply(mods, getFailureModelMsg)
   j = which.first(!is.na(msgs))
   ifelse(j == 0L, NA_character_ , msgs[j])
 }
@@ -33,7 +33,7 @@ getFailureModelMsg.BaggingModel = function(model) {
 #' @export
 getFailureModelMsg.CostSensWeightedPairsModel = function(model) {
   mods = getCostSensWeightedPairsModels(model, learner.models = FALSE)
-  msgs = sapply(mods, getFailureModelMsg)
+  msgs = vcapply(mods, getFailureModelMsg)
   j = which.first(!is.na(msgs))
   ifelse(j == 0L, NA_character_ , msgs[j])
 }

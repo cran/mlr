@@ -8,7 +8,10 @@ makeRLearner.classif.plr = function() {
       makeDiscreteLearnerParam(id = "cp.type", values = c("bic", "aic"), default = "bic"),
       makeNumericLearnerParam(id = "cp", lower = 0, default = 2)
     ),
-    properties = c("twoclass", "numerics", "factors", "prob", "weights")
+    properties = c("twoclass", "numerics", "factors", "prob", "weights"),
+    name = "Logistic Regression with a L2 Penalty",
+    short.name = "plr",
+    note = "AIC and BIC penalty types can be selected via the new parameter `cp.type`"
   )
 }
 
@@ -27,7 +30,7 @@ trainLearner.classif.plr = function(.learner, .task, .subset, .weights = NULL, c
   if (!is.null(.weights))
     args$weights = .weights
   args = c(args, list(...))
-  do.call(plr, args)
+  do.call(stepPlr::plr, args)
 }
 
 #' @export

@@ -24,22 +24,25 @@ makeRLearner.classif.lssvm = function() {
       makeLogicalLearnerParam(id = "fitted", default = TRUE)
     ),
     par.vals = list(fitted = FALSE),
-    properties = c("twoclass", "multiclass", "numerics", "factors")
+    properties = c("twoclass", "multiclass", "numerics", "factors"),
+    name = "Least Squares Support Vector Machine",
+    short.name = "lssvm",
+    note = "`fitted` has been set to `FALSE` by default for speed."
   )
 }
 
 #' @export
 trainLearner.classif.lssvm = function(.learner, .task, .subset, .weights = NULL, degree, offset, scale, sigma, order, length, lambda, normalized, ...) {
-# FIXME custom kernel. freezes? check mailing list
-# FIXME unify cla + regr, test all sigma stuff
+# FIXME: custom kernel. freezes? check mailing list
+# FIXME: unify cla + regr, test all sigma stuff
 
   kpar = learnerArgsToControl(list, degree, offset, scale, sigma, order, length, lambda, normalized)
   f = getTaskFormula(.task)
 
   if (base::length(kpar))
-    lssvm(f, data = getTaskData(.task, .subset), kpar = kpar, ...)
+    kernlab::lssvm(f, data = getTaskData(.task, .subset), kpar = kpar, ...)
   else
-    lssvm(f, data = getTaskData(.task, .subset), ...)
+    kernlab::lssvm(f, data = getTaskData(.task, .subset), ...)
 }
 
 #' @export

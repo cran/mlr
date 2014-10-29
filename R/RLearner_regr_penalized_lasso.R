@@ -6,14 +6,17 @@ makeRLearner.regr.penalized.lasso = function() {
     par.set = makeParamSet(
       makeNumericLearnerParam(id = "lambda1", default = 0, lower = 0)
     ),
-    properties = c("numerics", "factors")
+    properties = c("numerics", "factors"),
+    name = "Lasso Regression",
+    short.name = "lasso",
+    note = ""
   )
 }
 
 #' @export
 trainLearner.regr.penalized.lasso = function(.learner, .task, .subset, .weights = NULL,  ...) {
   f = getTaskFormula(.task)
-  penalized(f, data = getTaskData(.task, .subset), ...)
+  penalized::penalized(f, data = getTaskData(.task, .subset), ...)
 }
 
 #' @export

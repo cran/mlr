@@ -147,7 +147,7 @@ b632 = makeAggregation(
 )
 
 
-#FIXME read this again properly and double check it
+#FIXME: read this again properly and double check it
 #' @export
 #' @rdname aggregations
 b632plus = makeAggregation(
@@ -156,11 +156,11 @@ b632plus = makeAggregation(
     df = as.data.frame(pred)
     a = numeric(length(perf.test))
     for (i in seq_along(a)) {
-      df2 = df[df$iter == i, ]
+      df2 = df[df$iter == i,, drop = FALSE]
       y1 = df2$truth
       y2 = df2$response
       grid = expand.grid(y1, y2, KEEP.OUT.ATTRS = FALSE)
-      pred2 = makePrediction(task.desc = pred$task.desc,
+      pred2 = makePrediction(task.desc = pred$task.desc, row.names = rownames(grid),
         id = NULL, truth = grid[, 1L], predict.type = "response", y = grid[, 2L],
         time = NA_real_)
       gamma = performance(pred2, measures = measure)
@@ -177,6 +177,6 @@ b632plus = makeAggregation(
 testgroup.mean = makeAggregation(
   id = "testgroup.mean",
   fun = function(task, perf.test, perf.train, measure, group, pred) {
-    mean(sapply(split(perf.test, group), mean))
+    mean(vnapply(split(perf.test, group), mean))
   }
 )

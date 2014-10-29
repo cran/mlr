@@ -12,15 +12,18 @@ makeRLearner.classif.PART = function() {
       makeLogicalLearnerParam(id = "U"),
       makeLogicalLearnerParam(id = "J")
     ),
-    properties = c("twoclass", "multiclass", "missings", "numerics", "factors", "prob")
+    properties = c("twoclass", "multiclass", "missings", "numerics", "factors", "prob"),
+    name = "PART Decision Lists",
+    short.name = "part",
+    note = "NAs are directly passed to WEKA with `na.action = na.pass`"
   )
 }
 
 #' @export
 trainLearner.classif.PART = function(.learner, .task, .subset, .weights = NULL,  ...) {
   f = getTaskFormula(.task)
-  ctrl = Weka_control(..., Q = as.integer(runif(1L, min = -.Machine$integer.max, max = .Machine$integer.max)))
-  PART(f, data = getTaskData(.task, .subset), control = ctrl, na.action = na.pass)
+  ctrl = RWeka::Weka_control(..., Q = as.integer(runif(1L, min = -.Machine$integer.max, max = .Machine$integer.max)))
+  RWeka::PART(f, data = getTaskData(.task, .subset), control = ctrl, na.action = na.pass)
 }
 
 #' @export

@@ -7,7 +7,10 @@ makeRLearner.regr.rsm = function() {
       makeDiscreteLearnerParam(id = "modelfun", default = "FO", values = c("FO", "TWI", "SO"))
     ),
     par.vals = list(modelfun = "FO"),
-    properties = c("numerics")
+    properties = c("numerics"),
+    name = "Response Surface Regression",
+    short.name = "rsm",
+    note = "You select the order of the regression by using modelfun = \"FO\" (first order), \"TWI\" (two-way interactions, this is with 1st oder terms!) and \"SO\" (full second order)"
   )
 }
 
@@ -25,7 +28,7 @@ trainLearner.regr.rsm = function(.learner, .task, .subset, .weights = NULL,  ...
   f = as.formula(paste(.task$task.desc$target, "~", mf))
   myargs = list(f, getTaskData(.task, .subset))
   # strange behaviour in rsm forces us to use do.call...
-  do.call(rsm, myargs)
+  do.call(rsm::rsm, myargs)
 }
 
 #' @export

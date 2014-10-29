@@ -1,17 +1,13 @@
-#' Remove constant features from a data set.
+#' @title Remove constant features from a data set.
 #'
+#' @description
 #' Constant features can lead to errors in some models and obviously provide
 #' no information in the training set that can be learned from.
 #' With the argument \dQuote{perc}, there is a possibility to also remove
 #' features for which less than \dQuote{perc} percent of the observations
 #' differ from the mode value.
 #'
-#' @param x [\code{\link{data.frame}} | \code{\link{Task}}]\cr
-#'   The data set or task.
-#' @param target [\code{character}]\cr
-#'   Name of the column(s) specifying the response if you passed a \code{data.frame}.
-#'   User input is ignored if you pass a task and \code{target} is automatically set.
-#'   Never removed.
+#' @template arg_task
 #' @param perc [\code{numeric(1)}]\cr
 #'   The percentage of a feature values in [0, 1) that must differ from the mode value.
 #'   Default is 0, which means only constant features with exactly one observed level are removed.
@@ -27,40 +23,29 @@
 #'   Variables stored as \code{double} will get rounded accordingly before computing the mode.
 #'   Default is \code{sqrt(.Maschine$double.eps)}.
 #' @template arg_showinfo
-#' @return [\code{\link{data.frame}} | \code{\link{Task}}].
+#' @template ret_task
 #' @export
-removeConstantFeatures = function(x, target, perc = 0, dont.rm = character(0L),
+#' @family eda_and_preprocess
+removeConstantFeatures = function(task, perc = 0, dont.rm = character(0L),
   na.ignore = FALSE, tol = .Machine$double.eps^.5, show.info = getMlrOption("show.info")) {
+  data = getTaskData(task)
   assertNumber(perc, lower = 0, upper = 1)
-  assertCharacter(dont.rm, any.missing = FALSE)
+  assertSubset(dont.rm, choices = names(data))
   assertFlag(na.ignore)
+  assertNumber(tol, lower = 0)
   assertFlag(show.info)
-  UseMethod("removeConstantFeatures")
-}
+  dont.rm = union(dont.rm, getTargetNames(task))
 
-#' @method removeConstantFeatures data.frame
-#' @export
-removeConstantFeatures.data.frame = function(x, target, perc = 0, dont.rm = character(0L),
-  na.ignore = FALSE, tol = .Machine$double.eps^.5, show.info = TRUE) {
-
-  assertSubset(dont.rm, choices = colnames(x))
-  if (!missing(target)) {
-    assertSubset(target, choices = colnames(x))
-    dont.rm = union(dont.rm, target)
-  }
-
-  if (any(!dim(x)))
-    return(x)
+  if (any(!dim(data)))
+    return(task)
 
   isEqual = function(x, y) {
     res = (x == y) | (is.na(x) & is.na(y))
     replace(res, is.na(res), FALSE)
   }
-
   digits = ceiling(log10(1 / tol))
-
-  cns = setdiff(colnames(x), dont.rm)
-  ratio = vnapply(x[, cns, drop = FALSE], function(x) {
+  cns = setdiff(colnames(data), dont.rm)
+  ratio = vnapply(data[cns], function(x) {
     if (is.double(x))
       x = round(x, digits = digits)
     m = computeMode(x, na.rm = na.ignore)
@@ -74,16 +59,5 @@ removeConstantFeatures.data.frame = function(x, target, perc = 0, dont.rm = char
   dropcols = cns[ratio <= perc]
   if (show.info && length(dropcols))
     messagef("Removing %i columns: %s", length(dropcols), collapse(dropcols))
-  dropNamed(x, dropcols)
-}
-
-#' @method removeConstantFeatures Task
-#' @export
-removeConstantFeatures.Task = function(x, target, perc = 0, dont.rm = character(0L),
-  na.ignore = FALSE, tol = .Machine$double.eps^.5, show.info = TRUE) {
-
-  if (!missing(target))
-    stop("Do not pass 'target' when you pass a task!")
-  res = removeConstantFeatures(getTaskData(x), getTargetNames(x), perc, dont.rm, na.ignore, tol, show.info)
-  changeData(task = x, data = res)
+  changeData(task = task, data = dropNamed(data, dropcols))
 }

@@ -23,8 +23,8 @@ test_that("tuneParamsMultiCrit", {
     measures = list(tpr, fpr), control = ctrl)
   mycheck(res, 2)
   # and check plotting
-  plotTuneMultiCritResult(res, path = TRUE)
-  plotTuneMultiCritResult(res, path = FALSE)
+  print(plotTuneMultiCritResult(res, path = TRUE))
+  print(plotTuneMultiCritResult(res, path = FALSE))
 
   # grid search
   ctrl = makeTuneMultiCritControlGrid(resolution = 2L)
@@ -36,7 +36,7 @@ test_that("tuneParamsMultiCrit", {
   ctrl = makeTuneMultiCritControlNSGA2(popsize = 4L, generations = 1L)
   res = tuneParamsMultiCrit(lrn, binaryclass.task, rdesc, par.set = ps,
     measures = list(tpr, fpr), control = ctrl)
-  mycheck(res, 12L)
+  mycheck(res, 8L)
 })
 
 

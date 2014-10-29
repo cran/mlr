@@ -22,14 +22,17 @@ makeRLearner.classif.rda = function() {
       makeLogicalLearnerParam(id = "estimate.error", default = TRUE)
     ),
     par.vals = list(estimate.error = FALSE),
-    properties = c("twoclass", "multiclass", "numerics", "factors", "prob")
+    properties = c("twoclass", "multiclass", "numerics", "factors", "prob"),
+    name = "Regularized Discriminant Analysis",
+    short.name = "rda",
+    note = "`estimate.error` has been set to `FALSE` by default for speed."
   )
 }
 
 #' @export
 trainLearner.classif.rda = function(.learner, .task, .subset, .weights = NULL,  ...) {
   f = getTaskFormula(.task)
-  rda(f, data = getTaskData(.task, .subset), ...)
+  klaR::rda(f, data = getTaskData(.task, .subset), ...)
 }
 
 #' @export

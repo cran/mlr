@@ -17,14 +17,17 @@ makeRLearner.classif.svm = function() {
       makeNumericLearnerParam(id = "cachesize", default = 40L)
 
     ),
-    properties = c("twoclass", "multiclass", "numerics", "factors", "prob")
+    properties = c("twoclass", "multiclass", "numerics", "factors", "prob"),
+    name = "Support Vector Machines (libsvm)",
+    short.name = "svm",
+    note = ""
   )
 }
 
 #' @export
 trainLearner.classif.svm = function(.learner, .task, .subset, .weights = NULL,  ...) {
   f = getTaskFormula(.task)
-  svm(f, data = getTaskData(.task, .subset), probability = .learner$predict.type == "prob", ...)
+  e1071::svm(f, data = getTaskData(.task, .subset), probability = .learner$predict.type == "prob", ...)
 }
 
 #' @export

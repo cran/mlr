@@ -26,6 +26,13 @@
 #'   Default is \code{FALSE}.
 #' @return [\code{character} | \code{list} of \code{\link{Learner}}]. Class names of matching
 #'   learners or instantiated objects.
+#' @examples
+#' \dontrun{
+#' listLearners("classif", properties = c("multiclass", "prob"))
+#' data = iris
+#' task = makeClassifTask(data = data, target = "Species")
+#' listLearners(task)
+#' }
 #' @export
 listLearners  = function(obj = NA_character_, properties = character(0L),
   quiet = TRUE, warn.missing.packages = TRUE, create = FALSE) {
@@ -56,7 +63,7 @@ listLearners.character  = function(obj, properties = character(0L),
   type = obj
   meths = as.character(methods("makeRLearner"))
   res = err = vector("list", length(meths))
-  learner.classes = sapply(strsplit(meths, "makeRLearner\\."), function(x) x[2L])
+  learner.classes = vcapply(strsplit(meths, "makeRLearner\\."), function(x) x[2L])
   for (i in seq_along(meths)) {
     cl = learner.classes[[i]]
     if (quiet)
@@ -92,6 +99,7 @@ listLearners.Task = function(obj, properties = character(0L),
   props = character(0L)
   if (td$n.feat["numerics"] > 0L) props = c(props, "numerics")
   if (td$n.feat["factors"] > 0L) props = c(props, "factors")
+  if (td$n.feat["ordered"] > 0L) props = c(props, "ordered")
   if (td$has.missings) props = c(props, "missings")
   if (td$type == "classif") {
     if (length(td$class.levels) == 1L) props = c(props, "oneclass")

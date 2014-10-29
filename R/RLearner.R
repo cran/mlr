@@ -30,6 +30,16 @@
 #'   Useful when default values are missing in the underlying function.
 #'   The values can later be overwritten when the user sets hyperparameters.
 #'   Default is empty list.
+#' @param name [\code{character(1)}]
+#'   Meaningful name for learner.
+#'   Default is \code{id}.
+#' @param short.name [\code{character(1)}]
+#'   Short name for learner.
+#'   Should only be a few characters so it can be used in plots and tables.
+#'   Default is \code{id}.
+#' @param note [\code{character(1)}]
+#'   Additional notes regarding the learner and its integration in mlr.
+#'   Default is \dQuote{}.
 #' @return [\code{\link{RLearnerClassif}}, \code{\link{RLearnerRegr}} or \code{\link{RLearnerSurv}}].
 #' @name RLearner
 #' @rdname RLearner
@@ -42,7 +52,9 @@ makeRLearner = function() {
   UseMethod("makeRLearner")
 }
 
-makeRLearnerInternal = function(id, type, package, par.set, par.vals, properties) {
+makeRLearnerInternal = function(id, type, package, par.set, par.vals, properties,
+  name = id, short.name = id, note = "") {
+
   # must do that before accessing par.set
   # one case where lazy eval is actually helpful...
   assertCharacter(package, any.missing = FALSE)
@@ -56,6 +68,9 @@ makeRLearnerInternal = function(id, type, package, par.set, par.vals, properties
   assertList(par.vals)
   if(!isProperlyNamed(par.vals))
     stop("Argument par.vals must be a properly named list!")
+  assertString(name)
+  assertString(short.name)
+  assertString(note)
 
   learner = setClasses(list(
     id = id,
@@ -64,42 +79,45 @@ makeRLearnerInternal = function(id, type, package, par.set, par.vals, properties
     properties = unique(properties),
     par.set = par.set,
     par.vals = par.vals,
-    predict.type = "response"
+    predict.type = "response",
+    name = name,
+    short.name = short.name,
+    note = note
   ), c("RLearner", "Learner"))
 }
 
 #' @export
 #' @rdname RLearner
-makeRLearnerClassif = function(cl, package, par.set, par.vals = list(), properties = character(0L)) {
+makeRLearnerClassif = function(cl, package, par.set, par.vals = list(), properties = character(0L), name = cl, short.name = cl, note = "") {
   addClasses(
-    makeRLearnerInternal(cl, "classif", package, par.set, par.vals, properties),
+    makeRLearnerInternal(cl, "classif", package, par.set, par.vals, properties, name, short.name, note),
     c(cl, "RLearnerClassif")
   )
 }
 
 #' @export
 #' @rdname RLearner
-makeRLearnerRegr = function(cl, package, par.set, par.vals = list(), properties = character(0L)) {
+makeRLearnerRegr = function(cl, package, par.set, par.vals = list(), properties = character(0L), name = cl, short.name = cl, note = "") {
   addClasses(
-    makeRLearnerInternal(cl, "regr", package, par.set, par.vals, properties),
+    makeRLearnerInternal(cl, "regr", package, par.set, par.vals, properties, name, short.name, note),
     c(cl, "RLearnerRegr")
   )
 }
 
 #' @export
 #' @rdname RLearner
-makeRLearnerSurv = function(cl, package, par.set, par.vals = list(), properties = character(0L)) {
+makeRLearnerSurv = function(cl, package, par.set, par.vals = list(), properties = character(0L), name = cl, short.name = cl, note = "") {
   addClasses(
-    makeRLearnerInternal(cl, "surv", package, par.set, par.vals, properties),
+    makeRLearnerInternal(cl, "surv", package, par.set, par.vals, properties, name, short.name, note),
     c(cl, "RLearnerSurv")
   )
 }
 
 #' @export
 #' @rdname RLearner
-makeRLearnerCluster = function(cl, package, par.set, par.vals = list(), properties = character(0L)) {
+makeRLearnerCluster = function(cl, package, par.set, par.vals = list(), properties = character(0L), name = cl, short.name = cl, note = "") {
   addClasses(
-    makeRLearnerInternal(cl, "cluster", package, par.set, par.vals, properties),
+    makeRLearnerInternal(cl, "cluster", package, par.set, par.vals, properties, name, short.name, note),
     c(cl, "RLearnerCluster")
   )
 }

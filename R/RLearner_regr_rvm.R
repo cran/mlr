@@ -27,7 +27,12 @@ makeRLearner.regr.rvm = function() {
       makeLogicalLearnerParam(id = "fit", default = TRUE)
     ),
     par.vals = list(fit = FALSE),
-    properties = c("numerics", "factors")
+    properties = c("numerics", "factors"),
+    name = "Relevance Vector Machine",
+    short.name = "rvm",
+    note = "Kernel parameters have to be passed directly and not by using the kpar list in rvm.
+
+ Note that `fit` has been set to `FALSE` by default for speed."
   )
 }
 
@@ -36,12 +41,12 @@ trainLearner.regr.rvm = function(.learner, .task, .subset, .weights = NULL, degr
   kpar = learnerArgsToControl(list, degree, offset, scale, sigma, order, length, lambda, normalized)
   f = getTaskFormula(.task)
   if (base::length(kpar))
-    rvm(f, data = getTaskData(.task, .subset), kpar = kpar, ...)
+    kernlab::rvm(f, data = getTaskData(.task, .subset), kpar = kpar, ...)
   else
-    rvm(f, data = getTaskData(.task, .subset), ...)
+    kernlab::rvm(f, data = getTaskData(.task, .subset), ...)
 }
 
 #' @export
 predictLearner.regr.rvm = function(.learner, .model, .newdata, ...) {
-  kernlab::predict(.model$learner.model, newdata = .newdata, ...)[,1]
+  kernlab::predict(.model$learner.model, newdata = .newdata, ...)[, 1L]
 }

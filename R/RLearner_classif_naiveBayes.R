@@ -7,14 +7,17 @@ makeRLearner.classif.naiveBayes = function() {
       makeNumericLearnerParam(id = "laplace", default = 0, lower = 0)
       # makeNumericLearnerParam(id = "threshold", default = 0.001, lower = 0)
     ),
-    properties = c("twoclass", "multiclass", "missings", "numerics", "factors", "prob")
+    properties = c("twoclass", "multiclass", "missings", "numerics", "factors", "prob"),
+    name = "Naive Bayes",
+    short.name = "nbayes",
+    note = ""
   )
 }
 
 #' @export
 trainLearner.classif.naiveBayes = function(.learner, .task, .subset, .weights = NULL,  ...) {
   f = getTaskFormula(.task)
-  naiveBayes(f, data = getTaskData(.task, .subset), ...)
+  e1071::naiveBayes(f, data = getTaskData(.task, .subset), ...)
 }
 
 #' @export

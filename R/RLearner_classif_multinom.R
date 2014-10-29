@@ -15,7 +15,10 @@ makeRLearner.classif.multinom = function() {
       makeNumericLearnerParam(id = "abstoll", default = 1.0e-4),
       makeNumericLearnerParam(id = "reltoll", default = 1.0e-8)
     ),
-    properties = c("twoclass", "multiclass", "numerics", "factors", "prob", "weights")
+    properties = c("twoclass", "multiclass", "numerics", "factors", "prob", "weights"),
+    name = "Multinomial Regression",
+    short.name = "multinom",
+    note = ""
   )
 }
 
@@ -23,10 +26,10 @@ makeRLearner.classif.multinom = function() {
 trainLearner.classif.multinom = function(.learner, .task, .subset, .weights = NULL,  ...) {
   if (is.null(.weights)) {
     f = getTaskFormula(.task)
-    multinom(f, data = getTaskData(.task, .subset), ...)
+    nnet::multinom(f, data = getTaskData(.task, .subset), ...)
   } else  {
     f = as.formula(getTaskFormulaAsString(.task))
-    multinom(f, data = getTaskData(.task, .subset), weights = .weights, ...)
+    nnet::multinom(f, data = getTaskData(.task, .subset), weights = .weights, ...)
   }
 }
 

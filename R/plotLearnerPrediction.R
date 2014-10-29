@@ -4,14 +4,14 @@
 #' Trains the model for 1 or 2 selected features, then displays it via \code{\link[ggplot2]{ggplot}}.
 #' Good for teaching or exploring models.
 #'
-#' For classification, only 2D plots are supported. The data points, the classification and
+#' For classification and clustering, only 2D plots are supported. The data points, the classification and
 #' potentially through color alpha blending the posterior probabilities are shown.
 #'
 #' For regression, 1D and 2D plots are supported. 1D shows the data, the estimated mean and potentially
 #' the estimated standard error. 2D does not show estimated standard error,
 #' but only the estimated mean via background color.
 #'
-#' The plot title displays the model id, its parameters, the test training performance
+#' The plot title displays the model id, its parameters, the training performance
 #' and the cross-validation performance.
 #'
 #' @template arg_learner
@@ -50,7 +50,10 @@
 #'   Default is \code{TRUE}.
 #' @param err.col [\code{character(1)}]\cr
 #'   For classification: Color of misclassified data points.
-#'   Default is \dQuote{orange}
+#'   Default is \dQuote{white}
+#' @param greyscale [\code{logical(1)}]\cr
+#'   Should the plot be greyscale completely?
+#'   Default is \code{FALSE}.
 #' @return The ggplot2 object.
 #' @export
 plotLearnerPrediction = function(learner, task, features = NULL, measures, cv = 10L,  ...,
@@ -58,10 +61,15 @@ plotLearnerPrediction = function(learner, task, features = NULL, measures, cv = 
   prob.alpha = TRUE, se.band = TRUE,
   err.mark = "train",
   bg.cols = c("darkblue", "green", "darkred"),
-  err.col = "orange") {
+  err.col = "white",
+  greyscale = FALSE) {
 
   learner = checkLearner(learner)
-  assertClass(task, classes = "Task")
+  assert(
+    checkClass(task, "ClassifTask"),
+    checkClass(task, "RegrTask"),
+    checkClass(task, "ClusterTask")
+  )
   td = task$task.desc
 
   # features and dimensionality
@@ -74,10 +82,8 @@ plotLearnerPrediction = function(learner, task, features = NULL, measures, cv = 
     assertSubset(features, choices = fns)
   }
   taskdim = length(features)
-  if (td$type == "classif" && taskdim != 2L)
-    stopf("Classification: currently only 2D plots supported, not: %i", taskdim)
-  if (td$type == "cluster" && taskdim != 2L)
-    stopf("Clustering: currently only 2D plots supported, not: %i", taskdim)
+  if (td$type %in% c("classif", "cluster") && taskdim != 2L)
+    stopf("Classification and clustering: currently only 2D plots supported, not: %i", taskdim)
   if (td$type == "regr" && taskdim %nin% 1:2)
     stopf("Regression: currently only 1D and 2D plots supported, not: %i", taskdim)
 
@@ -94,6 +100,8 @@ plotLearnerPrediction = function(learner, task, features = NULL, measures, cv = 
   assertFlag(se.band)
   assertChoice(err.mark, choices = c("train", "cv", "none"))
   assertString(err.col)
+  assertLogical(greyscale)
+
   if (td$type == "classif" && err.mark == "cv" && cv == 0L)
     stopf("Classification: CV must be switched on, with 'cv' > 0, for err.type = 'cv'!")
 
@@ -106,7 +114,8 @@ plotLearnerPrediction = function(learner, task, features = NULL, measures, cv = 
   # some shortcut names
   target = td$target
   data = getTaskData(task)
-  y = getTaskTargets(task)
+  if (td$type != "cluster")
+    y = getTaskTargets(task)
   x1n = features[1L]
   x1 = data[, x1n]
 
@@ -163,17 +172,20 @@ plotLearnerPrediction = function(learner, task, features = NULL, measures, cv = 
         grid$.prob.pred.class = prob
         p = p + geom_tile(data = grid, mapping = aes_string(fill = target, alpha = ".prob.pred.class"),
           show_guide = TRUE)
-        p = p + scale_alpha(range = range(grid$.prob.pred.class))
+        p = p + scale_alpha(limits = range(grid$.prob.pred.class))
       } else {
         p = p + geom_tile(mapping = aes_string(fill = target))
       }
-      p = p + geom_point(data = data, mapping = aes_string(x = x1n, y = x2n, shape = target),
-        size = pointsize)
       if (err.mark != "none" && any(data$.err)) {
         p = p + geom_point(data = subset(data, data$.err),
-          mapping = aes_string(x = x1n, y = x2n, shape = target),
-          size = pointsize + 1, col = err.col, show_guide = FALSE)
+                           mapping = aes_string(x = x1n, y = x2n, shape = target),
+                           size = pointsize + 1.5, show_guide = FALSE)
+        p = p + geom_point(data = subset(data, data$.err),
+                           mapping = aes_string(x = x1n, y = x2n, shape = target),
+                           size = pointsize + 1, col = err.col, show_guide = FALSE)
       }
+      p = p + geom_point(data = data, mapping = aes_string(x = x1n, y = x2n, shape = target),
+        size = pointsize)
       p  = p + guides(alpha = FALSE)
     }
   } else if (td$type == "cluster") {
@@ -216,6 +228,11 @@ plotLearnerPrediction = function(learner, task, features = NULL, measures, cv = 
   title = sprintf("%s: %s", learner$id, paramValueToString(learner$par.set, learner$par.vals))
   title = sprintf("%s\nTrain: %s; CV: %s", title, perfsToString(perf.train), perfsToString(perf.cv))
   p = p + ggtitle(title)
+
+  # deal with greyscale
+  if (greyscale) {
+    p = p + scale_fill_grey()
+  }
   return(p)
 }
 

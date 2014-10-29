@@ -17,7 +17,10 @@ makeRLearner.classif.rpart = function() {
       makeUntypedLearnerParam(id = "parms")
     ),
     par.vals = list(xval = 0L),
-    properties = c("twoclass", "multiclass", "missings", "numerics", "factors", "prob", "weights")
+    properties = c("twoclass", "multiclass", "missings", "numerics", "factors", "ordered", "prob", "weights"),
+    name = "Decision Tree",
+    short.name = "rpart",
+    note = "`xval` has been set to 0 by default for speed."
   )
 }
 
@@ -26,10 +29,10 @@ trainLearner.classif.rpart = function(.learner, .task, .subset, .weights = NULL,
   d = getTaskData(.task, .subset)
   if (is.null(.weights)) {
     f = getTaskFormula(.task)
-    rpart(f, data = d, ...)
+    rpart::rpart(f, data = d, ...)
   } else  {
     f = as.formula(getTaskFormulaAsString(.task))
-    rpart(f, data = d, weights = .weights, ...)
+    rpart::rpart(f, data = d, weights = .weights, ...)
   }
 }
 

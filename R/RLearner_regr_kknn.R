@@ -9,7 +9,10 @@ makeRLearner.regr.kknn = function() {
       makeDiscreteLearnerParam(id = "kernel", default = "triangular",
         values = list("rectangular", "triangular", "epanechnikov", "biweight", "triweight", "cos", "inv", "gaussian"))
     ),
-    properties = c("numerics", "factors")
+    properties = c("numerics", "factors"),
+    name = "K-Nearest-Neighbor regression",
+    short.name = "kknn",
+    note = ""
   )
 }
 
@@ -23,6 +26,6 @@ predictLearner.regr.kknn = function(.learner, .model, .newdata, ...) {
   m = .model$learner.model
   f = getTaskFormula(.model$task.desc)
   pars = c(list(formula = f, train = m$data, test = .newdata), m$parset, list(...))
-  m = do.call(kknn, pars)
+  m = do.call(kknn::kknn, pars)
   return(m$fitted.values)
 }

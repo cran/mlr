@@ -12,8 +12,8 @@ makeRLearner.surv.cforest = function() {
       makeDiscreteLearnerParam(id = "teststat", values = c("quad", "max"), default = "quad"),
       makeLogicalLearnerParam(id = "pvalue", default = TRUE),
       makeDiscreteLearnerParam(id = "testtype",
-                               values = c("Bonferroni", "MonteCarlo", "Univariate", "Teststatistic"),
-                               default = "Univariate"),
+        values = c("Bonferroni", "MonteCarlo", "Univariate", "Teststatistic"),
+        default = "Univariate"),
       makeNumericLearnerParam(id = "mincriterion", lower = 0, default = 0),
       makeNumericLearnerParam(id = "minprob", lower = 0, default = 0.01),
       makeIntegerLearnerParam(id = "minsplit", lower = 1L, default = 20L),
@@ -25,25 +25,28 @@ makeRLearner.surv.cforest = function() {
       makeIntegerLearnerParam(id = "maxdepth", lower = 0L, default = 0L),
       makeLogicalLearnerParam(id = "savesplitstats", default = FALSE)
     ),
-    properties = c("twoclass", "multiclass", "prob", "factors", "numerics", "weights"),
-    par.vals = list()
+    properties = c("factors", "numerics", "ordered", "weights", "rcens"),
+    par.vals = list(),
+    name = "Random Forest based on Conditional Inference Trees",
+    short.name = "crf",
+    note = ""
   )
 }
 
 #' @export
 trainLearner.surv.cforest = function(.learner, .task, .subset, .weights = NULL,
-                                     ntree, mtry, replace, fraction, trace, pvalue, 
+                                     ntree, mtry, replace, fraction, trace, pvalue,
                                      teststat, testtype, mincriterion, minprob,
                                      minsplit, minbucket, stump, randomsplits,
                                      nresample, maxsurrogate, maxdepth,
                                      savesplitstats, ...) {
   f = getTaskFormula(.task)
   d = getTaskData(.task, .subset)
-  ctrl = learnerArgsToControl(cforest_unbiased, ntree, mtry, replace, fraction,
+  ctrl = learnerArgsToControl(party::cforest_unbiased, ntree, mtry, replace, fraction,
                               trace, pvalue, teststat, testtype, mincriterion,
                               minprob, minsplit, minbucket, stump, randomsplits,
                               nresample, maxsurrogate, maxdepth, savesplitstats)
-  cforest(f, data = d, controls = ctrl, weights = .weights, ...)
+  party::cforest(f, data = d, controls = ctrl, weights = .weights, ...)
 }
 
 #' @export

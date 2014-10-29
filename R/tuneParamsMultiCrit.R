@@ -1,7 +1,7 @@
 #' @title Hyperparameter tuning for multiple measures at once.
 #'
 #' @description
-#' Optimizes the hyperparameters of a learner in a multi-criteria fasion.
+#' Optimizes the hyperparameters of a learner in a multi-criteria fashion.
 #' Allows for different optimization methods, such as grid search, evolutionary strategies, etc.
 #' You can select such an algorithm (and its settings)
 #' by passing a corresponding control object. For a complete list of implemented algorithms look at
@@ -32,7 +32,7 @@
 #'   makeNumericParam("C", lower = -12, upper = 12, trafo = function(x) 2^x),
 #'   makeNumericParam("sigma", lower = -12, upper = 12, trafo = function(x) 2^x)
 #' )
-#' ctrl = makeTuneMultiCritControlNSGA2(popsize = 4L, generations = 5L)
+#' ctrl = makeTuneMultiCritControlNSGA2(popsize = 4L, generations = 1L)
 #' res = tuneParamsMultiCrit(lrn, sonar.task, rdesc, par.set = ps,
 #'   measures = list(tpr, fpr), control = ctrl)
 #' plotTuneMultiCritResult(res, path = TRUE)

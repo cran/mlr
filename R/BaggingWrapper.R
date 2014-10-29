@@ -37,10 +37,11 @@
 #' @param bw.feats [\code{numeric(1)}]\cr
 #'   Percentage size of randomly selected features in bags.
 #'   Default is 1.
+#'   At least one feature will always be selected.
 #' @template ret_learner
+#' @family wrapper
 #' @export
 makeBaggingWrapper = function(learner, bw.iters = 10L, bw.replace = TRUE, bw.size, bw.feats = 1) {
-
   learner = checkLearner(learner, type=c("classif", "regr"))
   pv = list()
   if (!missing(bw.iters)) {
@@ -88,7 +89,7 @@ trainLearner.BaggingWrapper = function(.learner, .task, .subset, .weights = NULL
   allinds = seq_len(n)
   if (bw.feats < 1) {
     feats = getTaskFeatureNames(.task)
-    k = round(bw.feats * length(feats))
+    k = max(round(bw.feats * length(feats)), 1)
   }
   models = lapply(seq_len(bw.iters), function(i) {
     bag = sample(allinds, m, replace = bw.replace)
@@ -97,7 +98,7 @@ trainLearner.BaggingWrapper = function(.learner, .task, .subset, .weights = NULL
       feats2 = sample(feats, k, replace = FALSE)
       .task2 = subsetTask(.task, features = feats2)
       train(.learner$next.learner, .task2, subset = bag, weights = w)
-  } else {
+    } else {
       train(.learner$next.learner, .task, subset = bag, weights = w)
     }
   })
@@ -153,5 +154,3 @@ setPredictType.BaggingWrapper = function(learner, predict.type) {
   learner = setPredictType.Learner(learner, predict.type)
   return(learner)
 }
-
-
