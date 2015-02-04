@@ -1,5 +1,6 @@
-#' Tune prediction threshold.
+#' @title Tune prediction threshold.
 #'
+#' @description
 #' Optimizes the threshold of prediction based on probabilities.
 #' Uses \code{\link[BBmisc]{optimizeSubInts}} for 2class problems and \code{\link[cmaes]{cma_es}}
 #' for multiclass problems.
@@ -55,7 +56,7 @@ tuneThreshold = function(pred, measure, task, model, nsub = 20L, control = list(
     th = or[[1]]
     perf = or$objective
   } else {
-    requirePackages("cmaes", "tuneThreshold")
+    requirePackages("cmaes", why = "tuneThreshold", default.method = "load")
     start = rep(0.5, k)
     or = cmaes::cma_es(par = start, fn = fitn, lower = 0, upper = 1, control = control)
     th = or$par / sum(or$par)

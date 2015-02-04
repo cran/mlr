@@ -1,3 +1,9 @@
+#' Get a summarizing task description.
+#'
+#' @template arg_task_or_desc
+#' @return [\code{\link{TaskDesc}}].
+#' @export
+#' @family task
 getTaskDescription = function(x) {
   if (inherits(x, "TaskDesc"))
     x
@@ -5,16 +11,34 @@ getTaskDescription = function(x) {
     x$task.desc
 }
 
-getTaskType = function(x) {
-  getTaskDescription(x)$type
+#' Get the type of the task.
+#'
+#' @template arg_task
+#' @return [\code{character(1)}].
+#' @export
+#' @family task
+getTaskType = function(task) {
+  getTaskDescription(task)$type
 }
 
-getTargetNames = function(x) {
-  getTaskDescription(x)$target
+#' Get the id of the task.
+#'
+#' @template arg_task
+#' @return [\code{character(1)}].
+#' @export
+#' @family task
+getTaskId = function(task) {
+  getTaskDescription(task)$id
 }
 
-getTarget = function(x) {
-  x$env$data[[getTargetNames(x)]]
+#' Get the name(s) of the target column(s).
+#'
+#' @template arg_task
+#' @return [\code{character}].
+#' @export
+#' @family task
+getTaskTargetNames = function(task) {
+  getTaskDescription(task)$target
 }
 
 #' Get feature names of task.
@@ -42,7 +66,7 @@ getTaskNFeats = function(task) {
 
 #' @export
 #' @rdname getTaskFormula
-getTaskFormulaAsString = function(x, target = getTargetNames(x)) {
+getTaskFormulaAsString = function(x, target = getTaskTargetNames(x)) {
   td = getTaskDescription(x)
   type = td$type
   if (type == "surv") {
@@ -72,7 +96,7 @@ getTaskFormulaAsString = function(x, target = getTargetNames(x)) {
 #' @return [\code{formula} | \code{character(1)}].
 #' @family task
 #' @export
-getTaskFormula = function(x, target = getTargetNames(x), env = NULL) {
+getTaskFormula = function(x, target = getTaskTargetNames(x), env = NULL) {
   as.formula(getTaskFormulaAsString(x, target = target), env = env)
 }
 
@@ -254,7 +278,7 @@ getTaskCosts = function(task, subset) {
 #'
 #' @param task [\code{\link{Task}}]\cr
 #'   The task.
-#' @param subset [\code{integer}]\cr
+#' @param subset [\code{integer} | \code{logical(n)}]\cr
 #'   Selected cases.
 #'   Default is all cases.
 #' @param features [character]\cr
@@ -271,6 +295,8 @@ subsetTask = function(task, subset, features) {
   # FIXME: we recompute the taskdesc for each subsetting. do we want that? speed?
   # FIXME: maybe we want this independent of changeData?
   td = task$desc
+  if (!missing(subset))
+    assert(checkIntegerish(subset), checkLogical(subset, len = td$size))
   task = changeData(task, getTaskData(task, subset, features), getTaskCosts(task, subset), task$weights)
   if (!missing(subset)) {
     if (task$task.desc$has.blocking)
@@ -283,14 +309,13 @@ subsetTask = function(task, subset, features) {
 
 
 # we create a new env, so the reference is not changed
-# FIXME: really check what goes on here! where is this called / used?
 changeData = function(task, data, costs, weights) {
   if (missing(data))
     data = getTaskData(task)
   if (missing(costs))
     costs = getTaskCosts(task)
   if (missing(weights))
-    weights = task$env$weights
+    weights = task$weights
   task$env = new.env(parent = emptyenv())
   task$env$data = data
   # FIXME: I hate R, this is all bad

@@ -46,7 +46,7 @@ makeTuneWrapper = function(learner, resampling, measures, par.set, control, show
   assertFlag(show.info)
   id = paste(learner$id, "tuned", sep = ".")
   x = makeOptWrapper(id, learner, resampling, measures, par.set, character(0L),
-    function(){}, control, show.info, "TuneWrapper")
+    function(){}, control, show.info, "TuneWrapper", "TuneModel")
   checkTunerParset(learner, par.set, measures, control)
   return(x)
 }
@@ -65,8 +65,18 @@ trainLearner.TuneWrapper = function(.learner, .task, .subset,  ...) {
 
 #' @export
 predictLearner.TuneWrapper = function(.learner, .model, .newdata, ...) {
-  lrn = setHyperPars(.learner$next.learner,
-    par.vals = .model$learner.model$opt.result$x)
-  predictLearner(lrn, .model$learner.model$next.model, .newdata)
+  lrn = setHyperPars(.learner$next.learner, par.vals = .model$learner.model$opt.result$x)
+  predictLearner(lrn, .model$learner.model$next.model, .newdata, ...)
 }
+
+#' @export
+makeWrappedModel.TuneWrapper = function(learner, learner.model, task.desc, subset, features, factor.levels, time) {
+  # set threshold in learner so it is used in predict calls from here on
+  if (learner$control$tune.threshold)
+    learner = setPredictThreshold(learner, learner.model$opt.result$threshold)
+  x = NextMethod()
+  class(x) = c("TuneModel", class(x))
+  return(x)
+}
+
 

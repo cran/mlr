@@ -2,7 +2,7 @@
 #'
 #' @description
 #' Creates a wrapper, which can be used like any other learner object.
-#' Models can easily be accessed via \code{\link{getCostSensRegrModels}}.
+#' Models can easily be accessed via \code{\link{getHomogeneousEnsembleModels}}.
 #'
 #' For each class in the task, an individual regression model is fitted for the costs of that class.
 #' During prediction, the class with the lowest predicted costs is selected.
@@ -18,7 +18,8 @@ makeCostSensRegrWrapper = function(learner) {
   # we cannot make use of 'se' here
   learner = setPredictType(learner, "response")
   id = paste("costsens", learner$id, sep = ".")
-  x = makeBaseWrapper(id, learner, package = learner$package, cl = "CostSensRegrWrapper")
+  x = makeHomogeneousEnsemble(id, learner, package = learner$package,
+    learner.subclass = "CostSensRegrWrapper", model.subclass = "CostSensRegrModel")
   x$type = "costsens"
   removeProperties(x, c("weights", "se", "prob"))
 }
@@ -39,46 +40,16 @@ trainLearner.CostSensRegrWrapper = function(.learner, .task, .subset, ...) {
       check.data = FALSE, fixup.data = "quiet")
     models[[i]] = train(.learner$next.learner, task)
   }
-  makeChainModel(next.model = models, cl = "CostSensRegrModel")
+  m = makeHomChainModel(.learner, models)
 }
 
 #' @export
 predictLearner.CostSensRegrWrapper = function(.learner, .model, .newdata, ...) {
+  p = predictHomogeneousEnsemble(.learner, .model, .newdata, ...)
+  # get class per row with minimal estimated costs
+  p = apply(p, 1L, getMinIndex)
   classes = .model$task.desc$class.levels
-  models = getCostSensRegrModels(.model)
-  preds = sapply(models, function(mod) {
-    predict(mod, newdata = .newdata, ...)$data$response
-  })
-  # FIXME: this will break for length(models) == 1? do not use sapply!
-  preds = apply(preds, 1L, getMinIndex)
-  return(factor(classes[preds], levels = classes))
+  factor(classes[p], levels = classes)
 }
 
 
-#' @export
-makeWrappedModel.CostSensRegrWrapper = function(learner, learner.model, task.desc, subset, features,
-  factor.levels, time) {
-
-  x = NextMethod()
-  addClasses(x, "CostSensRegrModel")
-}
-
-
-#' Returns the list of fitted models.
-#'
-#' @param model [\code{\link[mlr]{WrappedModel}}]\cr
-#'   Model produced by training a cost-sensitive regression learner.
-#' @param learner.models [\code{logical(1)}]\cr
-#'   Return underlying R models or wrapped
-#'   mlr models (\code{\link[mlr]{WrappedModel}}).
-#'   Default is \code{FALSE}.
-#' @return [\code{list}].
-#' @export
-getCostSensRegrModels = function(model, learner.models = FALSE) {
-  assertClass(model, classes = "CostSensRegrModel")
-  ms = model$learner.model$next.model
-  if (learner.models)
-    extractSubList(ms, "learner.model", simplify = FALSE)
-  else
-    ms
-}

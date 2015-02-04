@@ -1,24 +1,18 @@
 #' @title Fit models according to a resampling strategy.
 #'
 #' @description
-#'
-#' \code{resample}:
-#' Given a resampling strategy, which defines sets of training and test indices,
-#' fits the selected learner using the training sets and performs predictions for
-#' the training/test sets. This depends on what you selected in the resampling strategy,
-#' see parameter \code{predict} in \code{\link{makeResampleDesc}}.
-#'
-#' Then performance measures are calculated on all respective data sets and aggregated.
+#' The function \code{resample} fits a model specified by \link{Learner} on a \link{Task}
+#' and calculates predictions and performance \link{measures} for all training
+#' and all test sets specified by a either a resampling description (\link{ResampleDesc})
+#' or resampling instance (\link{ResampleInstance}).
 #'
 #' You are able to return all fitted models (parameter \code{models}) or extract specific parts
 #' of the models (parameter \code{extract}) as returning all of them completely
 #' might be memory intensive.
 #'
-#' For construction of the resampling strategies use the factory methods
-#' \code{\link{makeResampleDesc}} and \code{\link{makeResampleInstance}}.
-#'
 #' The remaining functions on this page are convenience wrappers for the various
-#' existing resampling strategies.
+#' existing resampling strategies. Note that if you need to work with precomputed training and
+#' test splits (i.e., resampling instances), you have to stick with \code{resample}.
 #'
 #' @template arg_learner
 #' @template arg_task
@@ -52,23 +46,7 @@
 #' @param ... [any]\cr
 #'   Further hyperparameters passed to \code{learner}.
 #' @template arg_showinfo
-#' @return List of:
-#'   \item{measures.test [\code{data.frame}]}{Gives you access to performance measurements
-#'     on the individual test sets. Rows correspond to sets in resampling iterations,
-#'     columns to performance measures.}
-#'   \item{measures.train [\code{data.frame}]}{Gives you access to performance measurements
-#'     on the individual training sets. Rows correspond to sets in resampling iterations,
-#'     columns to performance measures. Usually not available, only if specifically requested,
-#'     see general description above.}
-#'   \item{aggr [\code{numeric}]}{Named vector of aggregated performance values. Names are coded like
-#'     this <measure>.<aggregation>.}
-#'   \item{err.msgs [\code{data.frame}]}{Number of rows equals resampling iterations
-#'     and columns are: \dQuote{iter}, \dQuote{train}, \dQuote{predict}.
-#'     Stores error messages generated during train or predict, if these were caught
-#'     via \code{\link{configureMlr}}.}
-##'   \item{pred [\code{\link{ResamplePrediction}}]}{Container for all predictions during resampling.}
-#'   \item{models [list of \code{\link{WrappedModel}}]}{List of fitted models or \code{NULL}.}
-#'   \item{extract [\code{list}]}{List of extracted parts from fitted models or \code{NULL}.}
+#' @return [\code{\link{ResampleResult}}]. List of:
 #' @family resample
 #' @export
 #' @examples
@@ -79,9 +57,9 @@
 #' print(r$measures.test)
 #' print(r$pred)
 resample = function(learner, task, resampling, measures, weights = NULL, models = FALSE,
-  extract, show.info = getMlrOption("show.info")) {
+  extract, ..., show.info = getMlrOption("show.info")) {
 
-  learner = checkLearner(learner)
+  learner = checkLearner(learner, ...)
   assertClass(task, classes = "Task")
   # instantiate resampling
   if (inherits(resampling, "ResampleDesc"))
@@ -116,7 +94,11 @@ resample = function(learner, task, resampling, measures, weights = NULL, models 
   parallelLibrary("mlr", master = FALSE, level = "mlr.resample", show.info = FALSE)
   exportMlrOptions(level = "mlr.resample")
   iter.results = parallelMap(doResampleIteration, seq_len(rin$desc$iters), level = "mlr.resample", more.args = more.args)
-  mergeResampleResult(task, iter.results, measures, rin, models, extract, show.info)
+
+  addClasses(
+    mergeResampleResult(learner, task, iter.results, measures, rin, models, extract, show.info),
+    "ResampleResult"
+  )
 }
 
 doResampleIteration = function(learner, task, rin, i, measures, weights, model, extract, show.info) {
@@ -161,20 +143,20 @@ doResampleIteration = function(learner, task, rin, i, measures, weights, model, 
   )
 }
 
-mergeResampleResult = function(task, iter.results, measures, rin, models, extract, show.info) {
+mergeResampleResult = function(learner, task, iter.results, measures, rin, models, extract, show.info) {
   iters = length(iter.results)
   mids = vcapply(measures, function(m) m$id)
+
+  ms.train = as.data.frame(extractSubList(iter.results, "measures.train", simplify = "rows"))
+  colnames(ms.train) = mids
+  rownames(ms.train) = NULL
+  ms.train = cbind(iter = seq_len(iters), ms.train)
 
   ms.test = extractSubList(iter.results, "measures.test", simplify = FALSE)
   ms.test = as.data.frame(do.call(rbind, ms.test))
   colnames(ms.test) = mids
   rownames(ms.test) = NULL
   ms.test = cbind(iter = seq_len(iters), ms.test)
-
-  ms.train = as.data.frame(extractSubList(iter.results, "measures.train", simplify = "rows"))
-  colnames(ms.train) = mids
-  rownames(ms.train) = NULL
-  ms.train = cbind(iter = seq_len(iters), ms.train)
 
   preds.test = extractSubList(iter.results, "pred.test", simplify = FALSE)
   preds.train = extractSubList(iter.results, "pred.train", simplify = FALSE)
@@ -188,10 +170,12 @@ mergeResampleResult = function(task, iter.results, measures, rin, models, extrac
   colnames(err.msgs) = c("train", "predict")
   err.msgs = cbind(iter = seq_len(iters), err.msgs)
 
-  if (show.info) {
+  if (show.info)
     messagef("[Resample] Result: %s", perfsToString(aggr))
-  }
+
   list(
+    learner.id = learner$id,
+    task.id = getTaskId(task),
     measures.train = ms.train,
     measures.test = ms.test,
     aggr = aggr,
@@ -201,4 +185,3 @@ mergeResampleResult = function(task, iter.results, measures, rin, models, extrac
     extract = if(is.function(extract)) extractSubList(iter.results, "extract", simplify = FALSE) else NULL
   )
 }
-

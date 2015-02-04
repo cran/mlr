@@ -1,7 +1,7 @@
 context("cluster_XMeans")
 
 test_that("cluster_XMeans", {
-  library(RWeka)
+  requirePackages("RWeka", default.method = "load")
   parset.list = list(
     list(),
     list(I = 1)
@@ -11,9 +11,9 @@ test_that("cluster_XMeans", {
 
   for (i in 1:length(parset.list)) {
     parset = parset.list[[i]]
-    ctrl = do.call(Weka_control, parset)
+    ctrl = do.call(RWeka::Weka_control, parset)
     set.seed(getOption("mlr.debug.seed"))
-    m = XMeans(noclass.train, control = ctrl)
+    m = RWeka::XMeans(noclass.train, control = ctrl)
     p = predict(m, noclass.test) + 1
     old.predicts.list[[i]] = p
   }

@@ -40,8 +40,8 @@ makeMulticlassWrapper = function(learner, mcw.method = "onevsrest") {
   pv = list(mcw.method = mcw.method)
   id = paste(learner$id, "multiclass", sep = ".")
 
-  x = makeBaseWrapper(id = id, next.learner = learner, package = learner$package,
-    par.set = ps, par.vals = pv, cl = "MulticlassWrapper")
+  x = makeHomogeneousEnsemble(id = id, next.learner = learner, package = learner$package,  par.set = ps,
+    par.vals = pv, learner.subclass = "MulticlassWrapper", model.subclass = "MulticlassModel")
   x = addProperties(x, props = "multiclass")
   x = removeProperties(x, props = "prob")
   x = setPredictType(x, predict.type = "response")
@@ -65,14 +65,16 @@ trainLearner.MulticlassWrapper = function(.learner, .task, .subset, .weights = N
     ct$task.desc$negative = "-1"
     train(.learner$next.learner, ct, weights = .weights)
   })
-  makeChainModel(next.model = list(models = models, cm = cm), cl = "MulticlassModel")
+  m = makeHomChainModel(.learner, models)
+  m$cm = cm
+  return(m)
 }
 
 
 #' @export
 predictLearner.MulticlassWrapper = function(.learner, .model, .newdata, ...) {
-  models = .model$learner.model$next.model$models
-  cm = .model$learner.model$next.model$cm
+  models = .model$learner.model$next.model
+  cm = .model$learner.model$cm
   # predict newdata with every binary model, get n x n.models matrix of +1,-1
   # FIXME: this will break for length(models) == 1? do not use sapply!
   p = sapply(models, function(m) {
@@ -90,11 +92,7 @@ predictLearner.MulticlassWrapper = function(.learner, .model, .newdata, ...) {
   as.factor(y)
 }
 
-#' @export
-makeWrappedModel.MulticlassWrapper = function(learner, learner.model, task.desc, subset, features, factor.levels, time) {
-  x = NextMethod()
-  addClasses(x, "MulticlassModel")
-}
+##############################               helpers                      ##############################
 
 buildCMatrix = function (mcw.method, .task) {
   if (is.function(mcw.method)) {
@@ -113,9 +111,9 @@ buildCMatrix = function (mcw.method, .task) {
   cm
 }
 
-# Function for Multi to Binary Problem Conversion
-multi.to.binary = function(target, codematrix) {
 
+# function for multi-to-binary problem conversion
+multi.to.binary = function(target, codematrix) {
   if (anyMissing(codematrix))
     stop("Code matrix contains missing values!")
   levs = levels(target)

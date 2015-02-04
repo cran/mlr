@@ -1,23 +1,25 @@
 context("hyperpars")
 
 test_that("hyperpars", {
-  lrn = makeLearner("classif.rpart", minsplit=10)
-  expect_equal(getHyperPars(lrn), list(xval=0, minsplit=10))
+  lrn = makeLearner("classif.rpart", minsplit = 10)
+  expect_equal(getHyperPars(lrn), list(xval = 0, minsplit = 10))
 
-  m = train(lrn, task=multiclass.task)
+  m = train(lrn, task = multiclass.task)
   expect_true(!inherits(m, "FailureModel"))
-  expect_equal(getHyperPars(m$learner), list(xval=0, minsplit=10))
+  expect_equal(getHyperPars(m$learner), list(xval = 0, minsplit = 10))
 
   # test a more complex param object
-  lrn = makeLearner("classif.ksvm", class.weights=c(setosa=1, versicolor=2, virginica=3))
-  m = train(lrn, task=multiclass.task)
+  lrn = makeLearner("classif.ksvm", class.weights = c(setosa = 1, versicolor = 2, virginica = 3))
+  m = train(lrn, task = multiclass.task)
 
-  # check warnings
-  configureMlr(on.par.without.desc="warn", show.learner.output=FALSE)
-  expect_warning(makeLearner("classif.rpart", foo=1), "Setting parameter foo without")
-  configureMlr(on.par.without.desc="quiet")
-  expect_that(makeLearner("classif.rpart", foo=1), not(gives_warning()))
-  configureMlr(show.learner.output=FALSE)
+  # # check warnings
+  mlr.opts = getMlrOptions()
+  configureMlr(on.par.without.desc = "warn", show.learner.output = FALSE)
+  expect_warning(makeLearner("classif.rpart", foo = 1), "Setting parameter foo without")
+  configureMlr(on.par.without.desc = "quiet")
+  expect_that(makeLearner("classif.rpart", foo = 1), not(gives_warning()))
+  configureMlr(show.learner.output = FALSE)
+  do.call(configureMlr, mlr.opts)
 })
 
 
@@ -39,4 +41,45 @@ test_that("removing par settings works", {
 
 })
 
+test_that("setting 'when' works for hyperpars", {
+  lrn = makeLearner("regr.mock4", p1 = 1, p2 = 2, p3 = 3)
+  hps = getHyperPars(lrn)
+  expect_equal(hps, list(p1 = 1, p2 = 2, p3 = 3))
+  # model stores p1 + p3 in fit, adds p2,p3 in predict to this (so it predicts constant val)
+  m = train(lrn, regr.task)
+  expect_equal(m$learner.model, list(foo = 1 + 3))
+  p = predict(m, regr.task)
+  expect_equal(p$data$response, rep(1+2+2*3, regr.task$task.desc$size))
+})
 
+
+
+test_that("options are respected", {
+  # with local option
+
+  lrn = makeLearner("classif.mock2")
+  expect_error(setHyperPars(lrn, beta = 1), "available description object")
+  lrn = makeLearner("classif.mock2", config = list(on.par.without.desc = "warn"))
+  expect_warning(setHyperPars(lrn, beta = 1), "available description object")
+  lrn = makeLearner("classif.mock2", config = list(on.par.without.desc = "quiet"))
+  expect_is(setHyperPars(lrn, beta = 1), "Learner")
+
+  lrn = makeLearner("classif.mock2")
+  expect_error(setHyperPars(lrn, alpha = 2), "feasible")
+  lrn = makeLearner("classif.mock2", config = list(on.par.out.of.bounds = "warn"))
+  expect_warning(setHyperPars(lrn, alpha = 2), "feasible")
+  lrn = makeLearner("classif.mock2", config = list(on.par.out.of.bounds = "quiet"))
+  expect_is(setHyperPars(lrn, alpha = 2), "Learner")
+
+
+  # with global option
+  mlr.opts = getMlrOptions()
+
+  lrn = makeLearner("classif.mock2")
+  configureMlr(on.par.without.desc = "quiet")
+  expect_is(setHyperPars(lrn, beta = 1), "Learner")
+  configureMlr(on.par.out.of.bounds = "quiet")
+  expect_is(setHyperPars(lrn, alpha = 2), "Learner")
+
+  do.call(configureMlr, mlr.opts)
+})

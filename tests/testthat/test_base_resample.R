@@ -1,4 +1,3 @@
-
 context("resample")
 
 test_that("resample", {
@@ -100,6 +99,8 @@ test_that("resample returns errors", {
   expect_true(all(is.na(z$err.msgs$predict)))
 
   lrn = makeLearner("classif.mock2", alpha = 0)
+  m = train(lrn, multiclass.task)
+  expect_true(isFailureModel(m))
   z = crossval(lrn, multiclass.task, iters = 2L)
   expect_true(is.na(z$aggr))
   expect_true(is.data.frame(z$err.msgs))
@@ -109,6 +110,3 @@ test_that("resample returns errors", {
 
   configureMlr(on.learner.error = "stop")
 })
-
-
-

@@ -23,11 +23,13 @@
 #' @aliases TuneMultiCritControlGrid TuneMultiCritControlRandom TuneMultiCritControlNSGA2
 NULL
 
-makeTuneMultiCritControl = function(measures, same.resampling.instance, impute.val = NULL, ..., cl) {
+makeTuneMultiCritControl = function(measures, same.resampling.instance, impute.val = NULL, log.fun = NULL, ..., cl) {
   assertFlag(same.resampling.instance)
   if (!is.null(impute.val))
     assertNumeric(impute.val, any.missing = FALSE)
-  x = makeOptControl(same.resampling.instance = same.resampling.instance, impute.val = impute.val, ...)
+  if (is.null(log.fun))
+    log.fun = logFunTune
+  x = makeOptControl(same.resampling.instance, impute.val, log.fun = log.fun, ...)
   addClasses(x, c(cl, "TuneMultiCritControl"))
 }
 
@@ -35,7 +37,7 @@ makeTuneMultiCritControl = function(measures, same.resampling.instance, impute.v
 print.TuneMultiCritControl = function(x, ...) {
   catf("Tune multicrit control: %s", class(x)[1])
   catf("Same resampling instance: %s", x$same.resampling.instance)
-  catf("Imputation value: %g", x$impute.val)
+  catf("Imputation value: %s", ifelse(is.null(x$impute.val), "<worst>", collapse(sprintf("%g", x$impute.val))))
   catf("Further arguments: %s", convertToShortString(x$extra.args))
 }
 

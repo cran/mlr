@@ -1,10 +1,10 @@
 context("classif_boosting")
 
 test_that("classif_boosting", {
-  library(adabag)
+  requirePackages(c("adabag", "rpart"), default.method = "load")
   parset.list1 = list(
-    list(mfinal = 1, control = list(xval = 0)),
-    list(mfinal = 2, control = list(cp = 0.2, xval = 0))
+    list(mfinal = 1, control = rpart::rpart.control(xval = 0)),
+    list(mfinal = 2, control = rpart::rpart.control(cp = 0.2, xval = 0))
   )
   parset.list2 = list(
     list(mfinal = 1),
@@ -19,7 +19,7 @@ test_that("classif_boosting", {
     pars = list(formula = multiclass.formula, data = multiclass.train)
     pars = c(pars, parset)
     set.seed(getOption("mlr.debug.seed"))
-    m = do.call(boosting, pars)
+    m = do.call(adabag::boosting, pars)
     set.seed(getOption("mlr.debug.seed"))
     p = predict(m, newdata = multiclass.test)
     old.predicts.list[[i]] = as.factor(p$class)
@@ -34,13 +34,17 @@ test_that("classif_boosting", {
   tt = function (formula, data, subset = 1:nrow(data), ...) {
     args = list(...)
     if (!is.null(args$cp))
-      ctrl = rpart.control(cp = args$cp, xval = 0)
+      ctrl = rpart::rpart.control(cp = args$cp, xval = 0)
     else
-      ctrl = rpart.control()
-    boosting(formula, data[subset,], mfinal = args$mfinal, control = ctrl)
+      ctrl = rpart::rpart.control(xval = 0)
+    set.seed(getOption("mlr.debug.seed"))
+    adabag::boosting(formula, data[subset,], mfinal = args$mfinal, control = ctrl)
   }
 
-  tp = function(model, newdata) as.factor(predict(model, newdata)$class)
+  tp = function(model, newdata) {
+    set.seed(getOption("mlr.debug.seed"))
+    as.factor(predict(model, newdata)$class)
+  }
 
   testCVParsets("classif.boosting", multiclass.df, multiclass.target,
     tune.train = tt, tune.predict = tp, parset.list = parset.list2)

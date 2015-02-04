@@ -1,7 +1,7 @@
 context("regr_randomForest")
 
 test_that("regr_randomForest", {
-  library(randomForest)
+  requirePackages("randomForest", default.method = "load")
   parset.list = list(
     list(),
     list(ntree = 5, mtry = 2),
@@ -15,7 +15,7 @@ test_that("regr_randomForest", {
     pars = list(formula = regr.formula, data = regr.train)
     pars = c(pars, parset)
     set.seed(getOption("mlr.debug.seed"))
-    m = do.call(randomForest, pars)
+    m = do.call(randomForest::randomForest, pars)
     set.seed(getOption("mlr.debug.seed"))
     p = predict(m, newdata = regr.test, type = "response")
     old.predicts.list[[i]] = p
@@ -24,7 +24,7 @@ test_that("regr_randomForest", {
   testSimpleParsets("regr.randomForest", regr.df, regr.target,
     regr.train.inds, old.predicts.list, parset.list)
 
-  tt = randomForest
+  tt = randomForest::randomForest
 
   testCVParsets("regr.randomForest", regr.df, regr.target, tune.train = tt, parset.list = parset.list)
 

@@ -27,7 +27,7 @@
 makeFilter = function(name, desc, pkg, supported.tasks, supported.features, fun) {
   assertString(name)
   assertString(desc)
-  assertString(pkg, na.ok = TRUE)
+  assertCharacter(pkg, any.missing = FALSE)
   assertCharacter(supported.tasks, any.missing = FALSE)
   assertCharacter(supported.features, any.missing = FALSE)
   assertFunction(fun, c("task", "nselect"))
@@ -70,7 +70,7 @@ listFilterMethods = function(desc = TRUE, tasks = FALSE, features = FALSE) {
   filters = as.list(.FilterRegister)
   df = data.frame(
     id = names(filters),
-    package = extractSubList(filters, "pkg")
+    package = vcapply(extractSubList(filters, "pkg"), collapse)
   )
   if (desc)
     df$desc = extractSubList(filters, "desc")
@@ -85,7 +85,7 @@ listFilterMethods = function(desc = TRUE, tasks = FALSE, features = FALSE) {
 print.Filter = function(x, ...) {
   catf("Filter: '%s'", x$name)
   if (!isScalarNA(x$pkg))
-    catf("Package: '%s'", x$pkg)
+    catf("Packages: '%s'", collapse(cleanupPackageNames(x$pkg)))
   catf("Supported tasks: %s", collapse(x$supported.tasks))
   catf("Supported features: %s", collapse(x$supported.features))
 }
@@ -103,7 +103,7 @@ makeFilter(
       target.ind = 1L
     } else {
       data = getTaskData(task)
-      target.ind = match(getTargetNames(task), colnames(data))
+      target.ind = match(getTaskTargetNames(task), colnames(data))
     }
 
     # some required conversions
@@ -111,13 +111,14 @@ makeFilter(
     data[ind] = lapply(data[ind], as.ordered)
     ind = which(vlapply(data, is.integer))
     data[ind] = lapply(data[ind], as.double)
-    data = mRMR.data(data = data)
+    data = mRMRe::mRMR.data(data = data)
 
     threads.before = mRMRe::get.thread.count()
     on.exit(mRMRe::set.thread.count(threads.before))
     mRMRe::set.thread.count(1L)
     res = mRMRe::mRMR.classic(data = data, target_indices = target.ind, feature_count = nselect, ...)
-    setNames(as.numeric(scores(res)[[1L]]), res@feature_names[as.integer(solutions(res)[[1L]])])
+    scores = as.numeric(mRMRe::scores(res)[[1L]])
+    setNames(scores, res@feature_names[as.integer(mRMRe::solutions(res)[[1L]])])
 })
 
 makeFilter(
@@ -264,7 +265,7 @@ makeFilter(
 makeFilter(
   name = "univariate",
   desc = "Construct a simple performance filter using a mlr learner",
-  pkg  = NA_character_,
+  pkg  = character(0L),
   supported.tasks = c("classif", "regr", "surv"),
   supported.features = c("numerics", "factors"),
   fun = function(task, nselect, perf.learner, perf.measure, perf.resampling = NULL, ...) {
@@ -280,7 +281,7 @@ makeFilter(
     fns = getTaskFeatureNames(task)
     res = double(length(fns))
     for (i in seq_along(fns)) {
-      subtask = subsetTask(task, features = fns[-i])
+      subtask = subsetTask(task, features = fns[i])
       res[i] = resample(learner = perf.learner, task = subtask, resampling = perf.resampling, measures = perf.measure, show.info = FALSE)$aggr
     }
     if (perf.measure[[1L]]$minimize)
@@ -292,13 +293,13 @@ makeFilter(
 makeFilter(
   name = "anova.test",
   desc = "ANOVA Test for binary and multiclass classification tasks",
-  pkg = NA_character_,
+  pkg = character(0L),
   supported.tasks = c("classif"),
   supported.features = c("numerics"),
   fun = function(task, nselect, ...) {
     data = getTaskData(task)
     sapply(getTaskFeatureNames(task), function(feat.name) {
-      f = as.formula(paste0(feat.name,"~",getTargetNames(task)))
+      f = as.formula(paste0(feat.name,"~",getTaskTargetNames(task)))
       aov.t = aov(f, data = data)
       summary(aov.t)[[1]][1,'F value']
     })
@@ -308,13 +309,13 @@ makeFilter(
 makeFilter(
   name = "kruskal.test",
   desc = "Kurskal Test for binary and multiclass classification tasks",
-  pkg = NA_character_,
+  pkg = character(0L),
   supported.tasks = c("classif"),
   supported.features = c("numerics", "factors"),
   fun = function(task, nselect, ...) {
     data = getTaskData(task)
     sapply(getTaskFeatureNames(task), function(feat.name) {
-      f = as.formula(paste0(feat.name,"~", getTargetNames(task)))
+      f = as.formula(paste0(feat.name,"~", getTaskTargetNames(task)))
       t = kruskal.test(f, data = data)
       unname(t$statistic)
     })
@@ -324,7 +325,7 @@ makeFilter(
 makeFilter(
   name = "variance",
   desc = "A simple variance filter",
-  pkg = NA_character_,
+  pkg = character(0L),
   supported.tasks = c("classif", "regr", "surv"),
   supported.features = c("numerics"),
   fun = function(task, nselect, na.rm = FALSE, ...) {

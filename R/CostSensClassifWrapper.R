@@ -2,7 +2,7 @@
 #'
 #' @description
 #' Creates a wrapper, which can be used like any other learner object.
-#' The classification model can easily be accessed via \code{\link{getCostSensClassifModel}}.
+#' The classification model can easily be accessed via \code{\link{getHomogeneousEnsembleModels}}.
 #'
 #' This is a very naive learner, where the costs are transformed into classification labels -
 #' the label for each case is the name of class with minimal costs.
@@ -20,9 +20,10 @@ makeCostSensClassifWrapper = function(learner) {
   learner = checkLearnerClassif(learner)
   learner = setPredictType(learner, "response")
   id = paste("costsens", learner$id, sep = ".")
-  x = makeBaseWrapper(id, learner, package = learner$package, cl = "CostSensClassifWrapper")
+  x = makeBaseWrapper(id, learner, package = learner$package,
+    learner.subclass = "CostSensClassifWrapper", model.subclass = "CostSensClassifModel")
   x$type = "costsens"
-  removeProperties(x, c("weights", "se", "prob"))
+  removeProperties(x, c("weights", "prob"))
 }
 
 #' @export
@@ -63,34 +64,5 @@ predictLearner.CostSensClassifWrapper = function(.learner, .model, .newdata, ...
   NextMethod()
 }
 
-#' @export
-makeWrappedModel.CostSensClassifWrapper = function(learner, learner.model, task.desc, subset, features,
-  factor.levels, time) {
-
-  x = NextMethod()
-  class(x) = c("CostSensClassifModel", class(x))
-  return(x)
-}
-
-
-#' Returns the underlying classification model.
-#'
-#' @param model [\code{\link[mlr]{WrappedModel}}]\cr
-#'   Model produced by training a cost-sensitive classification learner.
-#' @param learner.model [\code{logical(1)}]\cr
-#'   Return underlying R model or wrapped
-#'   mlr model (\code{\link[mlr]{WrappedModel}}).
-#'   Default is \code{FALSE}.
-#' @return [\code{list}].
-#' @export
-getCostSensClassifModel= function(model, learner.model = TRUE) {
-  assertClass(model, classes = "CostSensClassifModel")
-  assertFlag(learner.model)
-  m = model$learner.model$next.model
-  if (learner.model)
-    m$learner.model
-  else
-    m
-}
 
 

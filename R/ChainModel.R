@@ -3,12 +3,10 @@ makeChainModel = function(next.model, cl) {
 }
 
 
-#' @export
-makeWrappedModel.BaseWrapper = function(learner, learner.model, task.desc, subset, features, factor.levels, time) {
-  x = NextMethod()
-  addClasses(x, "BaseWrapperModel")
+#'@export
+getLearnerModel.BaseWrapperModel = function(model) {
+  model$learner.model$next.model$learner.model
 }
-
 
 #' @export
 print.BaseWrapperModel = function(x, ...) {
@@ -23,3 +21,4 @@ print.BaseWrapperModel = function(x, ...) {
   if (isFailureModel(x))
     catf("Training failed: %s", getFailureModelMsg(x))
 }
+

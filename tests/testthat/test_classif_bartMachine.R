@@ -1,10 +1,11 @@
 context("classif_bartMachine")
 
 test_that("classif_bartMachine", {
-  library(bartMachine)
+  requirePackages("bartMachine", default.method = "load")
   parset.list = list(
-    list(num_burn_in = 20L, num_iterations_after_burn_in = 50L),
-    list(num_burn_in = 20L, num_iterations_after_burn_in = 50L, alpha = 0.8, num_trees = 25L)
+    list(num_burn_in = 20L, num_iterations_after_burn_in = 50L, run_in_sample = FALSE),
+    list(num_burn_in = 20L, num_iterations_after_burn_in = 50L, alpha = 0.8, num_trees = 25L,
+         run_in_sample = FALSE)
   )
 
   old.predicts.list = list()
@@ -18,16 +19,13 @@ test_that("classif_bartMachine", {
     pars = list(X = x, y = y, verbose = FALSE)
     pars = c(pars, parset)
     set.seed(getOption("mlr.debug.seed"))
-    capture.output({
-      m = do.call(bartMachine, pars)
-    })
+    m = do.call(bartMachine::bartMachine, pars)
     newx = binaryclass.test
     newx[, binaryclass.class.col] = NULL
     set.seed(getOption("mlr.debug.seed"))
     p = predict(m, new_data = newx, type = "class")
     set.seed(getOption("mlr.debug.seed"))
     p2 = predict(m, new_data = newx, type = "prob")
-    destroy_bart_machine(m)
     old.predicts.list[[i]] = p
     old.probs.list[[i]] = p2
   }

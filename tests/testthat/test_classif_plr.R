@@ -1,7 +1,7 @@
 context("classif_plr")
 
 test_that("classif_plr", {
-  library(stepPlr)
+  requirePackages("stepPlr", default.method = "load")
 
   parset.list1 = list(
     list(),
@@ -27,14 +27,14 @@ test_that("classif_plr", {
     pars = list(x = x, y = y)
     pars = c(pars, parset)
     set.seed(getOption("mlr.debug.seed"))
-    m = do.call(plr, pars)
+    m = do.call(stepPlr::plr, pars)
     set.seed(getOption("mlr.debug.seed"))
     newx = binaryclass.test
     newx[, binaryclass.class.col] = NULL
-    p = predict(m, newx = newx, type = "class")
+    p = stepPlr::predict.plr(m, newx = newx, type = "class")
     p = ifelse(p == 1, binaryclass.class.levs[1L], binaryclass.class.levs[2L])
     set.seed(getOption("mlr.debug.seed"))
-    p2 = predict(m, newx = newx, type = "response")
+    p2 = stepPlr::predict.plr(m, newx = newx, type = "response")
     old.predicts.list[[i]] = p
     old.probs.list[[i]] = p2
   }

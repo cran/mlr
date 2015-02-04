@@ -23,7 +23,6 @@
 #' @param ... [any]\cr
 #'   Currently ignored.
 #' @return [\code{\link{Prediction}}].
-#' @method predict WrappedModel
 #' @family predict
 #' @export
 #' @examples
@@ -93,7 +92,7 @@ predict.WrappedModel = function(object, task, newdata, subset, ...) {
       .model = model,
       .newdata = newdata
     )
-    pars = c(pars, getHyperPars(learner, "predict"))
+    pars = c(pars, getHyperPars(learner, c("predict", "both")))
     debug.seed = getMlrOption("debug.seed", NULL)
     if (!is.null(debug.seed))
       set.seed(debug.seed)
@@ -120,5 +119,5 @@ predict.WrappedModel = function(object, task, newdata, subset, ...) {
   else
     ids = subset
   makePrediction(task.desc = td, row.names = rownames(newdata), id = ids, truth = truth,
-    predict.type = learner$predict.type, y = p, time = time.predict)
+    predict.type = learner$predict.type, predict.threshold = learner$predict.threshold, y = p, time = time.predict)
 }

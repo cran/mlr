@@ -28,13 +28,14 @@
 #' @family eda_and_preprocess
 removeConstantFeatures = function(task, perc = 0, dont.rm = character(0L),
   na.ignore = FALSE, tol = .Machine$double.eps^.5, show.info = getMlrOption("show.info")) {
+  checkTask(task, "Task")
   data = getTaskData(task)
   assertNumber(perc, lower = 0, upper = 1)
   assertSubset(dont.rm, choices = names(data))
   assertFlag(na.ignore)
   assertNumber(tol, lower = 0)
   assertFlag(show.info)
-  dont.rm = union(dont.rm, getTargetNames(task))
+  dont.rm = union(dont.rm, getTaskTargetNames(task))
 
   if (any(!dim(data)))
     return(task)

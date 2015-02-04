@@ -1,7 +1,7 @@
 context("regr_ksvm")
 
 test_that("regr_ksvm", {
-  library(kernlab)
+  requirePackages("kernlab", default.method = "load")
   parset.list = list(
     list(),
     list(C = 0.3, kpar=list(sigma=2)),
@@ -21,7 +21,7 @@ test_that("regr_ksvm", {
     pars = c(pars, parset)
     set.seed(getOption("mlr.debug.seed"))
     capture.output({
-      m = do.call(ksvm, pars)
+      m = do.call(kernlab::ksvm, pars)
     })
     p = kernlab::predict(m, newdata=regr.test)
     old.predicts.list[[i]] = p[,1]

@@ -1,8 +1,8 @@
 context("surv_randomForestSRC")
 
 test_that("surv_randomForestSRC", {
-  library(survival)
-  library(randomForestSRC)
+  requirePackages("survival", default.method = "load")
+  requirePackages("randomForestSRC", default.method = "load")
 
   parset.list = list(
     list(),
@@ -16,7 +16,7 @@ test_that("surv_randomForestSRC", {
     parset = parset.list[[i]]
     parset = c(parset, list(data = surv.train, formula = surv.formula, importance = "none", proximity = FALSE, forest = TRUE))
     set.seed(getOption("mlr.debug.seed"))
-    m = do.call(rfsrc, parset)
+    m = do.call(randomForestSRC::rfsrc, parset)
     p  = predict(m, newdata = surv.test, importance = "none", na.action = "na.impute")$predicted
     old.predicts.list[[i]] = drop(p)
   }

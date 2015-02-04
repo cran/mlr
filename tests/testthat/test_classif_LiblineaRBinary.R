@@ -1,7 +1,7 @@
 context("classif_LiblineaRBinary")
 
 test_that("classif_LiblineaRBinary", {
-  library(LiblineaR)
+  requirePackages("LiblineaR", default.method = "load")
 
   # parset.list = list(
   #   list(type = 1),
@@ -29,7 +29,7 @@ test_that("classif_LiblineaRBinary", {
   #               labels = binaryclass.train[, binaryclass.target])
   #   pars = c(pars, parset)
   #   set.seed(getOption("mlr.debug.seed"))
-  #   m = do.call(LiblineaR, pars)
+  #   m = do.call(LiblineaR::LiblineaR, pars)
   #   p = predict(m, newx = binaryclass.test[, -binaryclass.class.col])
   #   old.predicts.list[[i]] = as.factor(p$predictions)
   # }

@@ -2,7 +2,7 @@
 makeRLearner.classif.rrlda = function() {
   makeRLearnerClassif(
     cl = "classif.rrlda",
-    package = "rrlda",
+    package = "!rrlda",
     par.set = makeParamSet(
       makeNumericVectorLearnerParam(id = "prior", len = NA_integer_),
       makeNumericLearnerParam(id = "lambda", default = 0.5, lower = 0),

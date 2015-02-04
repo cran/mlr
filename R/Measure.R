@@ -14,16 +14,13 @@
 #'   \item{id [\code{character(1)}]}{See argument.}
 #'   \item{minimize [\code{logical(1)}]}{See argument.}
 #'   \item{properties [\code{character}]}{See argument.}
-#'   \item{allowed.pred.types [\code{character}]}{See argument.}
-#'   \item{req.pred [\code{logical(1)}]}{Is prediction object required in calculation?}
-#'   \item{req.task [\code{logical(1)}]}{Is task object required in calculation?}
-#'   \item{req.model [\code{logical(1)}]}{Is model object required in calculation?}
-#'   \item{req.feats [\code{logical(1)}]}{Is feature object required in calculation?}
 #'   \item{fun [\code{function}]}{See argument.}
 #'   \item{extra.args [\code{list}]}{See argument.}
 #'   \item{aggr [\code{\link{Aggregation}}]}{See argument.}
 #'   \item{best [\code{numeric(1)}]}{See argument.}
 #'   \item{worst [\code{numeric(1)}]}{See argument.}
+#'   \item{name [\code{character(1)}]}{See argument.}
+#'   \item{note [\code{character(1)}]}{See argument.}
 #' }
 #'
 #' @param id [\code{character(1)}]\cr
@@ -38,12 +35,14 @@
 #'     \item{classif.multi}{Is the measure applicable for multi-class classification?}
 #'     \item{regr}{Is the measure applicable for regression?}
 #'     \item{surv}{Is the measure applicable for survival?}
-#'     \item{costsens}{Is the measure applicable for cost-sensitve learning?}
+#'     \item{costsens}{Is the measure applicable for cost-sensitive learning?}
+#'     \item{req.pred}{Is prediction object required in calculation? Usually the case.}
+#'     \item{req.truth}{Is truth column required in calculation? Usually the case.}
+#'     \item{req.task}{Is task object required in calculation? Usually not the case}
+#'     \item{req.model}{Is model object required in calculation? Usually not the case.}
+#'     \item{req.feats}{Are feature values required in calculation? Usually not the case.}
+#'     \item{req.prob}{Are predicted probabilites required in calculation? Usually not the case, example would be AUC.}
 #'   }
-#'   Default is \code{character(0)}.
-#' @param allowed.pred.types [\code{character}]\cr
-#'   Which prediction types are allowed for this measure?
-#'   Subset of \dQuote{response},\dQuote{prob}, \dQuote{se}.
 #'   Default is \code{character(0)}.
 #' @param fun [\code{function(task, model, pred, extra.args)}]\cr
 #'   Calculates performance value.
@@ -60,8 +59,10 @@
 #' @param worst [\code{numeric(1)}]\cr
 #'   Worst obtainable value for measure.
 #'   Default is \code{Inf} or -\code{Inf}, depending on \code{minimize}.
+#' @param name [\code{character}] \cr
+#'   Name of the measure. Default is \code{id}.
 #' @param note [\code{character}] \cr
-#'   Name (and description) of the measure. Default is \dQuote{}.
+#'   Description and additional notes for the learner. Default is \dQuote{}.
 #' @template ret_measure
 #' @export
 #' @family performance
@@ -70,12 +71,11 @@
 #' f = function(task, model, pred, extra.args)
 #'   sum((pred$data$response - pred$data$truth)^2)
 #' makeMeasure(id = "my.sse", minimize = TRUE, properties = c("regr", "response"), fun = f)
-makeMeasure = function(id, minimize, properties = character(0L), allowed.pred.types = character(0L),
-  fun, extra.args = list(), aggr = test.mean, best = NULL, worst = NULL, note = "") {
+makeMeasure = function(id, minimize, properties = character(0L),
+  fun, extra.args = list(), aggr = test.mean, best = NULL, worst = NULL, name = id, note = "") {
   assertString(id)
   assertFlag(minimize)
   assertCharacter(properties, any.missing = FALSE)
-  assertSubset(allowed.pred.types, choices = c("response", "prob", "se"))
   assertFunction(fun)
   assertList(extra.args)
   assertString(note)
@@ -88,24 +88,15 @@ makeMeasure = function(id, minimize, properties = character(0L), allowed.pred.ty
   else
     assertNumber(worst)
 
-  # FIXME: I think this is never used...
-  fun1 = fun
-  formals(fun1) = list()
-  v = codetools::findGlobals(fun1, merge = FALSE)$variables
-
   m = makeS3Obj("Measure",
     id = id,
     minimize = minimize,
     properties = properties,
-    allowed.pred.types = allowed.pred.types,
-    req.pred = "pred" %in% v,
-    req.model = "model" %in% v,
-    req.task = "task" %in% v,
-    req.feats = "feats" %in% v,
     fun = fun,
     extra.args = extra.args,
     best = best,
     worst = worst,
+    name = name,
     note = note
   )
   setAggregation(m, aggr)
@@ -146,6 +137,7 @@ setAggregation = function(measure, aggr) {
 
 #' @export
 print.Measure = function(x, ...) {
+  catf("Name: %s", x$name)
   catf("Performance measure: %s", x$id)
   catf("Properties: %s", collapse(x$properties))
   catf("Minimize: %s", x$minimize)

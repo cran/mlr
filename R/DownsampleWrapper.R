@@ -20,6 +20,9 @@ makeDownsampleWrapper = function(learner, dw.perc = 1, dw.stratify = FALSE) {
   pv = list()
   if (!missing(dw.perc)) {
     assertNumber(dw.perc, na.ok = FALSE, lower = 0, upper = 1)
+    if(dw.perc == 0){
+      stopf("You can't downsample %s to 0", learner$id)
+    }
     pv$dw.perc = dw.perc
   }
   if (!missing(dw.stratify)) {
@@ -31,7 +34,8 @@ makeDownsampleWrapper = function(learner, dw.perc = 1, dw.stratify = FALSE) {
     makeNumericLearnerParam(id = "dw.perc", lower = 0, upper = 1, default = 1),
     makeLogicalLearnerParam(id = "dw.stratify", default = FALSE)
   )
-  makeBaseWrapper(id, learner, package = "mlr", par.set = ps, par.vals = pv, cl = "DownsampleWrapper")
+  makeBaseWrapper(id, learner, package = "mlr", par.set = ps, par.vals = pv,
+    learner.subclass = "DownsampleWrapper", model.subclass = "DownsampleModel")
 }
 
 #' @export

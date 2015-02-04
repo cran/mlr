@@ -12,26 +12,19 @@ getBMRTaskIds = function(bmr) {
 #' @title Return learner ids used in benchmark.
 #'
 #' @template arg_bmr
-#' @param join [\code{logical(1)}]\cr
-#'   For \code{FALSE}: Get list od character vectors, named by task.ids.
-#'   For \code{TRUE}: Join these char vectors and make them unique.
-#'   Default is \code{FALSE}.
 #' @return [\code{list} | \code{character}]. See above.
 #' @export
 #' @family benchmark
-getBMRLearnerIds = function(bmr, join = FALSE) {
+getBMRLearnerIds = function(bmr) {
   assertClass(bmr, "BenchmarkResult")
-  lids = lapply(bmr, names)
-  if (join)
-    lids = unique(setNames(do.call(c, lids), NULL))
-  return(lids)
+  return(names(bmr[[1L]]))
 }
 
 # returns buried object in BMR, either as list of lists or data.frame with task.id, learner.id cols
 # you can restrict to subsets for tasks and learners and pass function to extract object
 getBMRObjects = function(bmr, task.ids = NULL, learner.ids = NULL, fun, as.df = FALSE) {
   brtids = getBMRTaskIds(bmr)
-  brlids = getBMRLearnerIds(bmr, join = TRUE)
+  brlids = getBMRLearnerIds(bmr)
   if (is.null(task.ids))
     task.ids = brtids
   else
@@ -66,7 +59,7 @@ getBMRObjects = function(bmr, task.ids = NULL, learner.ids = NULL, fun, as.df = 
 #' @title Extract the predictions from a benchmark result.
 #'
 #' @description
-#' Either a list of lists of \dQuote{measure.test} data.frames, as returned by
+#' Either a list of lists of \code{\link{ResamplePrediction}} objects, as returned by
 #' \code{\link{resample}}, or these objects are rbind-ed with extra columns
 #' \dQuote{task.id} and \dQuote{learner.id}.
 #' @template arg_bmr
@@ -80,6 +73,7 @@ getBMRObjects = function(bmr, task.ids = NULL, learner.ids = NULL, fun, as.df = 
 #FIXME: rbind.fill is stupid. this will not work for probs,
 #FIXME: simply take response, offer to get as list for rest
 # in as.data.frame allow to select cols / only response
+# FIXME: at least have an option to only take rsponse?
 getBMRPredictions = function(bmr, task.ids = NULL, learner.ids = NULL, as.df = FALSE) {
   f = if (as.df)
     function(x) as.data.frame(x$pred)
@@ -111,7 +105,7 @@ getBMRPerformances = function(bmr, task.ids = NULL, learner.ids = NULL, as.df = 
 #' @title Extract the aggregated performance values from a benchmark result.
 #'
 #' @description
-#' Either a list of lists of \dQuote{measure.test} data.frames, as returned by
+#' Either a list of lists of \dQuote{aggr} numeric vectors, as returned by
 #' \code{\link{resample}}, or these objects are rbind-ed with extra columns
 #' \dQuote{task.id} and \dQuote{learner.id}.
 #'
@@ -159,7 +153,7 @@ getBMROptResults = function(bmr, task.ids = NULL, learner.ids = NULL, as.df = FA
 #' @title Extract the tuning results from a benchmark result.
 #'
 #' @description
-#' Returns a list of lists of \dQuote{measure.test} data.frames, as returned by
+#' Returns a list of lists of ??? as returned by
 #' \code{\link{resample}}, or these objects are rbind-ed with extra columns
 #' \dQuote{task.id} and \dQuote{learner.id}.
 #'
@@ -179,7 +173,7 @@ getBMRTuneResults = function(bmr, task.ids = NULL, learner.ids = NULL, as.df = F
 #' @title Extract the feature selection results from a benchmark result.
 #'
 #' @description
-#' Returns a list of lists of \dQuote{measure.test} data.frames, as returned by
+#' Returns a list of lists of ???? data.frames, as returned by
 #' \code{\link{resample}}, or these objects are rbind-ed with extra columns
 #' \dQuote{task.id} and \dQuote{learner.id}.
 #'
@@ -199,7 +193,7 @@ getBMRFeatSelResults = function(bmr, task.ids = NULL, learner.ids = NULL, as.df 
 #' @title Extract the feature selection results from a benchmark result.
 #'
 #' @description
-#' Returns a list of lists of \dQuote{measure.test} data.frames, as returned by
+#' Returns a list of lists of ??? data.frames, as returned by
 #' \code{\link{resample}}, or these objects are rbind-ed with extra columns
 #' \dQuote{task.id} and \dQuote{learner.id}.
 #'
@@ -215,4 +209,3 @@ getBMRFilteredFeatures = function(bmr, task.ids = NULL, learner.ids = NULL, as.d
     as.data.frame(x$x)
   })
 }
-

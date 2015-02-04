@@ -1,7 +1,7 @@
 context("cluster_cmeans")
 
 test_that("cluster_cmeans", {
-  library(clue)
+  requirePackages("e1071", "clue", default.method = "load")
 
   centers = matrix(c(1, 2, 3, 4, 2, 3, 4, 5), ncol = 4)
   parset.list = list(
@@ -13,8 +13,8 @@ test_that("cluster_cmeans", {
   for (i in 1:length(parset.list)) {
     parset = parset.list[[i]]
     set.seed(getOption("mlr.debug.seed"))
-    m = cmeans(noclass.train, centers = centers)
-    p = as.integer(cl_predict(m, newdata = noclass.test, type = "class_ids"))
+    m = e1071::cmeans(noclass.train, centers = centers)
+    p = as.integer(clue::cl_predict(m, newdata = noclass.test, type = "class_ids"))
     old.predicts.list[[i]] = p
   }
 
@@ -22,8 +22,8 @@ test_that("cluster_cmeans", {
 
   # test fuzzy clustering memberships
   set.seed(getOption("mlr.debug.seed"))
-  m = cmeans(noclass.train, centers = centers)
-  p = cl_predict(m, newdata = noclass.test, type = "memberships")
+  m = e1071::cmeans(noclass.train, centers = centers)
+  p = clue::cl_predict(m, newdata = noclass.test, type = "memberships")
   class(p) = "matrix"
 
   lrn = makeLearner("cluster.cmeans", predict.type = "prob", centers = centers)

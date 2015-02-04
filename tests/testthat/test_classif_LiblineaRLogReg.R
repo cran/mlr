@@ -1,7 +1,7 @@
 context("classif_LiblineaRLogReg")
 
 test_that("classif_LiblineaRLogReg", {
-  library(LiblineaR)
+  requirePackages("LiblineaR", default.method = "load")
 
   # parset.list = list(
   #   list(type = 0),
@@ -14,8 +14,8 @@ test_that("classif_LiblineaRLogReg", {
 
   # FIXME: I think we cannot seed liblinear (C code wrong?
   # so we just run the algo
-  
-  
+
+
   for (type in c(0, 6, 7)) {
     lrn = makeLearner("classif.LiblineaRLogReg", type = type)
     mod = train(lrn, binaryclass.task)
@@ -23,14 +23,14 @@ test_that("classif_LiblineaRLogReg", {
     p = performance(pred)
     expect_true(!is.na(p))
   }
-  
+
   # for (i in 1:length(parset.list)) {
   #   parset = parset.list[[i]]
   #   pars = list(data = binaryclass.train[, -binaryclass.class.col],
   #     labels = binaryclass.train[, binaryclass.target])
   #   pars = c(pars, parset)
   #   set.seed(getOption("mlr.debug.seed"))
-  #   m = do.call(LiblineaR, pars)
+  #   m = do.call(LiblineaR::LiblineaR, pars)
   #   set.seed(getOption("mlr.debug.seed"))
   #   p = predict(m, newx = binaryclass.test[, -binaryclass.class.col], proba = TRUE)
   #   print(str(p))

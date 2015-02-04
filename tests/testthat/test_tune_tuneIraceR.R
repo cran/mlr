@@ -1,7 +1,6 @@
 context("tuneIrace")
 
 test_that("tuneIrace", {
-  library(irace)
   rdesc = makeResampleDesc("Holdout", stratify = TRUE, split = 0.1)
   ps1 = makeParamSet(
     makeNumericParam("cp", lower = 0.001, upper = 1),
@@ -74,5 +73,11 @@ test_that("tuneIrace works with logical params", {
   expect_true(!is.na(tr$y))
 })
 
+test_that("tuneIrace works with tune.threshold", {
+  rdesc = makeResampleDesc("Holdout", stratify = TRUE, split = 0.1)
+  ps = makeParamSet(makeIntegerParam("minsplit", lower = 1, upper = 3))
 
-
+  n = 40
+  ctrl = makeTuneControlIrace(maxExperiments = n, nbIterations = 2, minNbSurvival = 1)
+  tr = tuneParams("classif.rpart", multiclass.task, rdesc, par.set = ps, control = ctrl)
+})

@@ -1,3 +1,66 @@
+mlr_2.3:
+- resample now returns an object of class ResampleResult (downward compatible)
+  to allow for a print method.
+- resampling on features now supported for an arbitrary number of factor features
+- mlr supports ViperCharts plots now
+- ROC plot via ROCR can now be created automatically, before you had to call asROCRPrediction,
+  then construct the plots via ROCR your self. See plotROCRCurves
+- all mlr measures now have slots "name" and "note"
+- exported a few very simple "getters" for tasks, see below
+- in makeLearner a probability predict.threshold can be set for classifiers, also see setPredictThreshold
+- in the control objects for tuning and feature selection, the user can now enable threshold tuning
+- in the control objects for tuning and feature selection, the user can now define his own logging function
+- default console logging for tuneParams and selectFeatures is more informative, it displays time and memory info
+- updated some properties of some learners
+- Default arguments of classif.bartMachine, classif.randomForestSRC, regr.randomForestSRC and sur.randomForestSRC
+  have been changed to allow missing data support with default settings.
+- externalized measure functions to be used on vectors.
+- some minor bug fixes
+- required basic learner packages are not loaded into the global namespace anymore, requireNamespace
+  is used internally instead. this ensures less name clashes and name shadowing
+- resample passes dot arguments to the learner hyperpars
+- new option "on.par.out.of.bounds" to disable out-of-bound checks for model parameters
+- measures were slightly internally changed. they expose more properties (check ?Measure) and some
+  now unnecessary object slots were removed
+- classif.lda and classif.qda now have hyperpar "predict.method"
+- filterFeatures and makeFilterWrapper gain an argument for mandatory features
+- plotLearnerPrediction has new option "err.size"
+- classif.plsDA and cluster.DBscan for now removed because of problems with the underlying learning algorithm
+- new aggregation test.join
+
+- new functions
+-- getTaskType, getTaskId, getTaskTargetNames
+-- plotROCRCurves
+-- plotViperCharts
+-- measureSSE, measureMSE, measureRMSE, measureMEDSE, ...
+-- PreprocWrapperCaret
+-- setPredictThreshold
+
+- new learners:
+-- classif.bdk
+-- classif.binomial
+-- classif.extraTrees
+-- classif.probit
+-- classif.xgboost
+-- classif.xyf
+-- regr.bartMachine
+-- regr.bcart
+-- regr.bdk
+-- regr.bgp
+-- regr.bgpllm
+-- regr.blm
+-- regr.brnn
+-- regr.btgp
+-- regr.btgpllm
+-- regr.btlm
+-- regr.cubist
+-- regr.elmNN
+-- regr.extraTrees
+-- regr.laGP
+-- regr.xgboost
+-- regr.xyf
+-- surv.rpart
+
 mlr_2.2:
 - The web tutorial was MUCH improved!
 - more example tasks and data sets

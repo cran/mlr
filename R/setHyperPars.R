@@ -5,8 +5,8 @@
 #'   Named (hyper)parameters with new setting. Alternatively these can be passed
 #'   using the \code{par.vals} argument.
 #' @param par.vals [\code{list}]\cr
-#'    Optional list of named (hyper)parameter settings. The arguments in
-#'    \code{...} take precedence over values in this list.
+#'   Optional list of named (hyper)parameter settings. The arguments in
+#'   \code{...} take precedence over values in this list.
 #' @template ret_learner
 #' @export
 #' @family learner
@@ -38,7 +38,8 @@ setHyperPars2 = function(learner, par.vals) {
 setHyperPars2.Learner = function(learner, par.vals) {
   ns = names(par.vals)
   pars = learner$par.set$pars
-  opwd = getLearnerOptions(learner, "on.par.without.desc")[[1L]]
+  on.par.without.desc = coalesce(learner$config$on.par.without.desc, getMlrOptions()$on.par.without.desc)
+  on.par.out.of.bounds = coalesce(learner$config$on.par.out.of.bounds, getMlrOptions()$on.par.out.of.bounds)
   for (i in seq_along(par.vals)) {
     n = ns[i]
     p = par.vals[[i]]
@@ -46,16 +47,22 @@ setHyperPars2.Learner = function(learner, par.vals) {
     if (is.null(pd)) {
       # no description: stop warn or quiet
       msg = sprintf("%s: Setting parameter %s without available description object!\nYou can switch off this check by using configureMlr!", learner$id, n)
-      if (opwd == "stop")
+      if (on.par.without.desc == "stop") {
         stop(msg)
-      if (opwd == "warn")
+      } else if (on.par.without.desc == "warn") {
         warning(msg)
+      }
       learner$par.set$pars[[n]] = makeUntypedLearnerParam(id = n)
       learner$par.vals[[n]] = p
     } else {
-      if (!isFeasible(pd, p))
-        stopf("%s is not feasible for parameter '%s'!",
-          convertToShortString(p), pd$id)
+      if (on.par.out.of.bounds != "quiet" && !isFeasible(pd, p)) {
+        msg = sprintf("%s is not feasible for parameter '%s'!", convertToShortString(p), pd$id)
+        if (on.par.out.of.bounds == "stop") {
+          stop(msg)
+        } else {
+          warning(msg)
+        }
+      }
       ## if valname of discrete par was used, transform it to real value
       #if (pd$type == "discrete" && is.character(p) && length(p) == 1 && p %in% names(pd$values))
       #  p = pd$values[[p]]

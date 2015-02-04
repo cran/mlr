@@ -12,11 +12,11 @@ makeRLearner.classif.LiblineaRLogReg = function() {
       makeNumericVectorLearnerParam(id = "wi", len = NA_integer_),
       makeIntegerLearnerParam(id = "cross", default = 0L, lower = 0L),
       makeLogicalLearnerParam(id = "verbose", default = FALSE)
-    ),
-  properties = c("twoclass", "numerics", "prob"),
-  name = "Regularized Logistic Regression",
-  short.name = "reglreg",
-  note = "This model subsumes type 0,6,7."
+      ),
+    properties = c("twoclass", "numerics", "prob"),
+    name = "Regularized Logistic Regression",
+    short.name = "reglreg",
+    note = "This model subsumes type 0,6,7."
   )
 }
 
@@ -29,7 +29,7 @@ trainLearner.classif.LiblineaRLogReg = function(.learner, .task, .subset, .weigh
 #' @export
 predictLearner.classif.LiblineaRLogReg = function(.learner, .model, .newdata, ...) {
   if(.learner$predict.type == "response")
-    p = as.factor(predict(.model$learner.model, newx = .newdata, ...)$predictions)
+    as.factor(predict(.model$learner.model, newx = .newdata, ...)$predictions)
   else
-    p = predict(.model$learner.model, newx = .newdata, proba = TRUE, ...)$probabilities
+    predict(.model$learner.model, newx = .newdata, proba = TRUE, ...)$probabilities
 }

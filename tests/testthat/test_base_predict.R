@@ -10,7 +10,8 @@ test_that("predict", {
   cm2 = train(makeLearner("classif.lda"), multiclass.task, subset = inds)
   cp2 = predict(cm2, newdata = data[inds,])
   cp2b = predict(cm2, newdata = data[inds,-5])
-  ext2 = lda(formula, data = data[inds,])
+  requirePackages("MASS", default.method = "load")
+  ext2 = MASS::lda(formula, data = data[inds,])
   pred2 = predict(ext2,newdata = data[inds,])$class
 
   expect_equal(cp2$data$response, pred2)
@@ -18,7 +19,7 @@ test_that("predict", {
 
   cm3 = train(wl.lda, multiclass.task, subset = inds)
   cp3 = predict(cm3, newdata = data[multiclass.test.inds,])
-  ext3 = lda(formula, data = data[inds,])
+  ext3 = MASS::lda(formula, data = data[inds,])
   pred3 = predict(ext3,newdata = data[multiclass.test.inds,])$class
   prob3 = predict(ext3,newdata = data[multiclass.test.inds,])$post
   expect_equal(cp3$data$response, pred3)
@@ -50,7 +51,6 @@ test_that("predict", {
     levels = binaryclass.task$task.desc$class.levels)
   expect_equal(cp5d$data$response, f2)
   expect_true(setequal(levels(cp5e$data$response), c("M", "R")))
-
 })
 
 
@@ -70,7 +70,6 @@ test_that("predict works with strange class labels", {
   p = predict(mod, task = task)
   expect_equal(colnames(p$data), c("id", "truth", "prob.-1", "prob.1", "response"))
 })
-
 
 test_that("predict correctly propagates exception in predictLearner", {
   capture.output(expect_error(holdout("classif.mock1", multiclass.task), "foo"))
@@ -106,4 +105,24 @@ test_that("setThreshold does not produce NAs for extreme thresholds", {
   expect_true(!any(is.na(p2$data$response)))
 })
 
+test_that("predict.threshold", {
+  lrn = makeLearner("classif.lda", predict.type = "prob", predict.threshold = 0)
+  r = holdout(lrn, binaryclass.task)
+  expect_true(all(r$pred$data$response == binaryclass.task$task.desc$positive))
+  lrn = makeLearner("classif.lda", predict.type = "prob", predict.threshold = 1)
+  r = holdout(lrn, binaryclass.task)
+  expect_true(all(r$pred$data$response == binaryclass.task$task.desc$negative))
+  lrn = makeLearner("classif.lda", predict.type = "prob",
+    predict.threshold = c(setosa = 1000000000, virginica = 0, versicolor = 100000))
+  r = holdout(lrn, multiclass.task)
+  expect_true(all(r$pred$data$response == "virginica"))
+
+  # now with wrapper
+  lrn1 = makeLearner("classif.lda")
+  lrn2 = makeFilterWrapper(lrn1, fw.method = "chi.squared", fw.perc = 0.1)
+  lrn2 = setPredictType(lrn2, "prob")
+  lrn2 = setPredictThreshold(lrn2, 0)
+  r = holdout(lrn2, binaryclass.task)
+  expect_true(all(r$pred$data$response == binaryclass.task$task.desc$positive))
+})
 

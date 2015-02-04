@@ -2,7 +2,7 @@
 makeRLearner.classif.mda = function() {
   makeRLearnerClassif(
     cl = "classif.mda",
-    package = "mda",
+    package = "!mda",
     # FIXME: stringdot pars and check order, scale and offset limits
     par.set = makeParamSet(
       makeUntypedLearnerParam(id = "subclasses", default = 2L),
@@ -33,4 +33,3 @@ predictLearner.classif.mda = function(.learner, .model, .newdata, ...) {
   type = ifelse(.learner$predict.type=="response", "class", "posterior")
   predict(.model$learner.model, newdata = .newdata, type = type, ...)
 }
-

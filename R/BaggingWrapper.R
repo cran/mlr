@@ -5,7 +5,7 @@
 #' (i.e., similar to what a \code{randomForest} does).
 #' Creates a learner object, which can be
 #' used like any other learner object.
-#' Models can easily be accessed via \code{\link{getBaggingModels}}.
+#' Models can easily be accessed via \code{\link{getHomogeneousEnsembleModels}}.
 #'
 #' Bagging is implemented as follows:
 #' For each iteration a random data subset is sampled (with or without replacement)
@@ -70,11 +70,20 @@ makeBaggingWrapper = function(learner, bw.iters = 10L, bw.replace = TRUE, bw.siz
     makeNumericLearnerParam(id = "bw.size", lower = 0, upper = 1),
     makeNumericLearnerParam(id = "bw.feats", lower = 0, upper = 1, default = 2/3)
   )
-  x = makeBaseWrapper(id, learner, packs, par.set = ps, par.vals = pv, cl = "BaggingWrapper")
-  x = switch(x$type,
+  x = makeHomogeneousEnsemble(id, learner, packs, par.set = ps, par.vals = pv,
+    learner.subclass = "BaggingWrapper", model.subclass = "BaggingModel")
+  switch(x$type,
     "classif" = addProperties(x, "prob"),
-    "regr" = addProperties(x, "se"))
-  return(x)
+    "regr" = addProperties(x, "se")
+  )
+}
+
+#' @export
+print.BaggingModel = function(x, ...) {
+  s = capture.output(print.WrappedModel(x))
+  u = sprintf("Bagged Learner: %s", class(x$learner$next.learner)[1L])
+  s = append(s, u, 1L)
+  lapply(s, catf)
 }
 
 #' @export
@@ -102,19 +111,19 @@ trainLearner.BaggingWrapper = function(.learner, .task, .subset, .weights = NULL
       train(.learner$next.learner, .task, subset = bag, weights = w)
     }
   })
-  makeChainModel(next.model = models, cl = "BaggingModel")
+  m = makeHomChainModel(.learner, models)
 }
 
 #' @export
 predictLearner.BaggingWrapper = function(.learner, .model, .newdata, ...) {
-  models = getBaggingModels(.model)
+  models = getHomogeneousEnsembleModels(.model, learner.models = FALSE)
   g = if (.learner$type == "classif") as.character else identity
   p = asMatrixCols(lapply(models, function(m) {
     nd = .newdata[, m$features, drop = FALSE]
     g(predict(m, newdata = nd, ...)$data$response)
   }))
   if (.learner$predict.type == "response") {
-    g = if (.learner$type == "classif")
+    if (.learner$type == "classif")
       as.factor(apply(p, 1L, computeMode))
     else
       rowMeans(p)
@@ -122,7 +131,7 @@ predictLearner.BaggingWrapper = function(.learner, .model, .newdata, ...) {
     if (.learner$type == 'classif') {
       levs = .model$task.desc$class.levels
       p = apply(p, 1L, function(x) {
-        x = factor(x, levels = levs) # we need all level for the table and we need them in consitent order!
+        x = factor(x, levels = levs) # we need all level for the table and we need them in consistent order!
         as.numeric(prop.table(table(x)))
       })
       setColNames(t(p), levs)
@@ -132,25 +141,9 @@ predictLearner.BaggingWrapper = function(.learner, .model, .newdata, ...) {
   }
 }
 
-
-#' @export
-makeWrappedModel.BaggingWrapper = function(learner, learner.model, task.desc, subset, features, factor.levels, time) {
-  x = NextMethod()
-  addClasses(x, "BaggingModel")
-}
-
-#' @export
-print.BaggingModel = function(x, ...) {
-  s = capture.output(print.WrappedModel(x))
-  u = sprintf("Bagged Learner: %s", class(x$learner$next.learner)[1L])
-  s = append(s, u, 1L)
-  lapply(s, catf)
-}
-
 # we need to override here. while the predtype of the encapsulated learner must always
 # be response, we can estimates probs and se on the outside
 #' @export
 setPredictType.BaggingWrapper = function(learner, predict.type) {
-  learner = setPredictType.Learner(learner, predict.type)
-  return(learner)
+  setPredictType.Learner(learner, predict.type)
 }

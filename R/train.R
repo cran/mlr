@@ -42,7 +42,6 @@ train = function(learner, task, subset, weights = NULL) {
   # make sure that pack for learner is loaded, probably needed when learner is exported
   requireLearnerPackages(learner)
 
-
   tn = task$task.desc$target
 
   # make pars list for train call
@@ -59,7 +58,7 @@ train = function(learner, task, subset, weights = NULL) {
   pars$.weights = weights
 
   # only pass train hyper pars as basic rlearner in ...
-  pars = c(pars, getHyperPars(learner, "train"))
+  pars = c(pars, getHyperPars(learner, c("train", "both")))
 
   vars = getTaskFeatureNames(task)
   # no vars? then use no vars model
@@ -84,7 +83,7 @@ train = function(learner, task, subset, weights = NULL) {
     }
     st = system.time(fun1(learner.model <- fun2(do.call(trainLearner, pars))), gcFirst = FALSE)
     # was there an error during training? maybe warn then
-    if(is.error(learner.model) && opts$on.learner.error == "warn")
+    if (is.error(learner.model) && opts$on.learner.error == "warn")
       warningf("Could not train learner %s: %s", learner$id, as.character(learner.model))
     time.train = as.numeric(st[3L])
   }

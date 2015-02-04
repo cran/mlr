@@ -206,13 +206,11 @@ reimpute = function(x, desc) {
   UseMethod("reimpute")
 }
 
-#' @method reimpute list
 #' @export
 reimpute.list = function(x, desc) {
-  UseMethod("reimpute", as.data.frame(x))
+  reimpute.data.frame(as.data.frame(x), desc)
 }
 
-#' @method reimpute data.frame
 #' @export
 reimpute.data.frame = function(x, desc) {
   assertClass(desc, classes = "ImputationDesc")

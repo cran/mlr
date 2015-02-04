@@ -15,6 +15,7 @@
 #'   Survival: \dQuote{response} (= some sort of orderable risk) or \dQuote{prob} (= time dependent probabilities).
 #'   Clustering: \dQuote{response} (= cluster IDS) or \dQuote{prob} (= fuzzy cluster membership probabilities).
 #'   Default is \dQuote{response}.
+#' @template arg_predictthreshold
 #' @param fix.factors [\code{logical(1)}]\cr
 #'   In some cases, problems occur in underlying learners for factor features during prediction.
 #'   If the new features have LESS factor levels than during training (a strict subset),
@@ -36,6 +37,7 @@
 #'   Named list of config option to overwrite global settings set via \code{\link{configureMlr}}
 #'   for this specific learner.
 #' @return [\code{\link{Learner}}].
+#' @family learner
 #' @export
 #' @aliases Learner
 #' @seealso [\code{\link{resample}}], [\code{\link{predict.WrappedModel}}]
@@ -44,7 +46,9 @@
 #' makeLearner("classif.lda", predict.type = "prob")
 #' lrn = makeLearner("classif.lda", method = "t", nu = 10)
 #' print(lrn$par.vals)
-makeLearner = function(cl, id = cl, predict.type = "response", fix.factors = FALSE, ..., par.vals = list(), config = list()) {
+makeLearner = function(cl, id = cl, predict.type = "response", predict.threshold = NULL,
+  fix.factors = FALSE, ..., par.vals = list(), config = list()) {
+
   assertString(cl)
   assertFlag(fix.factors)
   constructor = getS3method("makeRLearner", class = cl)
@@ -54,6 +58,9 @@ makeLearner = function(cl, id = cl, predict.type = "response", fix.factors = FAL
     assertString(id)
     wl$id = id
   }
+  # further checks on threshold can only be done later in setThreshold
+  if (!is.null(predict.threshold))
+    assertNumeric(predict.threshold, any.missing = FALSE)
   assertList(par.vals)
   assertList(config, names = "named")
   if (!nzchar(cl))
@@ -62,6 +69,7 @@ makeLearner = function(cl, id = cl, predict.type = "response", fix.factors = FAL
     stop("Learner must be a basic RLearner!")
   wl = setHyperPars(learner = wl, ..., par.vals = par.vals)
   wl = setPredictType(learner = wl, predict.type = predict.type)
+  wl$predict.threshold = predict.threshold
   wl$fix.factors = fix.factors
   wl$config = config
   return(wl)
@@ -71,7 +79,7 @@ makeLearner = function(cl, id = cl, predict.type = "response", fix.factors = FAL
 print.Learner = function(x, ...) {
   # FIXME: the "old" printer was a little bit more informative...
   cat(
-    "Learner ", x$id, " from package ", collapse(x$package), "\n",
+    "Learner ", x$id, " from package ", collapse(cleanupPackageNames(x$package)), "\n",
     "Type: ", x$type, "\n",
     "Name: ", x$name, "; Short name: ", x$short.name, "\n",
     "Class: ", class(x)[1L], "\n",

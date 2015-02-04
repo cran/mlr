@@ -13,9 +13,19 @@ setDefaultImputeVal = function(control, measures) {
   return(control)
 }
 
+# get one or multiple thresholds vector from optpath rows
+# if we have multiple rows we average the result
+getThresholdFromOptPath = function(opt.path, inds) {
+  ths = asMatrixCols(lapply(inds, function(i) {
+    ex = getOptPathEl(opt.path, i)$extra
+    ns = names(ex)
+    ex[grepl("^threshold", ns)]
+  }))
+  rowMeans(ths)
+}
 
 ##### tuning #####
-makeOptPathDFFromMeasures = function(par.set, measures) {
+makeOptPathDFFromMeasures = function(par.set, measures, ...) {
   ns = vcapply(measures, measureAggrName)
   if (anyDuplicated(ns))
     stop("Cannot create OptPath, measures do not have unique ids!")
@@ -24,29 +34,11 @@ makeOptPathDFFromMeasures = function(par.set, measures) {
     stop("Cannot create OptPath, measures ids and dimension names of input space overlap!")
   minimize = vlapply(measures, function(m) m$minimize)
   makeOptPathDF(par.set, ns, minimize, add.transformed.x = FALSE,
-    include.error.message = TRUE, include.exec.time = TRUE)
+    include.error.message = TRUE, include.exec.time = TRUE, ...)
 }
 
-
-# evals a set of var-lists and return the corresponding states
-logFunTune = function(learner, task, resampling, measures, par.set, control, opt.path, dob, x, y, remove.nas) {
-  if (!inherits(learner, "ModelMultiplexer")) {
-    messagef("[Tune] %i: %s : %s", dob,
-      paramValueToString(par.set, x, show.missing.values = !remove.nas), perfsToString(y))
-  } else {
-    # shorten tuning logging a bit. we remove the sel.learner prefix from params
-    s = paramValueToString(par.set, x, show.missing.values = !remove.nas)
-    s = gsub(paste0(x$selected.learner, "\\."), "", s)
-    messagef("[Tune] %i: %s : %s", dob, s, perfsToString(y))
-  }
-}
 
 ##### featsel #####
-
-logFunSelFeatures = function(learner, task, resampling, measures, par.set, control, opt.path, dob, x, y, remove.nas) {
-  messagef("[FeatSel] %i: %i bits: %s", dob, sum(x), perfsToString(y))
-}
-
 featuresToLogical = function(vars, all.vars) {
   if (is.list(vars)) {
     # FIXME: use asMatrixCols / asMatrixRows

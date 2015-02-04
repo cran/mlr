@@ -1,5 +1,5 @@
 tuneIrace = function(learner, task, resampling, measures, par.set, control, opt.path, show.info) {
-  requirePackages("irace", why = "tuneIrace")
+  requirePackages("irace", why = "tuneIrace", default.method = "load")
 
   #FIXME: allow to do in parallel
   cx = function(x) convertXLogicalsNotAsStrings(x, par.set)
@@ -41,5 +41,10 @@ tuneIrace = function(learner, task, resampling, measures, par.set, control, opt.
   e = getOptPathEl(opt.path, which.first(j))
   x = trafoValue(par.set, e$x)
   x = removeMissingValues(x)
-  makeTuneResult(learner, control, x, y, opt.path)
+  if (control$tune.threshold)
+    # now get thresholds and average them
+    threshold = getThresholdFromOptPath(opt.path, which(j))
+  else
+    threshold = NULL
+  makeTuneResult(learner, control, x, y, threshold, opt.path)
 }

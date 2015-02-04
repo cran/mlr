@@ -1,5 +1,5 @@
 Package: mlr
-Title: Machine Learning in R.
+Title: Machine Learning in R
 Description: Interface to a large number of classification and regression
     techniques, including machine-readable parameter descriptions. There is
     also an experimental extension for survival analysis, clustering and
@@ -23,21 +23,24 @@ URL: https://github.com/berndbischl/mlr
 BugReports: https://github.com/berndbischl/mlr/issues
 License: BSD_3_clause + file LICENSE
 Encoding: UTF-8
-Depends: R (>= 3.0.0), ParamHelpers (>= 1.4), BBmisc (>= 1.7), stats
-Imports: checkmate (>= 1.4), codetools, ggplot2, parallelMap (>= 1.1),
-        plyr, survival
-Suggests: testthat, ada, adabag, bartMachine, care, caret, class, clue,
-        cluster, clusterSim, clValid, cmaes, CoxBoost, crs,
-        DiceKriging, DiceOptim, DiscriMiner, e1071, earth, emoa, FNN,
-        FSelector, gbm, GenSA, glmnet, Hmisc, irace, kernlab, kknn,
-        klaR, lqa, LiblineaR, MASS, mboost, mco, mda, mlbench,
-        modeltools, mRMRe, nnet, party, penalized, pls, pROC,
-        randomForest, randomForestSRC, reshape2, rrlda, robustbase,
-        rpart, rsm, RWeka, ROCR, sda, stepPlr, TH.data
+Depends: R (>= 3.0.0), ParamHelpers (>= 1.5), BBmisc (>= 1.9), ggplot2,
+        stats
+Imports: checkmate (>= 1.5.1), parallelMap (>= 1.2), plyr, reshape2,
+        survival
+Suggests: ada, adabag, bartMachine, brnn, care, caret, class, clue,
+        cluster, clusterSim, clValid, cmaes, CoxBoost, crs, Cubist,
+        DiceKriging, DiceOptim, DiscriMiner, e1071, earth, elmNN, emoa,
+        extraTrees, FNN, FSelector, gbm, GenSA, glmnet, Hmisc, irace,
+        kernlab, kknn, klaR, kohonen, laGP, LiblineaR, lqa, MASS,
+        mboost, mco, mda, mlbench, modeltools, mRMRe, nnet,
+        nodeHarvest, party, penalized, pls, pROC, randomForest,
+        randomForestSRC, randomUniformForest, RCurl, rjson, robustbase,
+        ROCR, rpart, rrlda, rsm, RWeka, sda, stepPlr, testthat, tgp,
+        TH.data, xgboost
 LazyData: yes
 ByteCompile: yes
-Version: 2.2
-Packaged: 2014-10-29 01:22:59 UTC; bischl
+Version: 2.3
+Packaged: 2015-02-04 04:49:46 UTC; bischl
 Author: Bernd Bischl [aut, cre],
   Michel Lang [aut],
   Jakob Richter [aut],
@@ -49,4 +52,4 @@ Author: Bernd Bischl [aut, cre],
 Maintainer: Bernd Bischl <bernd_bischl@gmx.net>
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2014-10-29 07:43:17
+Date/Publication: 2015-02-04 07:42:56

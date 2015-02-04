@@ -1,4 +1,8 @@
-#' Set, add, remove or query properties of learners
+#' @title Set, add, remove or query properties of learners
+#'
+#' @description
+#' Properties can be accessed with \code{learner$properties}, which returns a
+#' character vector.
 #'
 #' @template arg_learner
 #' @param props [\code{character}]\cr
@@ -8,13 +12,14 @@
 #'  \code{hasProperties} returns a logical vector of the same length of \code{props}.
 #' @name LearnerProperties
 #' @rdname LearnerProperties
+#' @family learner
 NULL
 
 #' @rdname LearnerProperties
 #' @export
 setProperties = function(learner, props) {
   learner = checkLearner(learner)
-  assertCharacter(props, any.missing = FALSE)
+  assertSubset(props, getSupportedLearnerProperties(learner$type))
   learner$properties = unique(props)
   learner
 }
@@ -23,7 +28,7 @@ setProperties = function(learner, props) {
 #' @export
 addProperties = function(learner, props) {
   learner = checkLearner(learner)
-  assertCharacter(props, any.missing = FALSE)
+  assertSubset(props, getSupportedLearnerProperties(learner$type))
   learner$properties = union(learner$properties, props)
   learner
 }
@@ -32,7 +37,7 @@ addProperties = function(learner, props) {
 #' @export
 removeProperties = function(learner, props) {
   learner = checkLearner(learner)
-  assertCharacter(props, any.missing = FALSE)
+  assertSubset(props, getSupportedLearnerProperties(learner$type))
   learner$properties = setdiff(learner$properties, props)
   learner
 }
@@ -41,6 +46,6 @@ removeProperties = function(learner, props) {
 #' @export
 hasProperties = function(learner, props) {
   learner = checkLearner(learner)
-  assertCharacter(props, any.missing = FALSE)
+  assertSubset(props, getSupportedLearnerProperties())
   props %in% learner$properties
 }

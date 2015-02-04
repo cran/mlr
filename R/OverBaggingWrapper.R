@@ -5,7 +5,7 @@
 #' for imbalancy correction when we have strongly unequal class sizes.
 #' Creates a learner object, which can be
 #' used like any other learner object.
-#' Models can easily be accessed via \code{\link{getBaggingModels}}.
+#' Models can easily be accessed via \code{\link{getHomogeneousEnsembleModels}}.
 #'
 #' OverBagging is implemented as follows:
 #' For each iteration a random data subset is sampled. Minority class examples
@@ -62,8 +62,8 @@ makeOverBaggingWrapper = function(learner, obw.iters = 10L, obw.rate = 1, obw.ma
     makeNumericLearnerParam(id = "obw.rate", lower = 1),
     makeDiscreteLearnerParam(id = "obw.maxcl", c("boot", "all"))
   )
-  x = makeBaseWrapper(id, learner, packs, par.set = ps, par.vals = pv,
-    cl = c("OverBaggingWrapper", "BaggingWrapper"))
+  x = makeHomogeneousEnsemble(id, learner, packs, par.set = ps, par.vals = pv,
+     learner.subclass = c("OverBaggingWrapper", "BaggingWrapper"), model.subclass = "BaggingModel")
   addProperties(x, "prob")
 }
 
@@ -78,6 +78,6 @@ trainLearner.OverBaggingWrapper = function(.learner, .task, .subset, .weights = 
       othreplace = (obw.maxcl == "boot"), bagging = TRUE)
     train(.learner$next.learner, .task, subset = bag, weights = .weights)
   })
-  makeChainModel(next.model = models, cl = "BaggingModel")
+  m = makeHomChainModel(.learner, models)
 }
 

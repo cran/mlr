@@ -20,7 +20,7 @@ makeRLearner.regr.km = function() {
     properties = c("numerics", "se"),
     name = "Kriging",
     short.name = "km",
-    note = "In predict, we currently always use type = 'SK'."
+    note = "In predict, we currently always use type = 'SK'. The extra param 'jitter' (default is FALSE) enables adding a very small jitter (order 1e-12) to the x-values before prediction, as predict.km reproduces the exact y-values of the training data points, when you pass them in, even if the nugget effect is turned on."
   )
 }
 
@@ -32,15 +32,15 @@ trainLearner.regr.km = function(.learner, .task, .subset, .weights = NULL,  ...)
 
 #' @export
 predictLearner.regr.km = function(.learner, .model, .newdata, jitter, ...) {
-  # this is a bit stupid. km with nugget estim seems to perfectly interpolate the data
-  # ONLY at exactly the training points
+  # km with nugget estim perfectly interpolate the datas ONLY at exactly the training points
+  # see JSS paper for explanation
   # so we add minimal, numerical jitter to the x points
   if (jitter) {
     jit = matrix(rnorm(nrow(.newdata) * ncol(.newdata), mean = 0, sd = 1e-12), nrow = nrow(.newdata))
     .newdata = .newdata + jit
   }
   se = (.learner$predict.type != "response")
-  p = predict(.model$learner.model, newdata = .newdata, type = "SK", se.compute = se)
+  p = DiceKriging::predict.km(.model$learner.model, newdata = .newdata, type = "SK", se.compute = se)
   if(!se)
     return(p$mean)
   else

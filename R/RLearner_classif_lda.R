@@ -6,12 +6,14 @@ makeRLearner.classif.lda = function() {
     par.set = makeParamSet(
       makeDiscreteLearnerParam(id = "method", default = "moment", values = c("moment", "mle", "mve", "t")),
       makeNumericLearnerParam(id = "nu", lower = 2, requires = expression(method=="t")),
-      makeNumericLearnerParam(id = "tol", default = 1e-4, lower = 0)
+      makeNumericLearnerParam(id = "tol", default = 1e-4, lower = 0),
+      makeDiscreteLearnerParam(id = "predict.method", values = c("plug-in", "predictive", "debiased"),
+        default = "plug-in", when = "predict")
     ),
     properties = c("twoclass", "multiclass", "numerics", "factors", "prob"),
     name = "Linear Discriminant Analysis",
     short.name = "lda",
-    note = ""
+    note = "Learner param 'predict.method' maps to 'method' in predict.lda."
   )
 }
 
@@ -22,8 +24,8 @@ trainLearner.classif.lda = function(.learner, .task, .subset, .weights = NULL,  
 }
 
 #' @export
-predictLearner.classif.lda = function(.learner, .model, .newdata, ...) {
-  p = predict(.model$learner.model, newdata = .newdata, ...)
+predictLearner.classif.lda = function(.learner, .model, .newdata, predict.method = "plug-in", ...) {
+  p = predict(.model$learner.model, newdata = .newdata, method = predict.method, ...)
   if(.learner$predict.type == "response")
     return(p$class)
   else
