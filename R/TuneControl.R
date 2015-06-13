@@ -8,6 +8,8 @@
 #'     or discretize them yourself by always using \code{\link[ParamHelpers]{makeDiscreteParam}}
 #'     in the \code{par.set} passed to \code{\link{tuneParams}}.}
 #'   \item{makeTuneControlRandom}{Random search. All kinds of parameter types can be handled.}
+#'   \item{makeTuneControlDesign}{Completely pre-specifiy a data.frame of design points to be evaluated
+#'     during tuning. All kinds of parameter types can be handled.}
 #'   \item{makeTuneControlCMAES}{CMA Evolution Strategy with method \code{\link[cmaes]{cma_es}}.
 #'     Can handle numeric(vector) and integer(vector) hyperparameters, but no dependencies.
 #'     For integers the internally proposed numeric values are automatically rounded.
@@ -48,7 +50,11 @@
 #'   Function used for logging. If set to \code{NULL}, the internal default will be used.
 #'   Otherwise a function with arguments \code{learner}, \code{resampling}, \code{measures},
 #'   \code{par.set}, \code{control}, \code{opt.path}, \code{dob}, \code{x}, \code{y}, \code{remove.nas},
-#'   and \code{stage} is expected. See the implementation for details.
+#'   and \code{stage} is expected.
+#'   The default displays the performance measures, the time needed for evaluating,
+#'   the currently used memory and the max memory ever used before
+#'   (the latter two both taken from \code{\link{gc}}).
+#'   See the implementation for details.
 #' @param ... [any]\cr
 #'   Further control parameters passed to the \code{control} argument of \code{\link[cmaes]{cma_es}} and
 #'   \code{tunerConfig} argument of \code{\link[irace]{irace}}.

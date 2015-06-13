@@ -43,6 +43,7 @@
 #'   Is applied to every \code{\link{WrappedModel}} resulting from calls to \code{\link{train}}
 #'   during resampling.
 #'   Default is to extract nothing.
+#' @template arg_keep_pred
 #' @param ... [any]\cr
 #'   Further hyperparameters passed to \code{learner}.
 #' @template arg_showinfo
@@ -57,7 +58,7 @@
 #' print(r$measures.test)
 #' print(r$pred)
 resample = function(learner, task, resampling, measures, weights = NULL, models = FALSE,
-  extract, ..., show.info = getMlrOption("show.info")) {
+  extract, keep.pred = TRUE, ..., show.info = getMlrOption("show.info")) {
 
   learner = checkLearner(learner, ...)
   assertClass(task, classes = "Task")
@@ -93,10 +94,12 @@ resample = function(learner, task, resampling, measures, weights = NULL, models 
   }
   parallelLibrary("mlr", master = FALSE, level = "mlr.resample", show.info = FALSE)
   exportMlrOptions(level = "mlr.resample")
+  time1 = Sys.time()
   iter.results = parallelMap(doResampleIteration, seq_len(rin$desc$iters), level = "mlr.resample", more.args = more.args)
-
+  time2 = Sys.time()
+  runtime = as.numeric(difftime(time2, time1, "sec"))
   addClasses(
-    mergeResampleResult(learner, task, iter.results, measures, rin, models, extract, show.info),
+    mergeResampleResult(learner, task, iter.results, measures, rin, models, extract, keep.pred, show.info, runtime),
     "ResampleResult"
   )
 }
@@ -143,27 +146,33 @@ doResampleIteration = function(learner, task, rin, i, measures, weights, model, 
   )
 }
 
-mergeResampleResult = function(learner, task, iter.results, measures, rin, models, extract, show.info) {
+mergeResampleResult = function(learner, task, iter.results, measures, rin, models, extract, keep.pred, show.info, runtime) {
   iters = length(iter.results)
   mids = vcapply(measures, function(m) m$id)
 
   ms.train = as.data.frame(extractSubList(iter.results, "measures.train", simplify = "rows"))
-  colnames(ms.train) = mids
-  rownames(ms.train) = NULL
-  ms.train = cbind(iter = seq_len(iters), ms.train)
 
   ms.test = extractSubList(iter.results, "measures.test", simplify = FALSE)
   ms.test = as.data.frame(do.call(rbind, ms.test))
-  colnames(ms.test) = mids
-  rownames(ms.test) = NULL
-  ms.test = cbind(iter = seq_len(iters), ms.test)
 
   preds.test = extractSubList(iter.results, "pred.test", simplify = FALSE)
   preds.train = extractSubList(iter.results, "pred.train", simplify = FALSE)
   pred = makeResamplePrediction(instance = rin, preds.test = preds.test, preds.train = preds.train)
 
-  aggr = vnapply(measures, function(m) m$aggr$fun(task, ms.test[, m$id], ms.train[, m$id], m, rin$group, pred))
+  # aggr = vnapply(measures, function(m) m$aggr$fun(task, ms.test[, m$id], ms.train[, m$id], m, rin$group, pred))
+  aggr = vnapply(seq_along(measures), function(i) {
+    m = measures[[i]]
+    m$aggr$fun(task, ms.test[, i], ms.train[, i], m, rin$group, pred)
+  })
   names(aggr) = vcapply(measures, measureAggrName)
+
+  # name ms.* rows and cols
+  colnames(ms.test) = mids
+  rownames(ms.test) = NULL
+  ms.test = cbind(iter = seq_len(iters), ms.test)
+  colnames(ms.train) = mids
+  rownames(ms.train) = NULL
+  ms.train = cbind(iter = seq_len(iters), ms.train)
 
   err.msgs = as.data.frame(extractSubList(iter.results, "err.msgs", simplify = "rows"))
   rownames(err.msgs) = NULL
@@ -172,6 +181,9 @@ mergeResampleResult = function(learner, task, iter.results, measures, rin, model
 
   if (show.info)
     messagef("[Resample] Result: %s", perfsToString(aggr))
+
+  if (!keep.pred)
+    pred = NULL
 
   list(
     learner.id = learner$id,
@@ -182,6 +194,7 @@ mergeResampleResult = function(learner, task, iter.results, measures, rin, model
     pred = pred,
     models = if (models) lapply(iter.results, function(x) x$model) else NULL,
     err.msgs = err.msgs,
-    extract = if(is.function(extract)) extractSubList(iter.results, "extract", simplify = FALSE) else NULL
+    extract = if(is.function(extract)) extractSubList(iter.results, "extract", simplify = FALSE) else NULL,
+    runtime = runtime
   )
 }

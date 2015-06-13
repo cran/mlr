@@ -24,8 +24,8 @@
 #' @param create [\code{logical(1)}]\cr
 #'   Instantiate objects (or return strings)?
 #'   Default is \code{FALSE}.
-#' @return [\code{character} | \code{list} of \code{\link{Learner}}]. Class names of matching
-#'   learners or instantiated objects.
+#' @return [\code{character} | \code{list} of \code{\link{Learner}}].
+#'   Named by ids of listed learners.
 #' @examples
 #' \dontrun{
 #' listLearners("classif", properties = c("multiclass", "prob"))
@@ -80,6 +80,7 @@ listLearners.character  = function(obj, properties = character(0L),
     }
   }
   res = filterNull(res)
+  names(res) = vcapply(res, function(lrn) lrn$id)
   err = filterNull(err)
   if (warn.missing.packages && length(err))
     warningf("The following learners could not be constructed, probably because their packages are not installed:\n%s\nCheck ?learners to see which packages you need or install mlr with all suggestions.", collapse(err))
