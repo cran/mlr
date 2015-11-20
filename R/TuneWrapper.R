@@ -20,12 +20,13 @@
 #' @family tune
 #' @family wrapper
 #' @examples
+#' \donttest{
 #' task = makeClassifTask(data = iris, target = "Species")
-#' lrn = makeLearner("classif.ksvm")
+#' lrn = makeLearner("classif.rpart")
 #' # stupid mini grid
 #' ps = makeParamSet(
-#'   makeDiscreteParam("C", values = 1:2),
-#'   makeDiscreteParam("sigma", values = 1:2)
+#'   makeDiscreteParam("cp", values = c(0.05, 0.1)),
+#'   makeDiscreteParam("minsplit", values = c(10, 20))
 #' )
 #' ctrl = makeTuneControlGrid()
 #' inner = makeResampleDesc("Holdout")
@@ -39,6 +40,7 @@
 #' print(r$extract)
 #' getNestedTuneResultsOptPathDf(r)
 #' getNestedTuneResultsX(r)
+#' }
 makeTuneWrapper = function(learner, resampling, measures, par.set, control, show.info = getMlrOption("show.info")) {
   learner = checkLearner(learner)
   assert(checkClass(resampling, "ResampleDesc"), checkClass(resampling, "ResampleInstance"))
@@ -57,13 +59,18 @@ makeTuneWrapper = function(learner, resampling, measures, par.set, control, show
 trainLearner.TuneWrapper = function(.learner, .task, .subset,  ...) {
   .task = subsetTask(.task, .subset)
   or = tuneParams(.learner$next.learner, .task, .learner$resampling, .learner$measures,
-    .learner$opt.pars, .learner$control, .learner$show.info)
+                  .learner$opt.pars, .learner$control, .learner$show.info)
   lrn = setHyperPars(.learner$next.learner, par.vals = or$x)
+  if("DownsampleWrapper" %in% class(.learner$next.learner) && !is.null(.learner$control$final.dw.perc) && !is.null(getHyperPars(lrn)$dw.perc) && getHyperPars(lrn)$dw.perc < 1) {
+    messagef("Train model on %f on data.", .learner$control$final.dw.perc)
+    lrn = setHyperPars(lrn, par.vals = list(dw.perc = .learner$control$final.dw.perc))
+  }
   m = train(lrn, .task)
   x = makeChainModel(next.model = m, cl = "TuneModel")
   x$opt.result = or
   return(x)
 }
+
 
 #' @export
 predictLearner.TuneWrapper = function(.learner, .model, .newdata, ...) {
@@ -76,9 +83,7 @@ makeWrappedModel.TuneWrapper = function(learner, learner.model, task.desc, subse
   # set threshold in learner so it is used in predict calls from here on
   if (learner$control$tune.threshold)
     learner = setPredictThreshold(learner, learner.model$opt.result$threshold)
-  x = NextMethod()
-  class(x) = c("TuneModel", class(x))
-  return(x)
+  addClasses(NextMethod(), "TuneModel")
 }
 
 

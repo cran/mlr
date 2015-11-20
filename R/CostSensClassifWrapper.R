@@ -2,7 +2,7 @@
 #'
 #' @description
 #' Creates a wrapper, which can be used like any other learner object.
-#' The classification model can easily be accessed via \code{\link{getHomogeneousEnsembleModels}}.
+#' The classification model can easily be accessed via \code{\link{getLearnerModel}}.
 #'
 #' This is a very naive learner, where the costs are transformed into classification labels -
 #' the label for each case is the name of class with minimal costs.
@@ -20,17 +20,16 @@ makeCostSensClassifWrapper = function(learner) {
   learner = checkLearnerClassif(learner)
   learner = setPredictType(learner, "response")
   id = paste("costsens", learner$id, sep = ".")
-  x = makeBaseWrapper(id, "costsens", learner, package = learner$package,
+  makeBaseWrapper(id, "costsens", learner, package = learner$package,
     learner.subclass = "CostSensClassifWrapper", model.subclass = "CostSensClassifModel")
-  removeProperties(x, c("weights", "prob"))
 }
 
 #' @export
 trainLearner.CostSensClassifWrapper = function(.learner, .task, .subset, ...) {
   # note that no hyperpars can be in ..., they would refer to the wrapper
   .task = subsetTask(.task, subset = .subset)
-  feats = .task$env$data
-  costs = .task$env$costs
+  feats = getTaskData(.task)
+  costs = getTaskCosts(.task)
   cns = colnames(costs)
   # compute average costs of all classes, then sort labels by it
   cns.costs = colSums(costs)
@@ -42,7 +41,7 @@ trainLearner.CostSensClassifWrapper = function(.learner, .task, .subset, ...) {
   # if all equal, predict one class, stupid fringe case
   if (length(unique(newy)) == 1) {
     m = makeS3Obj("CostSensClassifModelConstant", y = newy[1L])
-    model = makeWrappedModel.Learner(.learner, m, .task$task.desc, .subset, getTaskFeatureNames(.task),
+    model = makeWrappedModel.Learner(.learner, m, getTaskDescription(.task), .subset, getTaskFeatureNames(.task),
       getTaskFactorLevels(.task), 0)
   } else {
     data = cbind(feats, ..y.. = newy)
@@ -63,5 +62,9 @@ predictLearner.CostSensClassifWrapper = function(.learner, .model, .newdata, ...
   NextMethod()
 }
 
+#' @export
+getLearnerProperties.CostSensClassifWrapper = function(learner) {
+  setdiff(getLearnerProperties(learner$next.learner), c("weights", "prob"))
+}
 
 

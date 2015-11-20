@@ -31,7 +31,8 @@ makeRLearner.classif.glmnet = function() {
       makeNumericLearnerParam(id = "pmin", default = 1.0e-9, lower = 0, upper = 1),
       makeNumericLearnerParam(id = "exmx", default = 250.0),
       makeNumericLearnerParam(id = "prec", default = 1e-10),
-      makeIntegerLearnerParam(id = "mxit", default = 100L, lower = 1L)
+      makeIntegerLearnerParam(id = "mxit", default = 100L, lower = 1L),
+      makeLogicalLearnerParam(id = "factory", default = FALSE)
     ),
     properties = c("numerics", "factors", "prob", "twoclass", "multiclass", "weights"),
     par.vals = list(s = 0.01),
@@ -50,7 +51,8 @@ trainLearner.classif.glmnet = function(.learner, .task, .subset, .weights = NULL
   if (!is.null(.weights))
     args$weights = .weights
 
-  args$family = ifelse(length(.task$task.desc$class.levels) == 2L, "binomial", "multinomial")
+  td = getTaskDescription(.task)
+  args$family = ifelse(length(td$class.levels) == 2L, "binomial", "multinomial")
 
   saved.ctrl = glmnet::glmnet.control()
   is.ctrl.arg = names(args) %in% names(saved.ctrl)
@@ -69,8 +71,9 @@ predictLearner.classif.glmnet = function(.learner, .model, .newdata, ...) {
   .newdata = as.matrix(fixDataForLearner(.newdata, info))
   if(.learner$predict.type == "prob") {
     p = predict(.model$learner.model, newx = .newdata, type = "response", ...)
-    if (length(.model$task.desc$class.levels) == 2) {
-      p = setColNames(cbind(1 - p, p), .model$task.desc$class.levels)
+    td = .model$task.desc
+    if (length(td$class.levels) == 2L) {
+      p = setColNames(cbind(1 - p, p), td$class.levels)
     } else {
       p = p[,,1]
     }

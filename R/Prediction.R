@@ -3,7 +3,7 @@
 #' @description
 #' Result from \code{\link{predict.WrappedModel}}.
 #' Use \code{as.data.frame} to access all information in a convenient format.
-#' The function \code{\link{getProbabilities}} is useful to access predicted probabilities.
+#' The function \code{\link{getPredictionProbabilities}} is useful to access predicted probabilities.
 #'
 #' The \code{data} member of the object contains always the following columns:
 #' \code{id}, index numbers of predicted cases from the task, \code{response}
@@ -86,7 +86,35 @@ makePrediction.TaskDescClassif = function(task.desc, row.names, id, truth, predi
     }
     p = setThreshold(p, predict.threshold)
   }
+  return(p)
+}
 
+#' @export
+makePrediction.TaskDescMultilabel = function(task.desc, row.names, id, truth, predict.type, predict.threshold = NULL, y, time) {
+  data = namedList(c("id", "truth", "response", "prob"))
+  data$id = id
+  data$truth = truth
+  if (predict.type == "response") {
+    data$response = y
+  } else {
+    data$prob = y
+  }
+
+  p = makeS3Obj(c("PredictionMultilabel", "Prediction"),
+    predict.type = predict.type,
+    data = setRowNames(as.data.frame(filterNull(data)), row.names),
+    threshold = NA_real_,
+    task.desc = task.desc,
+    time = time
+  )
+  if (predict.type == "prob") {
+    # set default threshold to 0.5
+    if (is.null(predict.threshold)) {
+      predict.threshold = rep(0.5, length(task.desc$class.levels))
+      names(predict.threshold) = task.desc$class.levels
+    }
+    p = setThreshold(p, predict.threshold)
+  }
   return(p)
 }
 

@@ -20,7 +20,7 @@ test_that("FailureModel", {
   expect_true(!is.null(m$learner.model))
   p = predict(m, newdata = iris)
   expect_true(all(is.na(p$data$response)))
-  prob = getProbabilities(p)
+  prob = getPredictionProbabilities(p)
   expect_true(dim(prob) == c(150, 3) && all(is.na(prob)))
 
   task = dropFeatures(regr.task, "chas")
@@ -42,7 +42,7 @@ test_that("FailureModel", {
   expect_true(all(is.na(p$data$se)))
 
   # costens: response
-  lrn = makeCostSensClassifWrapper("classif.mock3")
+  lrn = makeCostSensClassifWrapper("classif.__mlrmocklearners__3")
   m = train(lrn, costsens.task)
   expect_true(isFailureModel(m))
   expect_true(!is.null(m$learner.model))

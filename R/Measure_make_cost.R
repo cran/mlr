@@ -1,5 +1,8 @@
 #' @title Creates a measure for non-standard misclassification costs.
 #'
+#' @description
+#' Creates a cost measure for non-standard classification error costs.
+#'
 #' @param id [\code{character(1)}]\cr
 #'   Name of measure.
 #'   Default is \dQuote{costs}.
@@ -21,15 +24,19 @@
 #' @template ret_measure
 #' @export
 #' @family performance
-makeCostMeasure = function(id = "costs", minimize = TRUE, costs, task, combine = mean, best = NULL, worst = NULL) {
+makeCostMeasure = function(id = "costs", minimize = TRUE, costs, task, combine = mean, best = NULL, worst = NULL,
+                           name = id, note = "") {
   assertString(id)
   assertFlag(minimize)
   assertMatrix(costs)
   assertClass(task, classes = "ClassifTask")
   assertFunction(combine)
+  assertString(name)
+  assertString(note)
 
   #check costs
-  levs = task$task.desc$class.levels
+  td = getTaskDescription(task)
+  levs = td$class.levels
   if (any(dim(costs))) {
     if (any(dim(costs) != length(levs)))
       stop("Dimensions of costs have to be the same as number of class levels!")
@@ -53,6 +60,8 @@ makeCostMeasure = function(id = "costs", minimize = TRUE, costs, task, combine =
       }
       y = mapply(cc, as.character(pred$data$truth), as.character(r))
       combine(y)
-    }
+    },
+    name = name,
+    note = note
   )
 }

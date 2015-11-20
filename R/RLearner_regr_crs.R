@@ -9,7 +9,7 @@ makeRLearner.regr.crs = function() {
       makeIntegerVectorLearnerParam(id = "lambda"),
       makeLogicalLearnerParam(id = "lambda.discrete", default = FALSE),
       makeIntegerLearnerParam(id = "lambda.discrete.num", default = 100, lower = 0,
-        requires = expression(lambda.discret)),
+        requires = quote(lambda.discrete == TRUE)),
       makeDiscreteLearnerParam(id = "cv", default = "nomad",
         values = c("nomad", "exhaustive", "none")),
       makeIntegerLearnerParam(id = "cv.treshold", default = 10000, lower = 0),
@@ -21,7 +21,7 @@ makeRLearner.regr.crs = function() {
       makeIntegerLearnerParam(id = "degree.min", default = 0, lower = 0),
       makeIntegerLearnerParam(id = "segments.min", default = 1, lower = 1),
       makeIntegerLearnerParam(id = "cv.df.min", default = 1,
-        requires = expression(cv=="nomad")),
+        requires = quote(cv=="nomad")),
       makeDiscreteLearnerParam(id = "complexity", default = "degree-knots",
         values = c("degree-knots", "degree", "knots")),
       makeDiscreteLearnerParam(id = "knots", default = "quantiles",
@@ -31,8 +31,13 @@ makeRLearner.regr.crs = function() {
       makeLogicalLearnerParam(id = "prune", default = FALSE),
       makeIntegerLearnerParam(id = "restarts", default = 0, lower = 0),
       makeIntegerLearnerParam(id = "nmulti", default = 5, lower = 0),
-      makeLogicalLearnerParam(id = "singular.ok", default = FALSE)
-
+      makeLogicalLearnerParam(id = "singular.ok", default = FALSE),
+      makeIntegerLearnerParam(id = "deriv", default = 0L, lower = 0L),
+      makeLogicalLearnerParam(id = "data.return", default = FALSE, tunable = FALSE),
+      makeLogicalLearnerParam(id = "model.return", default = FALSE,
+        requires = quote(kernel == TRUE), tunable = FALSE),
+      makeIntegerLearnerParam(id = "random.seed", tunable = FALSE),
+      makeNumericLearnerParam(id = "tau", lower = 0, upper = 1)
     ),
     par.vals = list(),
     properties = c("numerics", "factors", "se", "weights"),

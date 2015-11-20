@@ -23,10 +23,10 @@ test_that("predict", {
   pred3 = predict(ext3,newdata = data[multiclass.test.inds,])$class
   prob3 = predict(ext3,newdata = data[multiclass.test.inds,])$post
   expect_equal(cp3$data$response, pred3)
-  expect_equal(prob3, as.matrix(getProbabilities(cp3, colnames(prob3))))
-  expect_true(is.numeric(getProbabilities(cp3, "setosa")))
-  expect_equal(colnames(getProbabilities(cp3, c("setosa", "versicolor"))), c("setosa", "versicolor"))
-  expect_equal(colnames(getProbabilities(cp3, c("versicolor", "setosa"))), c("versicolor", "setosa"))
+  expect_equal(prob3, as.matrix(getPredictionProbabilities(cp3, colnames(prob3))))
+  expect_true(is.numeric(getPredictionProbabilities(cp3, "setosa")))
+  expect_equal(colnames(getPredictionProbabilities(cp3, c("setosa", "versicolor"))), c("setosa", "versicolor"))
+  expect_equal(colnames(getPredictionProbabilities(cp3, c("versicolor", "setosa"))), c("versicolor", "setosa"))
 
   cp4 = predict(cm3, task = multiclass.task, subset = multiclass.test.inds)
   expect_equal(cp4$data$response, pred3)
@@ -44,11 +44,11 @@ test_that("predict", {
   cp5d = setThreshold(cp5b, 1)
   cp5e = predict(cm5, task = binaryclass.task, subset = 1)
   expect_equal(cp5a$data$response, cp5b$data$response)
-  f1 = factor(rep(binaryclass.task$task.desc$positive, length(binaryclass.test.inds)),
-    levels = binaryclass.task$task.desc$class.levels)
+  f1 = factor(rep(getTaskDescription(binaryclass.task)$positive, length(binaryclass.test.inds)),
+    levels = getTaskClassLevels(binaryclass.task))
   expect_equal(cp5c$data$response, f1)
-  f2 = factor(rep(binaryclass.task$task.desc$negative, length(binaryclass.test.inds)),
-    levels = binaryclass.task$task.desc$class.levels)
+  f2 = factor(rep(getTaskDescription(binaryclass.task)$negative, length(binaryclass.test.inds)),
+    levels = getTaskDescription(binaryclass.task)$class.levels)
   expect_equal(cp5d$data$response, f2)
   expect_true(setequal(levels(cp5e$data$response), c("M", "R")))
 })
@@ -72,13 +72,16 @@ test_that("predict works with strange class labels", {
 })
 
 test_that("predict correctly propagates exception in predictLearner", {
-  capture.output(expect_error(holdout("classif.mock1", multiclass.task), "foo"))
+  capture.output(expect_error(holdout("classif.__mlrmocklearners__1", multiclass.task), "foo"))
 })
 
 test_that("predict works with newdata / subset", {
   mod = train(makeLearner("classif.lda"), multiclass.task)
-  p = predict(mod, newdata = multiclass.df, subset = 1:10)
-  expect_equal(nrow(p$data), 10)
+  p1 = predict(mod, newdata = multiclass.df, subset = 1:10)
+  expect_equal(nrow(p1$data), 10)
+
+  p2 = predict(mod, newdata = multiclass.df, subset = c(rep(TRUE, 10)))
+  expect_equal(getPredictionResponse(p1), getPredictionResponse(p2))
 })
 
 test_that("predict preserves rownames", {
@@ -106,12 +109,13 @@ test_that("setThreshold does not produce NAs for extreme thresholds", {
 })
 
 test_that("predict.threshold", {
+  td = getTaskDescription(binaryclass.task)
   lrn = makeLearner("classif.lda", predict.type = "prob", predict.threshold = 0)
   r = holdout(lrn, binaryclass.task)
-  expect_true(all(r$pred$data$response == binaryclass.task$task.desc$positive))
+  expect_true(all(r$pred$data$response == td$positive))
   lrn = makeLearner("classif.lda", predict.type = "prob", predict.threshold = 1)
   r = holdout(lrn, binaryclass.task)
-  expect_true(all(r$pred$data$response == binaryclass.task$task.desc$negative))
+  expect_true(all(r$pred$data$response == td$negative))
   lrn = makeLearner("classif.lda", predict.type = "prob",
     predict.threshold = c(setosa = 1000000000, virginica = 0, versicolor = 100000))
   r = holdout(lrn, multiclass.task)
@@ -123,6 +127,6 @@ test_that("predict.threshold", {
   lrn2 = setPredictType(lrn2, "prob")
   lrn2 = setPredictThreshold(lrn2, 0)
   r = holdout(lrn2, binaryclass.task)
-  expect_true(all(r$pred$data$response == binaryclass.task$task.desc$positive))
+  expect_true(all(r$pred$data$response == td$positive))
 })
 

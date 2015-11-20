@@ -1,3 +1,111 @@
+mlr_2.5:
+- fixed a bug that caused performance() to return incorrect values with
+  ResamplePredictions
+- we have (somewhat experimental) support for multilabel classification.
+  so we now have a task, a new baselearner (rFerns),
+  and a generic reduction-to-binary algorithm (MultilabelWrapper)
+- tuning: added 'budget' parameter in makeTuneControl* (single-objective)
+  and makeTuneMultiCritControl* (multi-objective scenarios), allowing to define
+  a maximum "number of evaluations" budget for tuning algorithms
+- tuning: added 'budget' parameter in makeTuneMultiCritControl*, allowing to
+  define a maximum "number of evaluations" budget for tuning algorithms
+  in the single-objective case
+- makeTuneControlGenSA: optimized function will be considered non-smooth
+  per default (change via ... args)
+- classif.svm, regr.svm: added 'scale' param
+- ksvm: added 'cache' param
+- plotFilterValuesGGVIS: sort and n_show are interactive, interactive flag removed
+- renamed getProbabilities to getPredictionProbabilities and deprecated getProbabilities
+- plots now use long names for measures where possible
+- there was a nasty bug in measure "mcc". fixed and unit tested. and apologies.
+- removed getTaskFormulaAsString and improved getTaskFormula so the former is
+  not needed anymore
+- aggregations now have a 'name' property, which is a long name
+- generateLearningCurveData and generateThreshVsPerfData now append the aggregation id
+  to the output column name if the measure ids are the same
+- plotLearningCurve, plotLearningCurveGGVIS, plotThreshVsPerf, plotThreshVsPerfGGVIS now have an argument
+  'pretty.names' which plots the 'name' element of the measures instead of the 'id'.
+- makeCustomResampledMeasure now has arguments 'measure.id' and 'aggregation.id'
+  instead of only 'id' which corresponded to the measure. Also, 'name' and note (corresponding to the measure)
+  as well as 'aggregation.name' have been added.
+- makeCostMeasure now has arguments 'name' and 'id'.
+- classification learner now can have a property 'class.weights', supported by 'class.weights.param'. The latter
+  indicates which of the parameters provides that class weights information to the learner.
+- class weights integrated in the learner will be used as default for 'wcw.param' in 'makeWeightedClassesWrapper'
+- listLearners with create = FALSE does not load packages anymore and is
+  therefore faster and more reliable; it also supports the additional parameter
+  check.packages now that will check whether required packages are installed
+  without loading them
+- many new functions for statistical benchmark comparisons are added, see below
+- rename hasProperties, getProperties to hasLearnerProperties and getLearnerProperties
+- Learner properties are now implemented object oriented as a state of a Learner.
+  Only RLearners have the properties stored in a slot.
+  For each class the getter can be overwritten.
+- The hill climbing algorithm for stacking (Caruana 04) is implemented as method 'hill.climb' in 'makeStackedLearner' to select models from base learners, which is equivalent to weighted average.
+- The model compression algorithm for stacking (Caruana 06) is implemented as method 'compress' in 'makeStackedLearner' to first select models from base learners and then mimic the behaviour with a super learner. The default super learner is neural network.
+- relativeOverfitting provides a way to estimate how much a model overfits to
+  the training data according to a measure.
+- restructured the LiblineaR learners to a more convenient format. These old ones were removed:
+  classif.LiblineaRBinary, classif.LiblineaRLogReg,  classif.LiblineaRMultiClass.
+  For the new ones, see below.
+- Added some commonly used ResampleDesc description objects, to save typing in resample experiments:
+  hout, cv2, cv3, cv5, cv10.
+- regr.randomForest: changed default nodesize to 5 (according to randomForest defaults)
+
+- new functions
+-- getDefaultMeasure
+-- getTaskClassLevels
+-- getPredictionTruth, getPredictionResponse, getPredictionSE
+-- convertMLBenchObjToTask
+-- getBMRLearners, getBMRMeasures, getBMRMeasureIds
+-- makeMultilabelTask, makeMultilabelWrapper, getMultilabelBinaryPerformances
+-- generatePartialPredictionData, plotPartialPrediction, and plotPartialPredictionGGVIS
+-- getClassWeightParam
+-- plotBenchmarkResult, convertBMRToRankMatrix, generateRankMatrixAsBarData, plotRankMatrixAsBar,
+   generateBenchmarkSummaryData, plotBenchmarkSummary,
+   friedmanTestBMR, friedmanPostHocTestBMR, generateCritDifferencesData, plotCritDifferences
+-- getCaretParamSet
+-- generateCalibrationData and plotCalibration
+-- relativeOverfitting
+-- plotROCCurves
+
+- new measures
+-- hamloss
+
+- new learners
+-- multilabel.rFerns
+-- classif.avNNet
+-- classif.neuralnet
+-- regr.avNNet
+-- classif.clusterSVM
+-- classif.dcSVM
+-- classif.gaterSVM
+-- classif.mlp
+-- classif.saeDNN
+-- classif.dbnDNN
+-- classif.nnTrain
+-- classif.rknn
+-- regr.rknn
+-- classif.xgboost
+-- regr.xgboost
+-- classif.rotationForest
+-- classif.LiblineaRL1L2SVC
+-- classif.LiblineaRL1LogReg
+-- classif.LiblineaRL2L1SVC
+-- classif.LiblineaRL2LogReg
+-- classif.LiblineaRL1LMultiClassSVC
+-- regr.LiblineaRL2L1SVR
+-- regr.LiblineaRL2L2SVR
+-- classif.ranger
+-- regr.ranger
+-- surv.ranger
+
+- new filters
+-- permutation.importance
+
+- removed functions
+-- setProperties, addProperties, removeProperties
+
 mlr_2.4:
 - WrappedModel printer was slightly improved
 - ReampleResult now stores the runtime it took to resample in a slot
@@ -32,11 +140,12 @@ mlr_2.4:
 -- getNestedTuneResultsX, getNestedTuneResultsOptPathDf
 -- tuneDesign
 -- generateROCRCurvesData, generateFilterValuesData, generateLearningCurveData, plotLearningCurve,
-   generateThreshVsPerfData, plotThreshVsPerf
+   generateThreshVsPerfData, plotThreshVsPerf,
 -- generateThreshVsPerfData accepts Prediction, ResampleResult, lists of ResampleResult,
    and BenchmarkResult objects.
 -- experimental ggvis functions: plotROCRCurvesGGVIS, plotLearningCurveGGVIS,
    plotTuneMultiCritResultGGVIS, plotThreshVsPerfGGVIS, and plotFilterValuesGGVIS
+
 
 - new learners:
 -- classif.bst

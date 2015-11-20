@@ -7,7 +7,7 @@
 #' The measure itself knows whether it wants to be minimized or maximized and for what tasks it is applicable.
 #'
 #' All supported measures can be found by \code{\link{listMeasures}} or as a table
-#' in the tutorial appendix: \url{http://berndbischl.github.io/mlr/tutorial/html/measures/}.
+#' in the tutorial appendix: \url{http://mlr-org.github.io/mlr-tutorial/release/html/measures/}.
 #'
 #' If you want a measure for a misclassification cost matrix, look at \code{\link{makeCostMeasure}}.
 #' If you want to implement your own measure, look at \code{\link{makeMeasure}}.
@@ -39,7 +39,7 @@ NULL
 #' @rdname measures
 #' @format none
 featperc = makeMeasure(id = "featperc", minimize = TRUE, best = 0, worst = 1,
-  properties = c("classif", "classif.multi", "regr", "surv", "costsens", "cluster", "req.model", "req.pred"),
+  properties = c("classif", "classif.multi", "multilabel", "regr", "surv", "costsens", "cluster", "req.model", "req.pred"),
   name = "Percentage of original features used for model",
   note =  "Useful for feature selection.",
   fun = function(task, model, pred, feats, extra.args) {
@@ -51,7 +51,7 @@ featperc = makeMeasure(id = "featperc", minimize = TRUE, best = 0, worst = 1,
 #' @rdname measures
 #' @format none
 timetrain = makeMeasure(id = "timetrain", minimize = TRUE, best = 0, worst = Inf,
-  properties = c("classif", "classif.multi", "regr", "surv", "costsens", "cluster", "req.model"),
+  properties = c("classif", "classif.multi", "multilabel", "regr", "surv", "costsens", "cluster", "req.model"),
   name = "Time of fitting the model",
   fun = function(task, model, pred, feats, extra.args) {
     model$time
@@ -62,7 +62,7 @@ timetrain = makeMeasure(id = "timetrain", minimize = TRUE, best = 0, worst = Inf
 #' @rdname measures
 #' @format none
 timepredict = makeMeasure(id = "timepredict", minimize = TRUE, best = 0, worst = Inf,
-  properties = c("classif", "classif.multi", "regr", "surv", "costsens", "cluster", "req.pred"),
+  properties = c("classif", "classif.multi", "multilabel", "regr", "surv", "costsens", "cluster", "req.pred"),
   name = "Time of predicting test set",
   fun = function(task, model, pred, feats, extra.args) {
     pred$time
@@ -73,7 +73,7 @@ timepredict = makeMeasure(id = "timepredict", minimize = TRUE, best = 0, worst =
 #' @rdname measures
 #' @format none
 timeboth = makeMeasure(id = "timeboth", minimize = TRUE, best = 0, worst = Inf,
-  properties = c("classif", "classif.multi", "regr", "surv", "costsens", "cluster", "req.model", "req.pred"),
+  properties = c("classif", "classif.multi", "multilabel", "regr", "surv", "costsens", "cluster", "req.model", "req.pred"),
   name = "timetrain + timepredict",
   fun = function(task, model, pred, feats, extra.args) {
     model$time + pred$time
@@ -127,10 +127,11 @@ measureMSE = function(truth, response) {
 rmse = makeMeasure(id = "rmse", minimize = TRUE, best = 0, worst = Inf,
   properties = c("regr", "req.pred", "req.truth"),
   name = "Root mean square error",
+  note = "The RMSE is aggregated as sqrt(mean(rmse.vals.on.test.sets^2)). If you don't want that, you could also use test.mean",
   fun = function(task, model, pred, feats, extra.args) {
     measureRMSE(pred$data$truth, pred$data$response)
   },
-  aggr = test.sqrt.of.mean
+  aggr = test.rmse
 )
 
 #' @export measureRMSE
@@ -277,7 +278,7 @@ multiclass.auc = makeMeasure(id = "multiclass.auc", minimize = FALSE, best = 1, 
   fun = function(task, model, pred, feats, extra.args) {
     requirePackages("pROC", why = "multiclass.auc", default.method = "load")
     resp = pred$data$response
-    predP = getProbabilities(pred)
+    predP = getPredictionProbabilities(pred)
     # choose the probablity of the choosen response
     predV = vnapply(seq_row(predP), function(i) {
       predP[i, resp[i]]
@@ -300,7 +301,7 @@ auc = makeMeasure(id = "auc", minimize = FALSE, best = 1, worst = 0,
     # ROCR does not work with NAs
     if (anyMissing(pred$data$response) || length(unique(pred$data$truth)) == 1L)
       return(NA_real_)
-    measureAUC(getProbabilities(pred), pred$data$truth, pred$task.desc$negative, pred$task.desc$positive)
+    measureAUC(getPredictionProbabilities(pred), pred$data$truth, pred$task.desc$negative, pred$task.desc$positive)
   }
 )
 
@@ -319,7 +320,7 @@ brier = makeMeasure(id = "brier", minimize = TRUE, best = 0, worst = 1,
   properties = c("classif", "req.pred", "req.truth", "req.prob"),
   name = "Brier score",
   fun = function(task, model, pred, feats, extra.args) {
-    measureBrier(getProbabilities(pred), pred$data$truth, pred$task.desc$negative, pred$task.desc$positive)
+    measureBrier(getPredictionProbabilities(pred), pred$data$truth, pred$task.desc$negative, pred$task.desc$positive)
   }
 )
 
@@ -471,7 +472,7 @@ measureTNR = function(truth, response, negative) {
 #' @rdname measures
 #' @format none
 fpr = makeMeasure(id = "fpr", minimize = TRUE, best = 0, worst = 1,
-  properties = c("classif", "req.pred", "req.truth"),
+  properties = c("classif" , "req.pred", "req.truth"),
   name = "False positive rate",
   note = "Also called false alarm rate or fall-out.",
   fun = function(task, model, pred, feats, extra.args) {
@@ -578,7 +579,8 @@ measureMCC = function(truth, response, negative, positive) {
   tp = measureTP(truth, response, positive)
   fn = measureFN(truth, response, negative)
   fp = measureFP(truth, response, positive)
-  (tp * tn - fp * fn) / sqrt(prod(table(truth, response)))
+  (tp * tn - fp * fn) /
+    sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn))
 }
 
 #' @export f1
@@ -635,6 +637,27 @@ measureGPR = function(truth, response, positive) {
 }
 
 ###############################################################################
+### multilabel ###
+###############################################################################
+#' @export hamloss
+#' @rdname measures
+#' @format none
+hamloss = makeMeasure(id = "hamloss", minimize = TRUE, best = 0, worst = 1,
+  properties = c("multilabel", "req.pred", "req.truth"),
+  name = "Hamming loss",
+  fun = function(task, model, pred, feats, extra.args) {
+    measureHAMLOSS(getPredictionTruth.PredictionMultilabel(pred),
+      getPredictionResponse.PredictionMultilabel(pred))
+})
+
+#' @export measureHAMLOSS
+#' @rdname measures
+#' @format none
+measureHAMLOSS = function(truth, response) {
+  mean(truth != response)
+}
+
+###############################################################################
 ### survival ###
 ###############################################################################
 #' @export cindex
@@ -665,7 +688,7 @@ meancosts = makeMeasure(id = "meancosts", minimize = TRUE, best = 0, worst = Inf
   fun = function(task, model, pred, feats, extra.args) {
     classes = as.character(pred$data$response)
     ids = pred$data$id
-    costs = task$env$costs
+    costs = getTaskCosts(task)
     y = mapply(function(id, cl) {
       costs[id, cl]
     }, ids, classes, SIMPLIFY = TRUE, USE.NAMES = FALSE)
@@ -681,7 +704,7 @@ mcp = makeMeasure(id = "mcp", minimize = TRUE, best = 0, worst = Inf,
   note = "Average difference between costs of oracle and model prediction.",
   fun = function(task, model, pred, feats, extra.args) {
     mc = meancosts$fun(task, NULL, pred, NULL, extra.args)
-    oc = mean(apply(task$env$costs, 1L, min))
+    oc = mean(apply(getTaskCosts(task), 1L, min))
     mc - oc
   }
 )
@@ -697,9 +720,13 @@ db = makeMeasure(id = "db", minimize = TRUE, best = 0, worst = Inf,
   name = "Davies-Bouldin cluster separation measure",
   note ="See `?clusterSim::index.DB`.",
   fun = function(task, model, pred, feats, extra.args) {
-    requirePackages("clusterSim", default.method = "load")
-    r = as.integer(as.factor(pred$data$response))
-    clusterSim::index.DB(feats, r)$DB
+    if(length(unique(pred$data$response)) > 1L) {
+      requirePackages("clusterSim", default.method = "load")
+      r = as.integer(as.factor(pred$data$response))
+      clusterSim::index.DB(feats, r)$DB
+    } else {
+      NA
+    }
   }
 )
 

@@ -17,23 +17,23 @@
 #' and tuning! See example below.
 #'
 #' b) The learner does not have a direct parameter to support class weighting, but
-#' supports observation weights, so \code{hasProperties(learner, 'weights')} is \code{TRUE}.
+#' supports observation weights, so \code{hasLearnerProperties(learner, 'weights')} is \code{TRUE}.
 #' This means that an individual, arbitrary weight can be set per observation during training.
 #' We set this weight depending on the class internally in the wrapper. Basically we introduce
 #' something like a new \dQuote{class.weights} parameter for the learner via observation weights.
 #'
 #' @template arg_learner_classif
 #' @param wcw.param [\code{character(1)}]\cr
-#'   Name of already existing learner param which allows class weighting.
-#'   Or \code{NULL} if such a param does not exist.
-#'   Must during training accept a named vector of class weights,
-#'   where length equals the number of classes.
-#'   Default is \code{NULL}.
+#'   Name of already existing learner parameter, which allows class weighting.
+#'   The default (\code{wcw.param = NULL}) will use the parameter defined in
+#'   the learner (\code{class.weights.param}). During training, the parameter
+#'   must accept a named vector of class weights, where length equals the
+#'   number of classes.
 #' @param wcw.weight [\code{numeric}]\cr
 #'   Weight for each class.
 #'   Must be a vector of the same number of elements as classes are in task,
 #'   and must also be in the same order as the class levels are in
-#'   \code{task$task.desc$class.levels}.
+#'   \code{getTaskDescription(task)$class.levels}.
 #'   For convenience, one must pass a single number in case of binary classification, which
 #'   is then taken as the weight of the positive class, while the negative class receives a weight
 #'   of 1.
@@ -42,8 +42,8 @@
 #' @family wrapper
 #' @export
 #' @examples
-#' # using the direct parameter of the SVM
-#' lrn = makeWeightedClassesWrapper("classif.ksvm", wcw.param = "class.weights", wcw.weight = 0.01)
+#' # using the direct parameter of the SVM (which is already defined in the learner)
+#' lrn = makeWeightedClassesWrapper("classif.ksvm", wcw.weight = 0.01)
 #' res = holdout(lrn, sonar.task)
 #' print(getConfMatrix(res$pred))
 #'
@@ -67,12 +67,20 @@
 makeWeightedClassesWrapper = function(learner, wcw.param = NULL, wcw.weight = 1) {
   learner = checkLearnerClassif(learner)
   pv = list()
+
+  if (is.null(wcw.param))
+    wcw.param = learner$class.weights.param
+  else if (!is.null(learner$class.weights.param) && (learner$class.weights.param != wcw.param))
+    stopf("wcw.param (%s) differs from the class.weights.parameter (%s) of the learner!",
+      wcw.param, learner$class.weights.param)
+
   if (is.null(wcw.param)) {
-    if (!hasProperties(learner, "weights"))
+    if (!hasLearnerProperties(learner, "weights"))
       stopf("Learner '%s' does not support observation weights. You have to set 'wcw.param' to the learner param which allows to set class weights! (which hopefully exists...)", learner$id)
   } else {
     assertSubset(wcw.param, getParamIds(learner$par.set))
   }
+
   if (!missing(wcw.weight)) {
     assertNumeric(wcw.weight, lower = 0, any.missing = FALSE)
     pv$wcw.weight = wcw.weight
@@ -84,13 +92,13 @@ makeWeightedClassesWrapper = function(learner, wcw.param = NULL, wcw.weight = 1)
   x = makeBaseWrapper(id, learner$type, learner, package = learner$package, par.set = ps, par.vals = pv,
     learner.subclass = "WeightedClassesWrapper", model.subclass = "WeightedClassesModel")
   x$wcw.param = wcw.param
-  removeProperties(x, "weights")
+  x
 }
 
 #' @export
 trainLearner.WeightedClassesWrapper = function(.learner, .task, .subset, .weights, wcw.weight = 1, ...) {
   .task = subsetTask(.task, .subset)
-  td = .task$task.desc
+  td = getTaskDescription(.task)
   levs = td$class.levels
   p = .learner$wcw.param
   if (length(levs) == 2L) {
@@ -110,4 +118,9 @@ trainLearner.WeightedClassesWrapper = function(.learner, .task, .subset, .weight
     m = train(.learner$next.learner, task = .task)
   }
   makeChainModel(next.model = m, cl = "WeightedClassesModel")
+}
+
+#' @export
+getLearnerProperties.WeightedClassesWrapper = function(learner) {
+  setdiff(getLearnerProperties(learner$next.learner), "weights")
 }

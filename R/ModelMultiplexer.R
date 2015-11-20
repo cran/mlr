@@ -21,6 +21,7 @@
 #' @note Note that logging output during tuning is somewhat shortened to make it more readable.
 #'   I.e., the artificial prefix before parameter names is suppressed.
 #' @examples
+#' \donttest{
 #' bls = list(
 #'   makeLearner("classif.ksvm"),
 #'   makeLearner("classif.randomForest")
@@ -62,10 +63,10 @@
 #' )
 #'
 #' # all three ps-objects are exactly the same internally.
+#' }
 makeModelMultiplexer = function(base.learners) {
   lrn = makeBaseEnsemble(
     id = "ModelMultiplexer",
-    short.name = "mm",
     base.learners = base.learners,
     bls.type = NULL,
     ens.type = NULL,
@@ -97,14 +98,15 @@ predictLearner.ModelMultiplexer = function(.learner, .model, .newdata, ...) {
 
 #' @export
 makeWrappedModel.ModelMultiplexer = function(learner, learner.model, task.desc, subset, features, factor.levels, time) {
-  x = NextMethod()
-  class(x) = c("ModelMultiplexerModel", class(x))
-  return(x)
+  addClasses(NextMethod(), "ModelMultiplexerModel")
 }
 
 #' @export
-getLearnerModel.ModelMultiplexerModel = function(model) {
-  model$learner.model$next.model$learner.model
+getLearnerModel.ModelMultiplexerModel = function(model, more.unwrap = FALSE) {
+  if (more.unwrap)
+    model$learner.model$next.model$learner.model
+  else
+    model$learner.model$next.model
 }
 
 #' @export

@@ -15,7 +15,9 @@ makeRLearner.classif.J48 = function() {
       makeLogicalLearnerParam(id = "S"),
       makeLogicalLearnerParam(id = "L"),
       makeLogicalLearnerParam(id = "A"),
-      makeLogicalLearnerParam(id = "J")
+      makeLogicalLearnerParam(id = "J"),
+      makeIntegerLearnerParam(id = "Q", tunable = FALSE),
+      makeLogicalLearnerParam(id = "output-debug-info", default = FALSE, tunable = FALSE)
     ),
     properties = c("twoclass", "multiclass", "missings", "numerics", "factors", "prob"),
     name = "J48 Decision Trees",
@@ -27,8 +29,8 @@ makeRLearner.classif.J48 = function() {
 #' @export
 trainLearner.classif.J48 = function(.learner, .task, .subset, .weights = NULL,  ...) {
   ctrl = RWeka::Weka_control(..., Q = as.integer(runif(1, min = -.Machine$integer.max, max = .Machine$integer.max)))
-  f = getTaskFormulaAsString(.task)
-  RWeka::J48(as.formula(f), data = getTaskData(.task, .subset), control = ctrl, na.action = na.pass)
+  f = getTaskFormula(.task)
+  RWeka::J48(f, data = getTaskData(.task, .subset), control = ctrl, na.action = na.pass)
 }
 
 #' @export

@@ -97,7 +97,7 @@ testProb = function(t.name, df, target, train.inds, old.probs, parset = list()) 
     else
       old.probs = as.matrix(old.probs)
 
-    p = getProbabilities(cp)
+    p = getPredictionProbabilities(cp)
     if (is.data.frame(p))
       p = as.matrix(p)
     # we change names a bit so dont check them
@@ -199,4 +199,14 @@ skip_on_travis <- function() {
   if (!identical(Sys.getenv("TRAVIS"), "true")) return()
 
   skip("On Travis")
+}
+
+mylist = function(..., create = FALSE) {
+  lrns = listLearners(..., create = create)
+  if (create) {
+    ids = extractSubList(lrns, "id")
+  } else {
+    ids = lrns
+  }
+  lrns[!grepl("mock", ids)]
 }

@@ -17,7 +17,7 @@ makeRLearner.classif.bartMachine = function() {
       makeNumericLearnerParam(id = "q", default = 0.9, lower = 0, upper = 1),
       makeNumericLearnerParam(id = "prob_rule_class", default = 0.5, lower = 0, upper = 1),
       makeNumericVectorLearnerParam(id = "mh_prob_steps", default = c(2.5, 2.5, 4)/9, len = 3L),
-      makeLogicalLearnerParam(id = "debug_log", default = FALSE),
+      makeLogicalLearnerParam(id = "debug_log", default = FALSE, tunable = FALSE),
       makeLogicalLearnerParam(id = "run_in_sample", default = TRUE),
       makeNumericVectorLearnerParam(id = "cov_prior_vec"),
       makeLogicalLearnerParam(id = "use_missing_data", default = TRUE),
@@ -27,7 +27,9 @@ makeRLearner.classif.bartMachine = function() {
       makeLogicalLearnerParam(id = "impute_missingness_with_rf_impute", default = FALSE),
       makeLogicalLearnerParam(id = "impute_missingness_with_x_j_bar_for_lm", default = TRUE),
       makeLogicalLearnerParam(id = "mem_cache_for_speed", default = TRUE),
-      makeLogicalLearnerParam(id = "verbose", default = TRUE)
+      makeLogicalLearnerParam(id = "serialize", default = FALSE),
+      makeIntegerLearnerParam(id = "seed", tunable = FALSE),
+      makeLogicalLearnerParam(id = "verbose", default = TRUE, tunable = FALSE)
     ),
     par.vals = list("use_missing_data" = TRUE),
     properties = c("numerics", "prob", "twoclass", "factors", "missings"),
@@ -42,7 +44,8 @@ trainLearner.classif.bartMachine = function(.learner, .task, .subset, .weights =
   d = getTaskData(.task, .subset, target.extra = TRUE)
   y = d$target
   if (.learner$predict.type == "prob") {
-    levs = c(.task$task.desc$negative, .task$task.desc$positive)
+    td = getTaskDescription(.task)
+    levs = c(td$negative, td$positive)
     y = factor(y, levels = levs)
   }
   bartMachine::bartMachine(X = d$data, y = y, ...)
@@ -50,7 +53,8 @@ trainLearner.classif.bartMachine = function(.learner, .task, .subset, .weights =
 
 #' @export
 predictLearner.classif.bartMachine = function(.learner, .model, .newdata, ...) {
-  levs = c(.model$task.desc$negative, .model$task.desc$positive)
+  td = .model$task.desc
+  levs = c(td$negative, td$positive)
   if(.learner$predict.type == "prob"){
     p = predict(.model$learner.model, new_data = .newdata, type = "prob", ...)
     y = propVectorToMatrix(p, levs)

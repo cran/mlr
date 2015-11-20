@@ -44,13 +44,21 @@ makeResampleInstance = function(desc, task, size, ...) {
   assert(checkClass(desc, "ResampleDesc"), checkString(desc))
   if (is.character(desc))
     desc = makeResampleDesc(desc, ...)
+  if (!xor(missing(task), missing(size))) {
+    stop("One of 'size' or 'task' must be supplied")
+  } else {
+    if (inherits(desc, "DPSDesc") && missing(task))
+      stop("'size' not supported for DPSDesc objects, please use 'task'")
+  }
   if (!missing(task)) {
     assertClass(task, classes = "Task")
-    size = task$task.desc$size
+    size = getTaskSize(task)
     blocking = task$blocking
   } else {
     task = NULL
     blocking = factor()
+    #if (inherits(desc, "DPSDesc"))
+    #  stop("task must be supplied")
   }
   if (!missing(size))
     size = asCount(size)
@@ -64,7 +72,7 @@ makeResampleInstance = function(desc, task, size, ...) {
     levs = levels(blocking)
     size2 = length(levs)
     # create instance for blocks
-    inst = instantiateResampleInstance(desc, size2)
+    inst = instantiateResampleInstance(desc, size2, task)
     # now exchange block indices with indices of elements of this block and shuffle
     inst$train.inds = lapply(inst$train.inds, function(i) sample(which(blocking %in% levs[i])))
     ti = sample(size)
@@ -74,10 +82,11 @@ makeResampleInstance = function(desc, task, size, ...) {
     if (is.null(task))
       stop("Stratification always needs the task!")
     if (desc$stratify) {
-      stratify.cols = switch(task$task.desc$type,
+      td = getTaskDescription(task)
+      stratify.cols = switch(td$type,
         "classif" = getTaskTargetNames(task),
         "surv" = getTaskTargetNames(task)[2L],
-        stopf("Stratification for tasks of type '%s' not supported", task$task.desc$type))
+        stopf("Stratification for tasks of type '%s' not supported", td$type))
     } else {
       stratify.cols = desc$stratify.cols
     }
@@ -98,18 +107,18 @@ makeResampleInstance = function(desc, task, size, ...) {
     for (i in seq_along(grp)) {
       ci = grp[[i]]
       if (length(ci)) {
-        inst = instantiateResampleInstance(desc, length(ci))
+        inst = instantiateResampleInstance(desc, length(ci), task)
         train.inds[[i]] = lapply(inst$train.inds, function(j) ci[j])
         test.inds[[i]] = lapply(inst$test.inds, function(j) ci[j])
       } else {
         train.inds[[i]] = test.inds[[i]] = replicate(desc$iters, integer(0L), simplify = FALSE)
       }
     }
-    inst = instantiateResampleInstance(desc, size)
+    inst = instantiateResampleInstance(desc, size, task)
     inst$train.inds = Reduce(function(i1, i2) Map(c, i1, i2), train.inds)
     inst$test.inds = Reduce(function(i1, i2) Map(c, i1, i2), test.inds)
   } else {
-    inst = instantiateResampleInstance(desc, size)
+    inst = instantiateResampleInstance(desc, size, task)
   }
   return(inst)
 }

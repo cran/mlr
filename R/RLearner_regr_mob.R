@@ -9,7 +9,7 @@ makeRLearner.regr.mob = function() {
       makeIntegerLearnerParam(id = "minsplit", default = 20L, lower = 1L),
       makeNumericLearnerParam(id = "trim", default = 0.1, lower = 0, upper = 1),
       makeLogicalLearnerParam(id = "breakties", default = FALSE),
-      makeLogicalLearnerParam(id = "verbose", default = FALSE),
+      makeLogicalLearnerParam(id = "verbose", default = FALSE, tunable = FALSE),
       makeDiscreteLearnerParam(id = "model", default = modeltools::glinearModel,
         values = list(glinearModel = modeltools::glinearModel, linearModel = modeltools::linearModel)),
       makeUntypedLearnerParam(id = "part.feats"),
@@ -37,7 +37,7 @@ trainLearner.regr.mob = function(.learner, .task, .subset, .weights = NULL, alph
   if (missing(term.feats))
     term.feats = feats
 
-  target = .task$task.desc$target
+  target = getTaskTargetNames(.task)
   f = as.formula(paste(target, "~", collapse(term.feats, sep = " + "), "|", collapse(part.feats, sep = " + ")))
 
   if (is.null(.weights)) {

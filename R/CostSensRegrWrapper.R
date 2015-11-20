@@ -2,7 +2,7 @@
 #'
 #' @description
 #' Creates a wrapper, which can be used like any other learner object.
-#' Models can easily be accessed via \code{\link{getHomogeneousEnsembleModels}}.
+#' Models can easily be accessed via \code{\link{getLearnerModel}}.
 #'
 #' For each class in the task, an individual regression model is fitted for the costs of that class.
 #' During prediction, the class with the lowest predicted costs is selected.
@@ -18,23 +18,22 @@ makeCostSensRegrWrapper = function(learner) {
   # we cannot make use of 'se' here
   learner = setPredictType(learner, "response")
   id = paste("costsens", learner$id, sep = ".")
-  x = makeHomogeneousEnsemble(id, type = "costsens", learner, package = learner$package,
+  makeHomogeneousEnsemble(id, type = "costsens", learner, package = learner$package,
     learner.subclass = "CostSensRegrWrapper", model.subclass = "CostSensRegrModel")
-  removeProperties(x, c("weights", "prob"))
 }
 
 #' @export
 trainLearner.CostSensRegrWrapper = function(.learner, .task, .subset, ...) {
   # note that no hyperpars can be in ..., they would refer to the wrapper
   .task = subsetTask(.task, subset = .subset)
-  costs = .task$env$costs
-  classes = .task$task.desc$class.levels
-  feats = .task$env$data
+  costs = getTaskCosts(.task)
+  td = getTaskDescription(.task)
+  classes = td$class.levels
   models = vector("list", length = length(classes))
   for (i in seq_along(classes)) {
     cl = classes[i]
     y = costs[, cl]
-    data = cbind(feats, ..y.. = y)
+    data = cbind(getTaskData(.task), ..y.. = y)
     task = makeRegrTask(id = cl, data = data, target = "..y..",
       check.data = FALSE, fixup.data = "quiet")
     models[[i]] = train(.learner$next.learner, task)
@@ -52,3 +51,7 @@ predictLearner.CostSensRegrWrapper = function(.learner, .model, .newdata, ...) {
 }
 
 
+#' @export
+getLearnerProperties = function(learner) {
+  setdiff(getLearnerProperties(learner$next.learner), c("weights", "prob"))
+}

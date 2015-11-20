@@ -1,12 +1,15 @@
-#' @title Create a classification, regression, survival, cluster, or cost-sensitive classification task.
+#' @title Create a classification, regression, survival, cluster, cost-sensitive classification or
+#' multilabel task.
 #'
 #' @description
 #' The task encapsulates the data and specifies - through its subclasses -
 #' the type of the task.
 #' It also contains a description object detailing further aspects of the data.
 #'
-#' Useful operators are: \code{\link{getTaskFormula}}, \code{\link{getTaskFormulaAsString}},
-#' \code{\link{getTaskFeatureNames}}, \code{\link{getTaskData}}, \code{\link{getTaskTargets}},
+#' Useful operators are: \code{\link{getTaskFormula}},
+#' \code{\link{getTaskFeatureNames}},
+#' \code{\link{getTaskData}},
+#' \code{\link{getTaskTargets}}, and
 #' \code{\link{subsetTask}}.
 #'
 #' Object members:
@@ -18,6 +21,11 @@
 #' \item{task.desc [\code{\link{TaskDesc}}]}{Encapsulates further information about the task.}
 #' }
 #'
+#' Notes:
+#' For multilabel classification we assume that the presence of labels is encoded via logical
+#' columns in \code{data}. The name of the column specifies the name of the label. \code{target}
+#' is then a char vector that points to these columns.
+#'
 #' @param id [\code{character(1)}]\cr
 #'   Id string for object.
 #'   Default is the name of R variable passed to \code{data}.
@@ -26,7 +34,8 @@
 #' @param target [\code{character(1)} | \code{character(2)}]\cr
 #'   Name of the target variable.
 #'   For survival analysis these are the names of the survival time and event columns,
-#'   so it has length 2.
+#'   so it has length 2, for multilabel classification it must the names of the logical
+#'   columns that encode whether a label is present or not.
 #' @param costs [\code{data.frame}]\cr
 #'   A numeric matrix or data frame containing the costs of misclassification.
 #'   We assume the general case of observation specific costs.
@@ -78,11 +87,39 @@
 #' makeClusterTask(data = iris[, -5L])
 NULL
 
-makeTask = function(type, data, weights = NULL, blocking = NULL) {
+makeTask = function(type, data, weights = NULL, blocking = NULL, fixup.data = "warn", check.data = TRUE) {
+  if (fixup.data != "no") {
+    if (fixup.data == "quiet") {
+      data = droplevels(data)
+    } else if (fixup.data == "warn") {
+      # the next lines look a bit complicated, we calculate the warning info message
+      dropped = logical(ncol(data))
+      for (i in seq_col(data)) {
+        if (is.factor(data[[i]]) && any(table(data[[i]]) == 0L)) {
+          dropped[i] = TRUE
+          data[[i]] = droplevels(data[[i]])
+        }
+      }
+      if (any(dropped))
+        warningf("Empty factor levels were dropped for columns: %s", collapse(colnames(data)[dropped]))
+    }
+  }
+
+  if (check.data) {
+    checkColumnNames(data, 'data')
+    if (!is.null(weights))
+      assertNumeric(weights, len = nrow(data), any.missing = FALSE, lower = 0)
+    if (!is.null(blocking)) {
+      assertFactor(blocking, len = nrow(data), any.missing = FALSE)
+      if (length(blocking) && length(blocking) != nrow(data))
+        stop("Blocking has to be of the same length as number of rows in data! Or pass none at all.")
+    }
+  }
+
   env = new.env(parent = emptyenv())
-  assertDataFrame(data)
   env$data = data
   makeS3Obj("Task",
+    type = type,
     env = env,
     weights = weights,
     blocking = blocking,
@@ -90,48 +127,23 @@ makeTask = function(type, data, weights = NULL, blocking = NULL) {
   )
 }
 
-#FIXME: it would probably be better to have: pre-check, fixup, post-check!
-checkTaskCreation.Task = function(task, target, ...) {
-  checkColumnNames(task$env$data, 'data')
-  if (!is.null(task$env$weights))
-    assertNumeric(weights, len = nrow(task$env$data), any.missing = FALSE, lower = 0)
-  if (!is.null(task$blocking)) {
-    assertFactor(task$blocking, len = nrow(task$env$data), any.missing = FALSE)
-    if(length(task$blocking) && length(task$blocking) != nrow(task$env$data))
-      stop("Blocking has to be of the same length as number of rows in data! Or pass none at all.")
-  }
-
-  checkColumn = function(x, cn) {
+checkTaskData = function(data, cols = names(data)) {
+  fun = function(cn, x) {
     if (is.numeric(x)) {
-      if (any(is.infinite(x)))
-        stopf("Data contains infinite values in: %s", cn)
+      if (anyInfinite(x))
+        stopf("Column '%s' contains infinite values.", cn)
       if (any(is.nan(x)))
-        stopf("Data contains NaN values in: %s", cn)
+        stopf("Column '%s' contains NaN values.", cn)
     } else if (is.factor(x)) {
       if (any(table(x) == 0L))
-        stopf("Data contains empty factor levels in: %s", cn)
+        stopf("Column '%s' contains empty factor levels.", cn)
     } else {
-      stopf("Unsupported feature type in: %s, %s", cn, class(x)[1L])
+      stopf("Unsupported feature type (%s) in column '%s'.", class(x)[1L], cn)
     }
   }
-  cols = setdiff(colnames(task$env$data), target)
-  Map(checkColumn, x = task$env$data[cols], cn = cols)
-}
 
-fixupData.Task = function(task, target, choice, ...) {
-  if (choice == "quiet") {
-    task$env$data = droplevels(task$env$data)
-  } else if (choice == "warn") {
-    # the next lines look a bit complicated, we calculate the warning info message
-    cns = colnames(task$env$data)
-    levs1 = lapply(task$env$data, function(x) if (is.factor(x)) levels(x) else NULL)
-    data = droplevels(task$env$data)
-    levs2 = lapply(data, function(x) if (is.factor(x)) levels(x) else NULL)
-    j = vlapply(cns, function(cn) !setequal(levs1[[cn]], levs2[[cn]]))
-    if (any(j))
-      warningf("Empty factor levels were dropped for columns: %s", collapse(cns[j]))
-    task$env$data = droplevels(task$env$data)
-  }
+  Map(fun, cn = cols, x = data[cols])
+  invisible(TRUE)
 }
 
 #' @export
@@ -146,17 +158,4 @@ print.Task = function(x, print.weights = TRUE, ...) {
   if (print.weights)
     catf("Has weights: %s", td$has.weights)
   catf("Has blocking: %s", td$has.blocking)
-}
-
-# either guess task id from variable name of data or check it
-checkOrGuessId = function(id, data) {
-  if (missing(id)) {
-    # go up to user frame for heuristic to get name of data
-    id = deparse(substitute(data, env = parent.frame(1L)))
-    if (!is.character(id) || length(id) != 1L)
-      stop("Cannot infer id for task automatically. Please set it manually!")
-  } else {
-    assertString(id)
-  }
-  return(id)
 }

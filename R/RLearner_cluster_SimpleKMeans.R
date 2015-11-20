@@ -19,7 +19,8 @@ makeRLearner.cluster.SimpleKMeans = function() {
       makeIntegerLearnerParam(id = "S", default = 10L, lower = 0L),
       makeNumericLearnerParam(id = "t2", default = -1),
       makeNumericLearnerParam(id = "t1", default = -1.5),
-      makeLogicalLearnerParam(id = "V")
+      makeLogicalLearnerParam(id = "V", tunable = FALSE),
+      makeLogicalLearnerParam(id = "output-debug-info", default = FALSE, tunable = FALSE)
     ),
     properties = c("numerics"),
     name = "K-Means Clustering",
@@ -36,6 +37,6 @@ trainLearner.cluster.SimpleKMeans = function(.learner, .task, .subset, .weights 
 #' @export
 predictLearner.cluster.SimpleKMeans = function(.learner, .model, .newdata, ...) {
   # SimpleKMeans returns cluster indices (i.e. starting from 0, which some tools don't like
-  predict(.model$learner.model, .newdata, ...) + 1
+  as.integer(predict(.model$learner.model, .newdata, ...)) + 1L
 }
 

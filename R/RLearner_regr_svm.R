@@ -5,17 +5,19 @@ makeRLearner.regr.svm = function() {
     package = "e1071",
     par.set = makeParamSet(
       makeDiscreteLearnerParam(id = "type", default = "eps-regression", values = c("eps-regression", "nu-regression")),
-      makeNumericLearnerParam(id = "cost",  default = 1, lower = 0, requires = expression(type=="C-regrication")),
-      makeNumericLearnerParam(id = "epsilon", lower = 0, requires = expression(type == "eps-regression")),
-      makeNumericLearnerParam(id = "nu", default = 0.5, requires = expression(type=="nu-regression")),
       makeDiscreteLearnerParam(id = "kernel", default = "radial", values = c("linear", "polynomial", "radial", "sigmoid")),
-      makeIntegerLearnerParam(id = "degree", default = 3L, lower = 1L, requires = expression(kernel=="polynomial")),
-      makeNumericLearnerParam(id = "coef0", default = 0, requires = expression(kernel=="polynomial" || kernel=="sigmoid")),
-      makeNumericLearnerParam(id = "gamma", lower = 0, requires = expression(kernel!="linear")),
+      makeIntegerLearnerParam(id = "degree", default = 3L, lower = 1L, requires = quote(kernel=="polynomial")),
+      makeNumericLearnerParam(id = "gamma", lower = 0, requires = quote(kernel!="linear")),
+      makeNumericLearnerParam(id = "coef0", default = 0, requires = quote(kernel=="polynomial" || kernel=="sigmoid")),
+      makeNumericLearnerParam(id = "cost",  default = 1, lower = 0, requires = quote(type=="C-regrication")),
+      makeNumericLearnerParam(id = "nu", default = 0.5, requires = quote(type=="nu-regression")),
+      makeNumericLearnerParam(id = "cachesize", default = 40L),
       makeNumericLearnerParam(id = "tolerance", default = 0.001, lower = 0),
+      makeNumericLearnerParam(id = "epsilon", lower = 0, requires = quote(type == "eps-regression")),
       makeLogicalLearnerParam(id = "shrinking", default = TRUE),
-      makeNumericLearnerParam(id = "cachesize", default = 40L)
-
+      makeIntegerLearnerParam(id = "cross", default = 0L, lower = 0L),
+      makeLogicalLearnerParam(id = "fitted", default = TRUE, tunable = FALSE),
+      makeLogicalVectorLearnerParam(id = "scale", default = c(TRUE), tunable = TRUE)
     ),
     properties = c("numerics", "factors"),
     name = "Support Vector Machines (libsvm)",

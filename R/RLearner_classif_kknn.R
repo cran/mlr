@@ -10,7 +10,8 @@ makeRLearner.classif.kknn = function() {
       makeIntegerLearnerParam(id = "k", default = 7L, lower = 1L),
       makeNumericLearnerParam(id = "distance", default = 2, lower = 0),
       makeDiscreteLearnerParam(id = "kernel", default = "triangular",
-        values = list("rectangular", "triangular", "epanechnikov", "biweight", "triweight", "cos", "inv", "gaussian"))
+        values = list("rectangular", "triangular", "epanechnikov", "biweight", "triweight", "cos", "inv", "gaussian")),
+      makeLogicalLearnerParam(id = "scale", default = TRUE)
     ),
     properties = c("twoclass", "multiclass", "numerics", "factors", "prob"),
     name = "k-Nearest Neighbor",
@@ -21,7 +22,7 @@ makeRLearner.classif.kknn = function() {
 
 #' @export
 trainLearner.classif.kknn = function(.learner, .task, .subset, .weights = NULL,  ...) {
-  list(td = .task$task.desc, data = getTaskData(.task, .subset), parset = list(...))
+  list(td = getTaskDescription(.task), data = getTaskData(.task, .subset), parset = list(...))
 }
 
 #' @export

@@ -10,11 +10,11 @@ makeRLearner.regr.slim = function() {
       makeNumericLearnerParam(id = "lambda.min.ratio", lower = 0, upper = 1),
       makeNumericLearnerParam(id = "rho", default = 1, lower = 0),
       makeDiscreteLearnerParam(id = "method", values = c("lq", "dantzig", "lasso"), default = "lq"),
-      makeNumericLearnerParam(id = "q", lower = 1, upper = 2, requires = expression(method == "lq")),
+      makeNumericLearnerParam(id = "q", lower = 1, upper = 2, requires = quote(method == "lq")),
       makeLogicalLearnerParam(id = "res.sd", default = FALSE),
       makeNumericLearnerParam(id = "prec", default = 1e-5, lower = .Machine$double.eps),
       makeIntegerLearnerParam(id = "max.ite", default = 1e5L),
-      makeLogicalLearnerParam(id = "verbose", default = FALSE),
+      makeLogicalLearnerParam(id = "verbose", default = FALSE, tunable = FALSE),
       makeIntegerLearnerParam(id = "lambda.idx", default = 3L, when = "predict")
     ),
     par.vals = list(lambda.idx = 3L),

@@ -15,7 +15,11 @@ makeRLearner.cluster.XMeans = function() {
       makeIntegerLearnerParam(id = "M", default = 1000L, lower = 1L),
       makeIntegerLearnerParam(id = "S", default = 10L, lower = 1L),
       makeIntegerLearnerParam(id = "U", default = 0L, lower = 0L),
-      makeLogicalLearnerParam(id = "use-kdtree")
+      makeLogicalLearnerParam(id = "use-kdtree"),
+      makeUntypedLearnerParam(id = "N"),
+      makeUntypedLearnerParam(id = "O"),
+      makeUntypedLearnerParam(id = "Y"),
+      makeLogicalLearnerParam(id = "output-debug-info", default = FALSE, tunable = FALSE)
     ),
     properties = c("numerics"),
     name = "XMeans (k-means with automatic determination of k)",
@@ -33,6 +37,6 @@ trainLearner.cluster.XMeans = function(.learner, .task, .subset, .weights = NULL
 #' @export
 predictLearner.cluster.XMeans = function(.learner, .model, .newdata, ...) {
   # XMeans returns cluster indices (i.e. starting from 0, which some tools don't like
-  predict(.model$learner.model, .newdata, ...) + 1
+  as.integer(predict(.model$learner.model, .newdata, ...)) + 1L
 }
 

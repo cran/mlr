@@ -23,7 +23,7 @@
 #'   Only for classification:
 #'   Should the downsampled data be stratified according to the target classes?
 #' @template arg_showinfo
-#' @return A [\code{data.frame}] of class \code{LearningCurveData}.
+#' @return An object of class \code{\link{LearningCurveData}}.
 #' @examples
 #' r = generateLearningCurveData(list("classif.rpart", "classif.knn"),
 #' task = sonar.task, percs = seq(0.2, 1, by = 0.2),
@@ -71,9 +71,10 @@ generateLearningCurveData = function(learners, task, resampling = NULL,
   perfs = dropNamed(perfs, c("task.id", "learner.id"))
 
   # set short measures names and resort cols
-  mids = extractSubList(measures, "id")
+  mids = replaceDupeMeasureNames(measures, "id")
+  names(measures) = mids
   colnames(perfs) = mids
-  out = cbind(learner = learner, perc = perc, perfs)
+  out = cbind(learner = learner, percentage = perc, perfs)
   makeS3Obj("LearningCurveData",
             task = task,
             measures = measures,
@@ -115,17 +116,28 @@ print.LearningCurveData = function(x, ...) {
 #'   The variable mapped to \code{facet} must have more than one unique value, otherwise it will
 #'   be ignored. The variable not chosen is mapped to color if it has more than one unique value.
 #'   The default is \dQuote{measure}.
+#' @param pretty.names [\code{logical(1)}]\cr
+#'   Whether to use the \code{\link{Measure}} name instead of the id in the plot.
+#'   Default is \code{TRUE}.
 #' @template ret_gg2
 #' @export
-plotLearningCurve = function(obj, facet = "measure") {
+plotLearningCurve = function(obj, facet = "measure", pretty.names = TRUE) {
   assertClass(obj, "LearningCurveData")
   mappings = c("measure", "learner")
   assertChoice(facet, mappings)
+  assertFlag(pretty.names)
   color = mappings[mappings != facet]
 
+  if (pretty.names) {
+    mnames = replaceDupeMeasureNames(obj$measures, "name")
+    colnames(obj$data) = mapValues(colnames(obj$data),
+                                   names(obj$measures),
+                                   mnames)
+  }
+
   data = reshape2::melt(obj$data,
-                        id.vars = c("learner", "perc"),
-                        variable.name = "measure", value.name = "perf")
+                        id.vars = c("learner", "percentage"),
+                        variable.name = "measure", value.name = "performance")
   nlearn = length(unique(data$learner))
   nmeas = length(unique(data$measure))
 
@@ -135,9 +147,9 @@ plotLearningCurve = function(obj, facet = "measure") {
     facet = NULL
 
   if (!is.null(color))
-    plt = ggplot2::ggplot(data, ggplot2::aes_string(x = "perc", y = "perf", colour = color))
+    plt = ggplot2::ggplot(data, ggplot2::aes_string(x = "percentage", y = "performance", colour = color))
   else
-    plt = ggplot2::ggplot(data, ggplot2::aes_string(x = "perc", y = "perf"))
+    plt = ggplot2::ggplot(data, ggplot2::aes_string(x = "percentage", y = "performance"))
   plt = plt + ggplot2::geom_point()
   plt = plt + ggplot2::geom_line()
   if (!is.null(facet))
@@ -162,15 +174,28 @@ plotLearningCurve = function(obj, facet = "measure") {
 #'   Note that if there are multiple learners and multiple measures interactivity is
 #'   necessary as ggvis does not currently support facetting or subplots.
 #'   The default is \dQuote{measure}.
+#' @param pretty.names [\code{logical(1)}]\cr
+#'   Whether to use the \code{\link{Measure}} name instead of the id in the plot.
+#'   Default is \code{TRUE}.
 #' @template ret_ggv
 #' @export
-plotLearningCurveGGVIS = function(obj, interaction = "measure") {
+plotLearningCurveGGVIS = function(obj, interaction = "measure", pretty.names = TRUE) {
   assertClass(obj, "LearningCurveData")
   mappings = c("measure", "learner")
   assertChoice(interaction, mappings)
+  assertFlag(pretty.names)
   color = mappings[mappings != interaction]
 
-  data = reshape2::melt(obj$data, id.vars = c("learner", "perc"), variable.name = "measure", value.name = "perf")
+  if (pretty.names) {
+    mnames = replaceDupeMeasureNames(obj$measures, "name")
+    colnames(obj$data) = mapValues(colnames(obj$data),
+                                   names(obj$measures),
+                                   mnames)
+  }
+
+  data = reshape2::melt(obj$data,
+                        id.vars = c("learner", "percentage"),
+                        variable.name = "measure", value.name = "performance")
   nmeas = length(unique(data$measure))
   nlearn = length(unique(data$learner))
 
@@ -181,13 +206,13 @@ plotLearningCurveGGVIS = function(obj, interaction = "measure") {
 
   create_plot = function(data, color) {
     if (!is.null(color)) {
-      plt = ggvis::ggvis(data, ggvis::prop("x", as.name("perc")),
-                         ggvis::prop("y", as.name("perf")),
+      plt = ggvis::ggvis(data, ggvis::prop("x", as.name("percentage")),
+                         ggvis::prop("y", as.name("performance")),
                          ggvis::prop("stroke", as.name(color)))
       plt = ggvis::layer_points(plt, ggvis::prop("fill", as.name(color)))
     } else {
-      plt = ggvis::ggvis(data, ggvis::prop("x", as.name("perc")),
-                         ggvis::prop("y", as.name("perf")))
+      plt = ggvis::ggvis(data, ggvis::prop("x", as.name("percentage")),
+                         ggvis::prop("y", as.name("performance")))
       plt = ggvis::layer_points(plt)
     }
     ggvis::layer_lines(plt)

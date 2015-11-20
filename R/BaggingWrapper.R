@@ -5,7 +5,7 @@
 #' (i.e., similar to what a \code{randomForest} does).
 #' Creates a learner object, which can be
 #' used like any other learner object.
-#' Models can easily be accessed via \code{\link{getHomogeneousEnsembleModels}}.
+#' Models can easily be accessed via \code{\link{getLearnerModel}}.
 #'
 #' Bagging is implemented as follows:
 #' For each iteration a random data subset is sampled (with or without replacement)
@@ -70,12 +70,8 @@ makeBaggingWrapper = function(learner, bw.iters = 10L, bw.replace = TRUE, bw.siz
     makeNumericLearnerParam(id = "bw.size", lower = 0, upper = 1),
     makeNumericLearnerParam(id = "bw.feats", lower = 0, upper = 1, default = 2/3)
   )
-  x = makeHomogeneousEnsemble(id, learner$type, learner, packs, par.set = ps, par.vals = pv,
+  makeHomogeneousEnsemble(id, learner$type, learner, packs, par.set = ps, par.vals = pv,
     learner.subclass = "BaggingWrapper", model.subclass = "BaggingModel")
-  switch(x$type,
-    "classif" = addProperties(x, "prob"),
-    "regr" = addProperties(x, "se")
-  )
 }
 
 #' @export
@@ -93,7 +89,7 @@ trainLearner.BaggingWrapper = function(.learner, .task, .subset, .weights = NULL
   if (missing(bw.size))
     bw.size = if (bw.replace) 1 else 0.632
   .task = subsetTask(.task, subset = .subset)
-  n = .task$task.desc$size
+  n = getTaskSize(.task)
   m = round(n * bw.size)
   allinds = seq_len(n)
   if (bw.feats < 1) {
@@ -116,7 +112,7 @@ trainLearner.BaggingWrapper = function(.learner, .task, .subset, .weights = NULL
 
 #' @export
 predictLearner.BaggingWrapper = function(.learner, .model, .newdata, ...) {
-  models = getHomogeneousEnsembleModels(.model, learner.models = FALSE)
+  models = getLearnerModel(.model, more.unwrap = FALSE)
   g = if (.learner$type == "classif") as.character else identity
   p = asMatrixCols(lapply(models, function(m) {
     nd = .newdata[, m$features, drop = FALSE]
@@ -146,4 +142,12 @@ predictLearner.BaggingWrapper = function(.learner, .model, .newdata, ...) {
 #' @export
 setPredictType.BaggingWrapper = function(learner, predict.type) {
   setPredictType.Learner(learner, predict.type)
+}
+
+#' @export
+getLearnerProperties.BaggingWrapper = function(learner) {
+    switch(learner$type,
+    "classif" = union(getLearnerProperties(learner$next.learner), "prob"),
+    "regr" = union(getLearnerProperties(learner$next.learner), "se")
+  )
 }

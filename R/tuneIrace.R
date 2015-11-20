@@ -1,15 +1,14 @@
 tuneIrace = function(learner, task, resampling, measures, par.set, control, opt.path, show.info) {
   requirePackages("irace", why = "tuneIrace", default.method = "load")
-  
-  #FIXME: allow to do in parallel
+
   cx = function(x) convertXLogicalsNotAsStrings(x, par.set)
-  hookRun = function(instance, candidate, extra.params = NULL, config = list()) {
-    rin = instance
-    tunerFitnFun(candidate$values, learner = learner, task = task, resampling = rin, measures = measures,
+  hookRun = function(experiment, config = list()) {
+    rin = experiment$instance
+    tunerFitnFun(as.list(experiment$candidate), learner = learner, task = task, resampling = rin, measures = measures,
       par.set = par.set, ctrl = control, opt.path = opt.path, show.info = show.info,
       convertx = cx, remove.nas = TRUE)
   }
-  
+
   n.instances = control$extra.args$n.instances
   control$extra.args$n.instances = NULL
   show.irace.output = control$extra.args$show.irace.output
@@ -20,10 +19,10 @@ tuneIrace = function(learner, task, resampling, measures, par.set, control, opt.
   } else {
     control$extra.args$digits = asInt(control$extra.args$digits)
   }
-  
+
   parameters = convertParamSetToIrace(par.set)
   log.file = tempfile()
-  tuner.config = c(list(hookRun = hookRun, instances = instances, logFile = log.file), 
+  tuner.config = c(list(hookRun = hookRun, instances = instances, logFile = log.file),
     control$extra.args)
   g = if (show.irace.output) identity else capture.output
   g(or <- irace::irace(tunerConfig = tuner.config, parameters = parameters))

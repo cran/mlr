@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 
-<title>Purpose</title>
+<title>mlr: Machine Learning in R</title>
 
 <script type="text/javascript">
 window.onload = function() {
@@ -201,13 +201,17 @@ hr {
 </head>
 
 <body>
+<h1>mlr: Machine Learning in R</h1>
+
 <p>This Vignette is supposed to give you a short introductory glance at the key features of <code>mlr</code>.
 A more detailed in depth and continuously updated tutorial can be found on the GitHub project page:</p>
 
 <ul>
-<li><a href="https://github.com/berndbischl/mlr/">Project Page</a></li>
-<li><a href="http://berndbischl.github.io/mlr/tutorial/html/">Online Tutorial</a></li>
-<li><a href="http://berndbischl.github.io/mlr/tutorial/mlr_tutorial.zip">Download</a> online tutorial as zip for offline usage</li>
+<li><a href="https://github.com/mlr-org/mlr/">Project Page</a></li>
+<li>Online Tutorial for <a href="https://mlr-org.github.io/mlr-tutorial/release/html/">mlr release</a>
+and <a href="https://mlr-org.github.io/mlr-tutorial/devel/html/">mlr devel</a></li>
+<li>Download the online tutorial for <a href="https://mlr-org.github.io/mlr-tutorial/release/mlr_tutorial.zip">mlr release</a>
+and <a href="https://mlr-org.github.io/mlr-tutorial/devel/mlr_tutorial.zip">mlr devel</a> as zip for offline usage</li>
 </ul>
 
 <h2>Purpose</h2>
@@ -224,7 +228,7 @@ Hence, <code>mlr</code> offers the following features:</p>
 <li>Many convenience methods and generic building blocks for your machine learning experiments</li>
 <li>Resampling like bootstrapping, cross-validation and subsampling</li>
 <li>Different visualizations for e.g. ROC curves and predictions</li>
-<li>Benchmarking of learners for muliple data sets</li>
+<li>Benchmarking of learners for multiple data sets</li>
 <li>Easy hyperparameter tuning using different optimization strategies</li>
 <li>Variable selection with filters and wrappers</li>
 <li>Nested resampling of models with tuning and feature selection</li>
@@ -314,7 +318,7 @@ r = resample(learner = lrn, task = task, resampling = rdesc)
 ## mmce.aggr: 0.02
 ## mmce.mean: 0.02
 ## mmce.sd: 0.03
-## Runtime: 0.153026
+## Runtime: 0.0809093
 </code></pre>
 
 <pre><code class="r">## Get the mean misclassification error:
@@ -333,10 +337,13 @@ It covers among others: <em>benchmarking</em>, <em>preprocessing</em>, <em>imput
 Reading is highly recommended!</p>
 
 <ul>
-<li><a href="https://github.com/berndbischl/mlr/">Project Page</a></li>
-<li><a href="http://berndbischl.github.io/mlr/tutorial/html/">Online Tutorial</a></li>
-<li><a href="http://berndbischl.github.io/mlr/tutorial/mlr_tutorial.zip">Download</a> online tutorial as zip for offline usage</li>
-<li><a href="https://github.com/berndbischl/mlr/wiki">Wiki</a> with additional information for developers</li>
+<li><a href="https://github.com/mlr-org/mlr/">Project Page</a></li>
+<li>Online Tutorial for <a href="https://mlr-org.github.io/mlr-tutorial/release/html/">mlr release</a>
+and <a href="https://mlr-org.github.io/mlr-tutorial/devel/html/">mlr devel</a></li>
+<li>Offline Tutorial: online tutorial for <a href="https://mlr-org.github.io/mlr-tutorial/release/mlr_tutorial.zip">mlr release</a>
+and <a href="https://mlr-org.github.io/mlr-tutorial/devel/mlr_tutorial.zip">mlr devel</a>
+as zip for offline usage</li>
+<li><a href="https://github.com/mlr-org/mlr/wiki">Wiki</a> with additional information for developers</li>
 </ul>
 
 <h2>Thanks</h2>
@@ -356,11 +363,15 @@ Reading is highly recommended!</p>
 <li><a href="http://cran.r-project.org/package=Hmisc">Hmisc</a></li>
 <li><a href="http://cran.r-project.org/package=LiblineaR">LiblineaR</a></li>
 <li><a href="http://cran.r-project.org/package=MASS">MASS</a></li>
+<li><a href="http://cran.r-project.org/package=PMCMR">PMCMR</a></li>
 <li><a href="http://cran.r-project.org/package=ParamHelpers">ParamHelpers</a></li>
 <li><a href="http://cran.r-project.org/package=RCurl">RCurl</a></li>
 <li><a href="http://cran.r-project.org/package=ROCR">ROCR</a></li>
+<li><a href="http://cran.r-project.org/package=RSNNS">RSNNS</a></li>
 <li><a href="http://cran.r-project.org/package=RWeka">RWeka</a></li>
+<li><a href="http://cran.r-project.org/package=SwarmSVM">SwarmSVM</a></li>
 <li><a href="http://cran.r-project.org/package=TH.data">TH.data</a></li>
+<li><a href="http://cran.r-project.org/package=XML">XML</a></li>
 <li><a href="http://cran.r-project.org/package=ada">ada</a></li>
 <li><a href="http://cran.r-project.org/package=adabag">adabag</a></li>
 <li><a href="http://cran.r-project.org/package=bartMachine">bartMachine</a></li>
@@ -376,12 +387,14 @@ Reading is highly recommended!</p>
 <li><a href="http://cran.r-project.org/package=clusterSim">clusterSim</a></li>
 <li><a href="http://cran.r-project.org/package=cmaes">cmaes</a></li>
 <li><a href="http://cran.r-project.org/package=crs">crs</a></li>
+<li><a href="http://cran.r-project.org/package=deepnet">deepnet</a></li>
 <li><a href="http://cran.r-project.org/package=e1071">e1071</a></li>
 <li><a href="http://cran.r-project.org/package=earth">earth</a></li>
 <li><a href="http://cran.r-project.org/package=elasticnet">elasticnet</a></li>
 <li><a href="http://cran.r-project.org/package=elmNN">elmNN</a></li>
 <li><a href="http://cran.r-project.org/package=emoa">emoa</a></li>
 <li><a href="http://cran.r-project.org/package=extraTrees">extraTrees</a></li>
+<li><a href="http://cran.r-project.org/package=fields">fields</a></li>
 <li><a href="http://cran.r-project.org/package=flare">flare</a></li>
 <li><a href="http://cran.r-project.org/package=frbs">frbs</a></li>
 <li><a href="http://cran.r-project.org/package=gbm">gbm</a></li>
@@ -402,8 +415,10 @@ Reading is highly recommended!</p>
 <li><a href="http://cran.r-project.org/package=mda">mda</a></li>
 <li><a href="http://cran.r-project.org/package=mlbench">mlbench</a></li>
 <li><a href="http://cran.r-project.org/package=modeltools">modeltools</a></li>
+<li><a href="http://cran.r-project.org/package=neuralnet">neuralnet</a></li>
 <li><a href="http://cran.r-project.org/package=nnet">nnet</a></li>
 <li><a href="http://cran.r-project.org/package=nodeHarvest">nodeHarvest</a></li>
+<li><a href="http://cran.r-project.org/package=numDeriv">numDeriv</a></li>
 <li><a href="http://cran.r-project.org/package=pROC">pROC</a></li>
 <li><a href="http://cran.r-project.org/package=pamr">pamr</a></li>
 <li><a href="http://cran.r-project.org/package=parallelMap">parallelMap</a></li>
@@ -414,10 +429,13 @@ Reading is highly recommended!</p>
 <li><a href="http://cran.r-project.org/package=rFerns">rFerns</a></li>
 <li><a href="http://cran.r-project.org/package=randomForest">randomForest</a></li>
 <li><a href="http://cran.r-project.org/package=randomForestSRC">randomForestSRC</a></li>
+<li><a href="http://cran.r-project.org/package=ranger">ranger</a></li>
 <li><a href="http://cran.r-project.org/package=reshape2">reshape2</a></li>
 <li><a href="http://cran.r-project.org/package=rjson">rjson</a></li>
+<li><a href="http://cran.r-project.org/package=rknn">rknn</a></li>
 <li><a href="http://cran.r-project.org/package=rmarkdown">rmarkdown</a></li>
 <li><a href="http://cran.r-project.org/package=robustbase">robustbase</a></li>
+<li><a href="http://cran.r-project.org/package=rotationForest">rotationForest</a></li>
 <li><a href="http://cran.r-project.org/package=rpart">rpart</a></li>
 <li><a href="http://cran.r-project.org/package=rrlda">rrlda</a></li>
 <li><a href="http://cran.r-project.org/package=rsm">rsm</a></li>
@@ -429,6 +447,7 @@ Reading is highly recommended!</p>
 <li><a href="http://cran.r-project.org/package=survival">survival</a></li>
 <li><a href="http://cran.r-project.org/package=testthat">testthat</a></li>
 <li><a href="http://cran.r-project.org/package=tgp">tgp</a></li>
+<li><a href="http://cran.r-project.org/package=xgboost">xgboost</a></li>
 </ul>
 
 </body>

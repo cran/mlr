@@ -61,7 +61,7 @@ test_that("tuneParamsMultiCrit works with low number of evals and dependencies",
 # FIXME: I am not sure how we can check wich value is imputed for theoptimizer?
 test_that("y imputing works", {
   configureMlr(on.learner.error = "quiet")
-  lrn = makeLearner("classif.mock2")
+  lrn = makeLearner("classif.__mlrmocklearners__2")
   rdesc = makeResampleDesc("Holdout")
   ps = makeParamSet(
     makeNumericParam("alpha", lower = 0, upper = 1)
@@ -74,4 +74,50 @@ test_that("y imputing works", {
     measures = list(tpr, fpr), control = ctrl)
 
   configureMlr(on.learner.error = "stop")
+})
+
+test_that("tuneParamsMultiCrit with budget", {
+  lrn =  makeLearner("classif.rpart")
+  rdesc = makeResampleDesc("Holdout")
+  ps = makeParamSet(
+    makeNumericParam("cp", lower = 0.001, upper = 1),
+    makeIntegerParam("minsplit", lower = 1, upper = 50)
+  )
+
+  mycheck = function(ctrl, expected.budget) {
+    if ("TuneMultiCritControlGrid" %in% class(ctrl)) {
+      if (!is.null(ctrl$budget))
+        expect_equal(ctrl$budget, expected.budget)
+    } else {
+      expect_equal(ctrl$budget, expected.budget)
+    }
+    res = tuneParamsMultiCrit(lrn, binaryclass.task, rdesc, par.set = ps,
+      measures = list(tpr, fpr), control = ctrl)
+    expect_equal(getOptPathLength(res$opt.path), expected.budget)
+  }
+
+  # random search
+  ctrl = makeTuneMultiCritControlRandom(maxit = 3L)
+  mycheck(ctrl, ctrl$extra.args$maxit)
+  ctrl = makeTuneMultiCritControlRandom(maxit = 3L, budget = 3L)
+  mycheck(ctrl, ctrl$extra.args$maxit)
+  expect_error(makeTuneMultiCritControlRandom(maxit = 3L, budget = 5L))
+
+  # grid search
+  ctrl = makeTuneMultiCritControlGrid(resolution = 3)
+  mycheck(ctrl, ctrl$extra.args$resolution^2)
+  ctrl = makeTuneMultiCritControlGrid(resolution = 3, budget = 9L)
+  mycheck(ctrl, ctrl$extra.args$resolution^2)
+  ctrl = makeTuneMultiCritControlGrid(resolution = 3, budget = 10L)
+  expect_error(tuneParamsMultiCrit(lrn, binaryclass.task, rdesc, par.set = ps,
+    measures = list(tpr, fpr), control = ctrl))
+
+  # nsga2
+  ctrl = makeTuneMultiCritControlNSGA2(popsize = 4L, generations = 1L)
+  mycheck(ctrl, ctrl$extra.args$popsize * (ctrl$extra.args$generations + 1))
+  expect_error(makeTuneMultiCritControlNSGA2(popsize = 4L, generations = 2L, budget = 8L))
+  expect_error(makeTuneMultiCritControlNSGA2(generations = 4L, budget = 12L))
+  ctrl = makeTuneMultiCritControlNSGA2(popsize = 4L, budget = 12L)
+  expect_equal(ctrl$extra.args$generations, 2L)
+  mycheck(ctrl, 12L)
 })

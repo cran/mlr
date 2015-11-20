@@ -8,16 +8,17 @@ makeRLearner.regr.randomForest = function() {
     par.set = makeParamSet(
       makeIntegerLearnerParam(id = "ntree", default = 500L, lower = 1L),
       makeIntegerLearnerParam(id = "ntree.for.se", default = 100L, lower = 1L),
-      makeDiscreteLearnerParam(id = "se.method", default = "bootstrap", values = c("bootstrap", "jackknife", "noisy.bootstrap")),
+      makeDiscreteLearnerParam(id = "se.method", default = "bootstrap", values = c("bootstrap", "jackknife", "noisy.bootstrap"), requires = quote(se.method != "jackknife" && keep.inbag == TRUE)),
       makeIntegerLearnerParam(id = "nr.of.bootstrap.samples", default = 5L, lower = 1L),
       makeIntegerLearnerParam(id = "mtry", lower = 1L),
       makeLogicalLearnerParam(id = "replace", default = TRUE),
       makeIntegerLearnerParam(id = "sampsize", lower = 1L),
-      makeIntegerLearnerParam(id = "nodesize", default = 1L, lower = 1L),
+      makeIntegerLearnerParam(id = "nodesize", default = 5L, lower = 1L),
       makeIntegerLearnerParam(id = "maxnodes", lower = 1L),
       makeLogicalLearnerParam(id = "importance", default = FALSE),
       makeLogicalLearnerParam(id = "localImp", default = FALSE),
-      makeLogicalLearnerParam(id = "keep.inbag", default = FALSE)
+      makeLogicalLearnerParam(id = "do.trace", default = FALSE, tunable = FALSE),
+      makeLogicalLearnerParam(id = "keep.inbag", default = FALSE, tunable = FALSE)
     ),
     par.vals = list(
       se.method = "bootstrap",
@@ -131,6 +132,9 @@ bootstrapStandardError = function(.learner, .model, .newdata, ...) {
 jackknifeStandardError = function(.learner, .model, .newdata, ...) {
     # extract relevant data from
     model = .model$learner.model
+
+    if (is.na(model$inbag))
+      stop("regr.randomForest must be defined with keep.inbag = TRUE to estimate the jackknife standard error!")
 
     # inbag needed to determine which observation was included in the training
     # of each ensemble member

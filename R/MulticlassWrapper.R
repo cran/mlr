@@ -43,8 +43,6 @@ makeMulticlassWrapper = function(learner, mcw.method = "onevsrest") {
   x = makeHomogeneousEnsemble(id = id, type = "classif", next.learner = learner,
     package = learner$package,  par.set = ps, par.vals = pv,
     learner.subclass = "MulticlassWrapper", model.subclass = "MulticlassModel")
-  x = addProperties(x, props = "multiclass")
-  x = removeProperties(x, props = "prob")
   x = setPredictType(x, predict.type = "response")
   return(x)
 }
@@ -52,7 +50,7 @@ makeMulticlassWrapper = function(learner, mcw.method = "onevsrest") {
 #' @export
 trainLearner.MulticlassWrapper = function(.learner, .task, .subset, .weights = NULL, mcw.method, ...) {
   .task = subsetTask(.task, .subset)
-  tn = .task$task.desc$target
+  tn = getTaskTargetNames(.task)
   d = getTaskData(.task)
   y = getTaskTargets(.task)
   cm = buildCMatrix(mcw.method, .task)
@@ -93,6 +91,13 @@ predictLearner.MulticlassWrapper = function(.learner, .model, .newdata, ...) {
   as.factor(y)
 }
 
+#' @export
+getLearnerProperties.MulticlassWrapper = function(learner){
+  props = getLearnerProperties(learner$next.learner)
+  props = union(props, "multiclass")
+  setdiff(props, "prob")
+}
+
 ##############################               helpers                      ##############################
 
 buildCMatrix = function (mcw.method, .task) {
@@ -131,22 +136,21 @@ multi.to.binary = function(target, codematrix) {
 }
 
 cm.onevsrest = function(task) {
-  n = length(task$task.desc$class.levels)
+  td = getTaskDescription(task)
+  n = length(td$class.levels)
   cm = matrix(-1, n, n)
   diag(cm) = 1
-  rownames(cm) = task$task.desc$class.levels
-  return(cm)
+  setRowNames(cm, td$class.levels)
 }
 
 cm.onevsone = function(task) {
-  n = length(task$task.desc$class.levels)
+  td = getTaskDescription(task)
+  n = length(td$class.levels)
   cm = matrix(0, n, choose(n, 2))
   combs = combn(n, 2)
   for (i in seq_col(combs)) {
     j = combs[, i]
     cm[j, i] = c(1, -1)
   }
-  rownames(cm) = task$task.desc$class.levels
-  return(cm)
+  setRowNames(cm, td$class.levels)
 }
-

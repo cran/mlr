@@ -4,8 +4,8 @@
 #' A measure object encapsulates a function to evaluate the performance of a prediction.
 #' Information about already implemented measures can be obtained here: \code{\link{measures}}.
 #'
-#' A learner is trained on a a training set d1, results in a model m, predicts another set d2
-#' (which may be a different one or the training set), resulting in the prediction.
+#' A learner is trained on a training set d1, results in a model m and predicts another set d2
+#' (which may be a different one or the training set) resulting in the prediction.
 #' The performance measure can now be defined using all of the information of the original task,
 #' the fitted model and the prediction.
 #'
@@ -27,12 +27,13 @@
 #'   Name of measure.
 #' @param minimize [\code{logical(1)}]\cr
 #'   Should the measure be minimized?
-#'   Default is in \code{TRUE}.
+#'   Default is \code{TRUE}.
 #' @param properties [\code{character}]\cr
 #'   Set of measure properties. Some standard property names include:
 #'   \describe{
 #'     \item{classif}{Is the measure applicable for classification?}
 #'     \item{classif.multi}{Is the measure applicable for multi-class classification?}
+#'     \item{multilabel}{Is the measure applicable for multilabel classification?}
 #'     \item{regr}{Is the measure applicable for regression?}
 #'     \item{surv}{Is the measure applicable for survival?}
 #'     \item{costsens}{Is the measure applicable for cost-sensitive learning?}
@@ -44,7 +45,7 @@
 #'     \item{req.prob}{Are predicted probabilites required in calculation? Usually not the case, example would be AUC.}
 #'   }
 #'   Default is \code{character(0)}.
-#' @param fun [\code{function(task, model, pred, extra.args)}]\cr
+#' @param fun [\code{function(task, model, pred, feats, extra.args)}]\cr
 #'   Calculates performance value.
 #' @param extra.args [\code{list}]\cr
 #'   List of extra arguments which will always be passed to \code{fun}.
@@ -62,7 +63,7 @@
 #' @param name [\code{character}] \cr
 #'   Name of the measure. Default is \code{id}.
 #' @param note [\code{character}] \cr
-#'   Description and additional notes for the learner. Default is \dQuote{}.
+#'   Description and additional notes for the measure. Default is \dQuote{}.
 #' @template ret_measure
 #' @export
 #' @family performance
@@ -102,7 +103,25 @@ makeMeasure = function(id, minimize, properties = character(0L),
   setAggregation(m, aggr)
 }
 
-default.measures = function(x) {
+#' @title Get default measure.
+#'
+#' @description
+#' Get the default measure for a task type, task, task description or a learner.
+#' Currently these are:
+#'  \tabular{ll}{
+#'    classif     \tab mmce\cr
+#'    regr        \tab mse\cr
+#'    cluster     \tab db\cr
+#'    surv        \tab cindex\cr
+#'    costsens    \tab mcp\cr
+#'    multilabel  \tab hamloss\cr
+#' }
+#'
+#' @param x [\code{character(1)} | \code{\link{Task}} | \code{\link{TaskDesc}} | \code{\link{Learner}}]\cr
+#'  Task type, task, task description or a learner.
+#' @return [\code{\link{Measure}}].
+#' @export
+getDefaultMeasure = function(x) {
   type = if (inherits(x, "TaskDesc"))
     x$type
   else if (inherits(x, "Task"))
@@ -110,11 +129,12 @@ default.measures = function(x) {
   else if (inherits(x, "Learner"))
     x$type
   switch(type,
-    classif = list(mmce),
-    regr = list(mse),
-    costsens = list(mcp),
-    surv = list(cindex),
-    cluster = list(db)
+    classif = mmce,
+    cluster = db,
+    regr = mse,
+    surv = cindex,
+    costsens = mcp,
+    multilabel = hamloss
   )
 }
 

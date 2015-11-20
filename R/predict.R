@@ -17,9 +17,10 @@
 #' @param newdata [\code{data.frame}]\cr
 #'   New observations which should be predicted.
 #'   Pass this alternatively instead of \code{task}.
-#' @param subset [\code{integer}]\cr
-#'   Index vector to subset \code{task} or \code{newdata}.
-#'   Default is all data.
+#' @param subset [\code{integer} | \code{integer}]\cr
+#'   An index vector specifying the training cases to be used for fitting.
+#'   By default the complete data set is used.
+#'   Logical vectors will be transformed to integer with \code{\link[base]{which}}.
 #' @param ... [any]\cr
 #'   Currently ignored.
 #' @return [\code{\link{Prediction}}].
@@ -39,7 +40,7 @@
 #' model = train(lrn, iris.task, subset = train.set)
 #' p = predict(model, task = iris.task, subset = test.set)
 #' print(p)
-#' getProbabilities(p)
+#' getPredictionProbabilities(p)
 predict.WrappedModel = function(object, task, newdata, subset, ...) {
   if (!xor(missing(task), missing(newdata)))
     stop("Pass either a task object or a newdata data.frame to predict, but not both!")
@@ -51,7 +52,7 @@ predict.WrappedModel = function(object, task, newdata, subset, ...) {
   # FIXME: cleanup if cases
   if (missing(newdata)) {
     assertClass(task, classes = "Task")
-    size = task$task.desc$size
+    size = getTaskSize(task)
   } else {
     assertDataFrame(newdata, min.rows = 1L)
     size = nrow(newdata)
@@ -59,7 +60,10 @@ predict.WrappedModel = function(object, task, newdata, subset, ...) {
   if (missing(subset)) {
     subset = seq_len(size)
   } else {
-    subset = asInteger(subset, min.len = 1L, any.missing = FALSE, lower = 1L, upper = size)
+    if (is.logical(subset))
+      subset = which(subset)
+    else
+      subset = asInteger(subset, min.len = 1L, any.missing = FALSE, lower = 1L, upper = size)
   }
   if (missing(newdata)) {
     newdata = getTaskData(task, subset)
@@ -76,6 +80,8 @@ predict.WrappedModel = function(object, task, newdata, subset, ...) {
     if (length(t.col) > 1L && anyMissing(t.col))
       stop("Some but not all target columns found in data")
     truth = newdata[, t.col, drop = TRUE]
+    if (is.list(truth))
+      truth = data.frame(truth)
     newdata = newdata[, -t.col, drop = FALSE]
   } else {
     truth = NULL
