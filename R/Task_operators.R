@@ -38,7 +38,11 @@ getTaskId = function(x) {
   getTaskDescription(x)$id
 }
 
-#' Get the name(s) of the target column(s).
+#' @title Get the name(s) of the target column(s).
+#'
+#' @description
+#' NB: For multilabel, \code{\link{getTaskTargetNames}} and \code{\link{getTaskClassLevels}}
+#' actually return the same thing.
 #'
 #' @template arg_task_or_desc
 #' @return [\code{character}].
@@ -63,7 +67,12 @@ getTaskTargetNames.TaskDescUnsupervised = function(x) {
   character(0L)
 }
 
-#' Get the class levels for classification and multilabel tasks.
+
+#' @title Get the class levels for classification and multilabel tasks.
+#'
+#' @description
+#' NB: For multilabel, \code{\link{getTaskTargetNames}} and \code{\link{getTaskClassLevels}}
+#' actually return the same thing.
 #'
 #' @template arg_task_or_desc
 #' @return [\code{character}].
@@ -120,9 +129,11 @@ getTaskSize = function(x) {
   getTaskDescription(x)$size
 }
 
-#' Get formula of a task.
+#' @title Get formula of a task.
 #'
-#' This is simply \dQuote{<target> ~ .}.
+#' @description
+#' This is usually simply \dQuote{<target> ~ .}.
+#' For multilabel it is \dQuote{<target_1> + ... + <target_k> ~ .}.
 #'
 #' @template arg_task_or_desc
 #' @param target [\code{character(1)}]\cr
@@ -143,6 +154,8 @@ getTaskFormula = function(x, target = getTaskTargetNames(x), explicit.features =
   if (type == "surv") {
     lookup = setNames(c("left", "right", "interval2"), c("lcens", "rcens", "icens"))
     target = sprintf("Surv(%s, %s, type = \"%s\")", target[1L], target[2L], lookup[td$censoring])
+  } else if (type == "multilabel") {
+    target = collapse(target, "+")
   } else if (type == "costsens") {
     stop("There is no formula available for cost-sensitive learning.")
   } else if (type == "cluster") {
@@ -161,7 +174,10 @@ getTaskFormula = function(x, target = getTaskTargetNames(x), explicit.features =
   as.formula(paste(target, "~", paste(features, collapse = " + ")), env = env)
 }
 
-#' Get target column of task.
+#' @title Get target data of task.
+#'
+#' @description
+#' Get target data of task.
 #'
 #' @template arg_task
 #' @param recode.target [\code{character(1)}] \cr
@@ -170,7 +186,8 @@ getTaskFormula = function(x, target = getTaskTargetNames(x), explicit.features =
 #'   In the two latter cases the target vector is converted into a numeric vector.
 #'   The positive class is coded as +1 and the negative class either as 0 or -1.
 #'   Default is \dQuote{no}.
-#' @return A \code{factor} for classification or a \code{numeric} for regression.
+#' @return A \code{factor} for classification or a \code{numeric} for regression, a data.frame
+#'   of logical columns for multilabel.
 #' @family task
 #' @export
 #' @examples
@@ -213,6 +230,8 @@ getTaskTargets.CostSensTask = function(task, recode.target = "no") {
 #'   If not, a single data.frame including the target is returned, otherwise a list
 #'   with the input data.frame and an extra vector for the targets.
 #'   Default is FALSE.
+# FIXME surve recode.target must be documented
+# maye we should also check that we either have binary or surv when the user passes an option
 #' @param recode.target [\code{character(1)}]\cr
 #'   Should target classes be recoded? Only for binary classification.
 #'   Possible are \dQuote{no} (do nothing), \dQuote{01}, \dQuote{-1+1} and \dQuote{drop.levels}.

@@ -20,11 +20,11 @@ makeRLearner.regr.ranger = function() {
       makeLogicalLearnerParam(id = "verbose", default = TRUE, when = "both", tunable = FALSE),
       makeIntegerLearnerParam(id = "seed", when = "both", tunable = FALSE)
     ),
-    par.vals = list(num.threads = 1L),
+    par.vals = list(num.threads = 1L, verbose = FALSE),
     properties = c("numerics", "factors"),
     name = "Random Forests",
     short.name = "ranger",
-    note = ""
+    note = "By default, internal parallelization is switched off (num.threads = 1) and verbose output is disabled. Both settings are changeable."
   )
 }
 

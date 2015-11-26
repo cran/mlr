@@ -21,23 +21,23 @@ makeRLearner.classif.ranger = function() {
       makeLogicalLearnerParam(id = "verbose", default = TRUE, when = "both", tunable = FALSE),
       makeIntegerLearnerParam(id = "seed", when = "both", tunable = FALSE)
     ),
-    par.vals = list(num.threads = 1L),
+    par.vals = list(num.threads = 1L, verbose = FALSE),
     properties = c("twoclass", "multiclass", "prob", "numerics", "factors"),
     name = "Random Forests",
     short.name = "ranger",
-    note = ""
+    note = "By default, internal parallelization is switched off (num.threads = 1) and verbose output is disabled. Both settings are changeable."
   )
 }
 
 #' @export
-trainLearner.classif.ranger <- function(.learner, .task, .subset, .weights, ...) {
+trainLearner.classif.ranger = function(.learner, .task, .subset, .weights, ...) {
   tn = getTaskTargetNames(.task)
   ranger::ranger(formula = NULL, dependent.variable = tn, data = getTaskData(.task, .subset),
     write.forest = TRUE, probability = (.learner$predict.type == "prob"), ...)
 }
 
 #' @export
-predictLearner.classif.ranger <- function(.learner, .model, .newdata, ...) {
+predictLearner.classif.ranger = function(.learner, .model, .newdata, ...) {
   p = predict(object = .model$learner.model, data = .newdata, ...)
   return(p$predictions)
 }
