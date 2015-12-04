@@ -24,6 +24,8 @@ Plots a critical-differences diagram for all classifiers and
 a selected measure. If a baseline is selected for the Bonferroni-Dunn
 test, the critical difference interval will be positioned arround the baseline.
 If not, the best performing algorithm will be chosen as baseline.
+The positioning of some descriptive elements can be moved by modifying the 
+generated data.
 }
 \examples{
 lrns = list(makeLearner("classif.nnet"), makeLearner("classif.rpart"))
@@ -45,9 +47,7 @@ Other benchmark: \code{\link{BenchmarkResult}},
   \code{\link{convertBMRToRankMatrix}},
   \code{\link{friedmanPostHocTestBMR}},
   \code{\link{friedmanTestBMR}},
-  \code{\link{generateBenchmarkSummaryData}},
   \code{\link{generateCritDifferencesData}},
-  \code{\link{generateRankMatrixAsBarData}},
   \code{\link{getBMRAggrPerformances}},
   \code{\link{getBMRFeatSelResults}},
   \code{\link{getBMRFilteredFeatures}},
@@ -59,12 +59,13 @@ Other benchmark: \code{\link{BenchmarkResult}},
   \code{\link{getBMRPredictions}},
   \code{\link{getBMRTaskIds}},
   \code{\link{getBMRTuneResults}},
-  \code{\link{plotBenchmarkResult}},
-  \code{\link{plotBenchmarkSummary}},
-  \code{\link{plotRankMatrixAsBar}}
+  \code{\link{plotBMRBoxplots}},
+  \code{\link{plotBMRRanksAsBarChart}},
+  \code{\link{plotBMRSummary}}
 
-Other plot: \code{\link{plotBenchmarkResult}},
-  \code{\link{plotBenchmarkSummary}},
+Other plot: \code{\link{plotBMRBoxplots}},
+  \code{\link{plotBMRRanksAsBarChart}},
+  \code{\link{plotBMRSummary}},
   \code{\link{plotCalibration}},
   \code{\link{plotFilterValuesGGVIS}},
   \code{\link{plotFilterValues}},
@@ -75,7 +76,6 @@ Other plot: \code{\link{plotBenchmarkResult}},
   \code{\link{plotROCCurves}},
   \code{\link{plotROCRCurvesGGVIS}},
   \code{\link{plotROCRCurves}},
-  \code{\link{plotRankMatrixAsBar}},
   \code{\link{plotThreshVsPerfGGVIS}},
   \code{\link{plotThreshVsPerf}}
 }

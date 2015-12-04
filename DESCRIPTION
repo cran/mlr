@@ -43,11 +43,11 @@ Suggests: ada, adabag, bartMachine, brnn, bst, care, caret (>= 6.0-57),
         stepPlr, SwarmSVM, testthat, tgp, TH.data, xgboost, XML
 LazyData: yes
 ByteCompile: yes
-Version: 2.6
+Version: 2.7
 VignetteBuilder: knitr
 RoxygenNote: 5.0.1
 NeedsCompilation: yes
-Packaged: 2015-11-26 00:27:06 UTC; bischl
+Packaged: 2015-12-04 08:37:01 UTC; bischl
 Author: Bernd Bischl [aut, cre],
   Michel Lang [aut],
   Jakob Richter [aut],
@@ -59,4 +59,4 @@ Author: Bernd Bischl [aut, cre],
   Zachary Jones [ctb]
 Maintainer: Bernd Bischl <bernd_bischl@gmx.net>
 Repository: CRAN
-Date/Publication: 2015-11-26 08:38:33
+Date/Publication: 2015-12-04 15:57:54
