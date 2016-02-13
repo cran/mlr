@@ -1,6 +1,6 @@
 .FilterRegister = new.env()
 
-#' Create a feature filter
+#' Create a feature filter.
 #'
 #' Creates and registers custom feature filters. Implemented filters
 #' can be listed with \code{\link{listFilterMethods}}.
@@ -43,7 +43,7 @@ makeFilter = function(name, desc, pkg, supported.tasks, supported.features, fun)
   obj
 }
 
-#' List filter methods
+#' List filter methods.
 #'
 #' Returns a subset-able dataframe with filter information.
 #'
@@ -136,7 +136,7 @@ makeFilter(
 
 makeFilter(
   name = "rf.importance",
-  desc = "Importance of random forests",
+  desc = "Importance of random forests fitted in package 'randomForestSRC'",
   pkg  = "randomForestSRC",
   supported.tasks = c("classif", "regr", "surv"),
   supported.features = c("numerics", "factors"),
@@ -172,8 +172,13 @@ makeFilter(
   pkg = "party",
   supported.tasks = c("classif", "regr", "surv"),
   supported.features = c("numerics", "factors"),
-  fun = function(task, nselect, ...) {
+  fun = function(task, nselect, mtry = 5L, ...) {
     args = list(...)
+    # we need to set mtry, which is 5 by default in cforest, to p if p < mtry
+    # otherwise we get a warning
+    p = getTaskNFeats(task)
+    if (p < mtry)
+      args$mtry = p
     cforest_args = as.list(base::args(party::cforest))
     cforest_args = args[names(args) %in% names(cforest_args)]
     control_args = as.list(base::args(party::cforest_control))
@@ -274,7 +279,7 @@ makeFilter(
 
 makeFilter(
   name = "oneR",
-  desc = "oneR assocation rule",
+  desc = "oneR association rule",
   pkg  = "FSelector",
   supported.tasks = c("classif", "regr"),
   supported.features = c("numerics", "factors"),
@@ -284,13 +289,23 @@ makeFilter(
   }
 )
 
-makeFilter(
-  name = "univariate",
-  desc = "Construct a simple performance filter using a mlr learner",
+univariate = makeFilter(
+  name = "univariate.model.score",
+  desc = "Resamples an mlr learner for each input feature individually. The resampling performance is used as filter score, with rpart as default learner.",
   pkg  = character(0L),
   supported.tasks = c("classif", "regr", "surv"),
   supported.features = c("numerics", "factors"),
-  fun = function(task, nselect, perf.learner, perf.measure, perf.resampling = NULL, ...) {
+  fun = function(task, nselect, perf.learner = NULL, perf.measure = NULL, perf.resampling = NULL, ...) {
+    typ = getTaskType(task)
+    if (is.null(perf.learner))
+      if (typ == "classif")
+        perf.learner = "classif.rpart"
+      else if (typ == "regr")
+        perf.learner = "regr.rpart"
+      else if (typ == "surv")
+        perf.learner = "surv.rpart"
+    if (is.null(perf.measure))
+      perf.measure = getDefaultMeasure(task)
     perf.learner = checkLearner(perf.learner)
     perf.measure = checkMeasures(perf.measure, perf.learner)
     if (length(perf.measure) != 1L)
@@ -311,6 +326,12 @@ makeFilter(
     setNames(res, fns)
   }
 )
+.FilterRegister[["univariate"]] = univariate
+.FilterRegister[["univariate"]]$desc = "Resamples an mlr learner for each input feature individually. The resampling performance is used as filter score, with rpart as default learner (DEPRECATED)."
+.FilterRegister[["univariate"]]$fun = function(...) {
+  .Deprecated(old = "Filter 'univariate'", new = "Filter 'univariate.model.score'")
+  .FilterRegister[["univariate.model.score"]]$fun(...)
+}
 
 makeFilter(
   name = "anova.test",
@@ -330,7 +351,7 @@ makeFilter(
 
 makeFilter(
   name = "kruskal.test",
-  desc = "Kurskal Test for binary and multiclass classification tasks",
+  desc = "Kruskal Test for binary and multiclass classification tasks",
   pkg = character(0L),
   supported.tasks = c("classif"),
   supported.features = c("numerics", "factors"),
@@ -360,7 +381,7 @@ makeFilter(
 
 makeFilter(
   name = "permutation.importance",
-  desc = "the aggregate difference between feature permuted and unpermuted predictions",
+  desc = "Aggregated difference between feature permuted and unpermuted predictions",
   pkg = character(0L),
   supported.tasks = c("classif", "regr", "surv"),
   supported.features = c("numerics", "factors"),

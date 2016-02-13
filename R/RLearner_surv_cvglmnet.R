@@ -2,8 +2,7 @@
 makeRLearner.surv.cvglmnet = function() {
   makeRLearnerSurv(
     cl = "surv.cvglmnet",
-    # Required for predict to work properly :(
-    package = "!glmnet",
+    package = "glmnet",
     par.set = makeParamSet(
       makeNumericLearnerParam(id = "alpha", default = 1, lower = 0, upper = 1),
       makeIntegerLearnerParam(id = "nfolds", default = 10L, lower = 3L),
@@ -36,7 +35,7 @@ makeRLearner.surv.cvglmnet = function() {
     properties = c("numerics", "factors", "ordered", "weights", "rcens"),
     name = "GLM with Regularization (Cross Validated Lambda)",
     short.name = "cvglmnet",
-    note = "Factors automatically get converted to dummy columns, ordered factors to integer"
+    note = "Factors automatically get converted to dummy columns, ordered factors to integer."
   )
 }
 

@@ -2,8 +2,7 @@
 makeRLearner.surv.glmnet = function() {
   makeRLearnerSurv(
     cl = "surv.glmnet",
-    # Required for predict to work properly :(
-    package = "!glmnet",
+    package = "glmnet",
     par.set = makeParamSet(
       makeNumericLearnerParam(id = "alpha", default = 1, lower = 0, upper = 1),
       makeNumericLearnerParam(id = "s", default = 0.01, lower = 0, upper = 1, when = "predict"),
@@ -35,7 +34,7 @@ makeRLearner.surv.glmnet = function() {
     par.vals = list(s = 0.01),
     name = "GLM with Regularization",
     short.name = "glmnet",
-    note = "Factors automatically get converted to dummy columns, ordered factors to integer"
+    note = "Factors automatically get converted to dummy columns, ordered factors to integer."
   )
 }
 

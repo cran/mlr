@@ -1,3 +1,47 @@
+mlr_2.8:
+- Feature filter "univariate" had a bad name, was deprecated and is now called
+ "univariate.model.score". The new one also has better defaults.
+- (generate/plot)PartialPrediction: added new arg "geom" for tile plots
+- small fix for plotBMRSummary
+- the ModelMultiplexer inherits its predict.type from the base learners now
+- check that learners in an ensemble have the same predict.type
+- new function getBMRModels to extract stored models from a benchmark result
+- Fixed a bug where several learners from the LiblineaR package
+  ("classif.LiblineaRL2LogReg", "classif.LiblineaRL2SVC", "regr.LiblineaRL2L2SVR")
+  were calling the wrong value for "type" (0) and thus training the wrong model.
+- Fixed a bug where the resampling objects hout, cv2, cv3, cv5, cv10 were not documented
+  in the ResampleDesc help page
+- regr.xgboost, classif.xgboost: add feval param
+- fixed a bug in irace tuning interface with unamed discrete values
+- Fixed bugs in "jackknife" and "bootstrap" se estimators for regr.randomForest.
+- Added "sd" estimator for regr.randomForest.
+- Fixed a mini bug in ModelMultiplexer where hyperpars that are only needed in
+  predict were not passed down correctly
+- Fixed a bug where the function capLargeValues wasn't working if you passed a task.
+- capLargeValues now has a new argument "target", to prevent from capping response values.
+- classif.gbm, regr.gbm: Updated possible 'distribution' settings a bit.
+- oversample, undersample, makeOversampleWrapper, makeUndersampleWrapper, makeOverBaggingWrapper:
+  Added arguments to specifically select the sampled class.
+
+- API changes
+-- listLearners now returns a data frame with properties of the learners if
+   create is false
+
+- new functions
+-- getBMRModels
+
+- removed functions
+-- generateROCRCurvesData, plotROCRCurves, plotROCRCurvesGGVIS
+
+new learners
+-- classif.randomForestSRCSyn
+-- classif.cvglmnet
+-- regr.randomForestSRCSyn
+-- cluster.dbscan
+
+-new measures
+-- rsq, arsq, expvar
+
 mlr_2.7:
 - New argument "models" for function benchmark
 - fixed a bug where 'keep.pred' was ignored in the benchmark function

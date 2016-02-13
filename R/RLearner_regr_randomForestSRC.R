@@ -25,7 +25,7 @@ makeRLearner.regr.randomForestSRC = function() {
     properties = c("missings", "numerics", "factors"),
     name = "Random Forest",
     short.name = "rfsrc",
-    note = "na.action' has been set to 'na.impute' by default to allow missing data support"
+    note = "`na.action` has been set to `na.impute` by default to allow missing data support."
   )
 }
 
@@ -37,5 +37,7 @@ trainLearner.regr.randomForestSRC = function(.learner, .task, .subset, .weights 
 
 #' @export
 predictLearner.regr.randomForestSRC = function(.learner, .model, .newdata, ...) {
-  predict(.model$learner.model, newdata = .newdata, importance = "none", ...)$predicted
+  p = predict(.model$learner.model, newdata = .newdata, importance = "none", ...)
+  # versison 2.0 of randomForestSRC returns an array here :(
+  as.numeric(p$predicted)
 }

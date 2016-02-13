@@ -29,7 +29,7 @@ makeRLearner.regr.cforest = function() {
     par.vals = list(),
     name = "Random Forest Based on Conditional Inference Trees",
     short.name = "cforest",
-    note = "see ?ctree_control for possible breakage for nominal features with missingness"
+    note = "See `?ctree_control` for possible breakage for nominal features with missingness."
   )
 }
 
@@ -42,7 +42,13 @@ trainLearner.regr.cforest = function(.learner, .task, .subset, .weights = NULL,
                                      savesplitstats,...) {
   f = getTaskFormula(.task)
   d = getTaskData(.task, .subset)
-  ctrl = learnerArgsToControl(party::cforest_unbiased, ntree, mtry, replace, fraction,
+  defaults = getDefaults(getParamSet(.learner))
+  if (missing(teststat)) teststat = defaults$teststat
+  if (missing(testtype)) testtype = defaults$testtype
+  if (missing(mincriterion)) mincriterion = defaults$mincriterion
+  if (missing(replace)) replace = defaults$replace
+  if (missing(fraction)) fraction = defaults$fraction
+  ctrl = learnerArgsToControl(party::cforest_control, ntree, mtry, replace, fraction,
                               trace, pvalue, teststat, testtype, mincriterion,
                               minprob, minsplit, minbucket, stump, randomsplits,
                               nresample, maxsurrogate, maxdepth, savesplitstats)

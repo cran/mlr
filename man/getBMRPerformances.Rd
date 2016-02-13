@@ -21,7 +21,7 @@ Default is all.}
 
 \item{as.df}{[\code{character(1)}]\cr
 Return one data.frame as result - or a list of lists of objects?.
-Default is \code{FALSE}}
+Default is \code{FALSE}.}
 }
 \value{
 [\code{list} | \code{data.frame}]. See above.
@@ -42,9 +42,10 @@ Other benchmark: \code{\link{BenchmarkResult}},
   \code{\link{getBMRFeatSelResults}},
   \code{\link{getBMRFilteredFeatures}},
   \code{\link{getBMRLearnerIds}},
+  \code{\link{getBMRLearnerShortNames}},
   \code{\link{getBMRLearners}},
   \code{\link{getBMRMeasureIds}},
-  \code{\link{getBMRMeasures}},
+  \code{\link{getBMRMeasures}}, \code{\link{getBMRModels}},
   \code{\link{getBMRPredictions}},
   \code{\link{getBMRTaskIds}},
   \code{\link{getBMRTuneResults}},

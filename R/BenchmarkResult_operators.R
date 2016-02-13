@@ -40,6 +40,20 @@ getBMRLearnerIds = function(bmr) {
   extractSubList(bmr$learners, "id", use.names = FALSE)
 }
 
+#' @title Return learner short.names used in benchmark.
+#'
+#' @description
+#' Gets the learner short.names of the learners used in a benchmark experiment.
+#'
+#' @template arg_bmr
+#' @return [\code{character}].
+#' @export
+#' @family benchmark
+getBMRLearnerShortNames = function(bmr) {
+  assertClass(bmr, "BenchmarkResult")
+  extractSubList(bmr$learners, "short.name", use.names = FALSE)
+}
+
 #' @title Return measures used in benchmark.
 #'
 #' @description
@@ -114,6 +128,8 @@ getBMRObjects = function(bmr, task.ids = NULL, learner.ids = NULL, fun, as.df = 
 #'
 #' If \code{predict.type} is \dQuote{prob}, the probabilities for each class are returned in addition to the response.
 #'
+#' If \code{keep.pred} is \code{FALSE} in the call to \code{\link{benchmark}}, the function will return \code{NULL}.
+#'
 #' @template arg_bmr
 #' @template arg_bmr_taskids
 #' @template arg_bmr_learnerids
@@ -139,6 +155,7 @@ getBMRPredictions = function(bmr, task.ids = NULL, learner.ids = NULL, as.df = F
 #' \code{\link{resample}}, or these objects are rbind-ed with extra columns
 #' \dQuote{task.id} and \dQuote{learner.id}.
 #'
+#'
 #' @template arg_bmr
 #' @template arg_bmr_taskids
 #' @template arg_bmr_learnerids
@@ -158,6 +175,7 @@ getBMRPerformances = function(bmr, task.ids = NULL, learner.ids = NULL, as.df = 
 #' Either a list of lists of \dQuote{aggr} numeric vectors, as returned by
 #' \code{\link{resample}}, or these objects are rbind-ed with extra columns
 #' \dQuote{task.id} and \dQuote{learner.id}.
+#'
 #'
 #' @template arg_bmr
 #' @template arg_bmr_taskids
@@ -260,4 +278,25 @@ getBMRFilteredFeatures = function(bmr, task.ids = NULL, learner.ids = NULL, as.d
   getBMROptResults(bmr, task.ids, learner.ids, as.df, "FilterWrapper", function(x) {
     as.data.frame(x)
   })
+}
+
+#' @title Extract all models from benchmark result.
+#'
+#' @description
+#' A list of lists containing all \code{\link{WrappedModel}}s trained in the benchmark experiment.
+#'
+#' If \code{models} is \code{FALSE} in the call to \code{\link{benchmark}}, the function will return \code{NULL}.
+#'
+#' @template arg_bmr
+#' @template arg_bmr_taskids
+#' @template arg_bmr_learnerids
+#' @return [\code{list}].  
+#' @export
+#' @family benchmark
+getBMRModels = function(bmr, task.ids = NULL, learner.ids = NULL) {
+  assertClass(bmr, "BenchmarkResult")
+  f = function(x) {
+    x$models
+  }
+  getBMRObjects(bmr, task.ids, learner.ids, fun = f, as.df = FALSE)
 }

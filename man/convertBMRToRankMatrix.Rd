@@ -13,23 +13,23 @@ Benchmark result.}
 
 \item{measure}{[\code{\link{Measure}}]\cr
 Performance measure.
-Default is the default measure for the task, see here \code{\link{getDefaultMeasure}}.}
+Default is the first measure used in the benchmark experiment.}
 
 \item{ties.method}{[\code{character(1)}]\cr
-See \code{\link{rank}} for details.}
+See \code{\link[base]{rank}} for details.}
 
 \item{aggregation}{[\code{character(1)}] \cr
 \dQuote{mean} or \dQuote{default}. See \code{\link{getBMRAggrPerformances}}
 for details on \dQuote{default}.}
 }
 \value{
-[\code{matrix}]
-Matrix, with rank of learners per task as entries. The matrix has one row for each \code{learner},
-and one column for each \code{task}.
+[\code{matrix}] with measure ranks as entries.
+  The matrix has one row for each \code{learner}, and one column for each \code{task}.
 }
 \description{
-Computes a matrix of all the ranks of different algorithms over different datasets (tasks).
-Ranks are computed from aggregated measures.
+Computes a matrix of all the ranks of different algorithms
+over different datasets (tasks). Ranks are computed from aggregated
+measures.
 Smaller ranks imply better methods, so for measures that are minimized, small ranks imply small scores.
 for measures that are maximized, small ranks imply large scores.
 }
@@ -46,9 +46,10 @@ Other benchmark: \code{\link{BenchmarkResult}},
   \code{\link{getBMRFeatSelResults}},
   \code{\link{getBMRFilteredFeatures}},
   \code{\link{getBMRLearnerIds}},
+  \code{\link{getBMRLearnerShortNames}},
   \code{\link{getBMRLearners}},
   \code{\link{getBMRMeasureIds}},
-  \code{\link{getBMRMeasures}},
+  \code{\link{getBMRMeasures}}, \code{\link{getBMRModels}},
   \code{\link{getBMRPerformances}},
   \code{\link{getBMRPredictions}},
   \code{\link{getBMRTaskIds}},

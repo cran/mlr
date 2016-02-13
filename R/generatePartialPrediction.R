@@ -1,4 +1,4 @@
-#' @title Generate partial predictions
+#' @title Generate partial predictions.
 #'
 #' @description
 #' Estimate how the learned prediction function is affected by one or more features.
@@ -9,6 +9,7 @@
 #'
 #' @family partial_prediction
 #' @family generate_plot_data
+#' @aliases PartialPredictionData
 #'
 #' @param obj [\code{\link{WrappedModel}}]\cr
 #'   Result of \code{\link{train}}.
@@ -88,11 +89,35 @@
 #'   the number of (possibly non-unique) values resampled. If \code{resample = NULL} it defines the
 #'   length of the evenly spaced grid created.
 #' @param ... additional arguments to be passed to \code{\link{predict}}.
-#' @return [\code{PartialPredictionData}], A named list, which contains the partial predictions,
+#' @return [\code{PartialPredictionData}]. A named list, which contains the partial predictions,
 #'   input data, target, features, task description, and other arguments controlling the type of
 #'   partial predictions made.
+#'
+#' Object members:
+#'   \item{data}{[\code{data.frame}]\cr
+#'     Has columns for the prediction: one column for regression and
+#'     survival analysis, and a column for class and the predicted probability for classification as well
+#'     as a a column for each element of \code{features}. If \code{individual = TRUE} then there is an
+#'     additional column \code{idx} which gives the index of the \code{data} that each prediction corresponds to.}
+#'   \item{task.desc}{[\code{\link{TaskDesc}}]\cr
+#'     Task description.}
+#'   \item{target}{Target feature for regression, target feature levels for classification,
+#'         survival and event indicator for survival.}
+#'   \item{features}{[\code{character}]\cr
+#'     Features argument input.}
+#'   \item{interaction}{[\code{logical(1)}]\cr
+#'     Whether or not the features were interacted (i.e. conditioning).}
+#'   \item{derivative}{[\code{logical(1)}]\cr
+#'     Whether or not the partial derivative was estimated.}
+#'   \item{individual}{[\code{logical(1)}]\cr
+#'     Whether the partial predictions were aggregated or the individual curves are retained.}
+#'   \item{center}{[\code{logical(1)}]\cr
+#'     If \code{individual == TRUE} whether the partial prediction at the values of the
+#'                 features specified was subtracted from the individual partial predictions. Only displayed if
+#'                 \code{individual == TRUE}.}
 #' @references
 #' Goldstein, Alex, Adam Kapelner, Justin Bleich, and Emil Pitkin. \dQuote{Peeking inside the black box: Visualizing statistical learning with plots of individual conditional expectation.} Journal of Computational and Graphical Statistics. Vol. 24, No. 1 (2015): 44-65.
+#'
 #' Friedman, Jerome. \dQuote{Greedy Function Approximation: A Gradient Boosting Machine.} The Annals of Statistics. Vol. 29. No. 5 (2001): 1189-1232.
 #' @examples
 #' lrn = makeLearner("regr.rpart")
@@ -382,29 +407,6 @@ doIndividualPartialPrediction = function(out, td, n = nrow(data), rng, target, f
   }
   out
 }
-#' Result of \code{\link{generatePartialPredictionData}}.
-#'
-#' @family partial_prediction
-#'
-#' \itemize{
-#'   \item{data \code{data.frame}}{Has columns for the prediction: one column for regression and
-#'   survival analysis, and a column for class and the predicted probability for classification as well
-#'   as a a column for each element of \code{features}. If \code{individual = TRUE} then there is an
-#'   additional column \code{idx} which gives the index of the \code{data} that each prediction corresponds to.}
-#'   \item{task.desc \code{\link{TaskDesc}}}{Task description}.
-#'   \item{features}{Features argument input}.
-#'   \item{target}{Target feature for regression, target feature levels for classification,
-#'         survival and event indicator for survival.}
-#'   \item{derivative}{Whether or not the partial derivative was estimated.}
-#'   \item{interaction}{Whether or not the features were interacted (i.e. conditioning)}
-#'   \item{individual}{Whether the parial predictions were aggregated or the individual curves are retained.}
-#'   \item{center}{If \code{individual == TRUE} whether the partial prediction at the values of the
-#'                 features specified was subtracted from the individual partial predictions. Only displayed if
-#'                 \code{individual == TRUE}.}
-#' }
-#' @name PartialPredictionData
-#' @rdname PartialPredictionData
-NULL
 #' @export
 print.PartialPredictionData = function(x, ...) {
   catf("PartialPredictionData")
@@ -418,7 +420,7 @@ print.PartialPredictionData = function(x, ...) {
     catf("Predictions centered: %s", x$center)
   print(head(x$data))
 }
-#' @title Plot a partial prediction with ggplot2
+#' @title Plot a partial prediction with ggplot2.
 #' @description
 #' Plot a partial prediction from \code{\link{generatePartialPredictionData}} using ggplot2.
 #'
@@ -427,6 +429,13 @@ print.PartialPredictionData = function(x, ...) {
 #'
 #' @param obj [\code{PartialPredictionData}]\cr
 #'   Generated by \code{\link{generatePartialPredictionData}}.
+#' @param geom [\code{charater(1)}]\cr
+#'   The type of geom to use to display the data. Can be \dQuote{line} or \dQuote{tile}.
+#'   For tiling at least two features must be used with \code{interaction = TRUE} in the call to
+#'   \code{\link{generatePartialPredictionData}}. This may be used in conjuction with the
+#'   \code{facet} argument if three features are specified in the call to
+#'   \code{\link{generatePartialPredictionData}}.
+#'   Default is \dQuote{line}.
 #' @param facet [\code{character(1)}]\cr
 #'   The name of a feature to be used for facetting.
 #'   This feature must have been an element of the \code{features} argument to
@@ -444,10 +453,52 @@ print.PartialPredictionData = function(x, ...) {
 #'   Default is \code{1}.
 #' @template ret_gg2
 #' @export
-plotPartialPrediction = function(obj, facet = NULL, p = 1) {
+plotPartialPrediction = function(obj, geom = "line", facet = NULL, p = 1) {
   assertClass(obj, "PartialPredictionData")
-  if (!is.null(facet))
+  if (length(obj$features) > 2L & geom != "tile" & obj$interaction)
+    stop("To plot more than 2 features geom must be 'tile'!")
+  assertChoice(geom, c("tile", "line"))
+  if (geom == "tile") {
+    if (!(obj$task.desc$type %in% c("regr", "surv"))) {
+      if (length(obj$task.desc$class.levels) > 2L)
+        stop("Only visualization of binary classification works with tiling!")
+    }
+
+    feat_classes = sapply(obj$data, class)
+    if (any(feat_classes == "factor")) {
+      fact_feats = names(feat_classes[feat_classes == "factor"])
+      if (!is.null(facet))
+        fact_feats = fact_feats[which(fact_feats != facet)]
+      do_not_contour = length(fact_feats) > 0L
+    } else
+      do_not_contour = FALSE
+
+    if (do_not_contour)
+      warning("Factor features cannot be used to create contour plots! only tiles will be displayed.")
+    if (!obj$interaction)
+      stop("generatePartialPredictionData was called with interaction = FALSE!")
+  }
+
+  if (!is.null(facet)) {
     assertChoice(facet, obj$features)
+    if (!length(obj$features) %in% 2:3)
+      stop("generatePartialPrediction must be called with two or three features to use this argument!")
+    if (!obj$interaction)
+      stop("generatePartialPrediction must be called with interaction = TRUE to use this argument!")
+    features = obj$features[which(obj$features != facet)]
+    if (!is.factor(obj$data[[facet]]))
+      obj$data[[facet]] = paste(facet, "=", as.factor(signif(obj$data[[facet]], 2)), sep = " ")
+    else
+      obj$data[[facet]] = paste(facet, "=", obj$data[[facet]])
+    scales = "fixed"
+  } else {
+    features = obj$features
+    if (length(features) > 1L & !(length(features) == 2L & geom == "tile")) {
+      facet = "Feature"
+      scales = "free_x"
+    }
+  }
+
   if (p != 1) {
     assertNumber(p, lower = 0, upper = 1, finite = TRUE)
     if (!obj$individual)
@@ -457,90 +508,62 @@ plotPartialPrediction = function(obj, facet = NULL, p = 1) {
     obj$data = obj$data[which(obj$data$idx %in% id), ]
   }
 
-  if (obj$interaction & length(obj$features) > 2L)
-    stop("It is only possible to plot 2 features with this function.")
-
-  if (obj$interaction & length(obj$features) == 2L) {
-    if (is.null(facet))
-      facet = obj$features[-which.max(sapply(obj$features, function(x) length(unique(obj$data[[x]]))))]
-    feature = obj$features[which(obj$features != facet)]
-    if (!is.factor(obj$data[[facet]]))
-      obj$data[[facet]] = paste(facet, "=", as.factor(signif(obj$data[[facet]], 2)), sep = " ")
-    else
-      obj$data[[facet]] = paste(facet, "=", obj$data[[facet]])
-    scales = "fixed"
-  } else if (!obj$interaction & length(obj$features) > 1L) {
-    feature = obj$features
-    facet = "Feature"
-    scales = "free_x"
-  } else {
-    feature = obj$features
-    facet = NULL
-    scales = "fixed"
-  }
-
   if (obj$task.desc$type %in% c("regr", "classif"))
     target = obj$task.desc$target
   else
     target = "Risk"
 
-  bounds = all(c("lower", "upper") %in% colnames(obj$data) & obj$task.desc$type %in% c("surv", "regr"))
+  bounds = all(c("lower", "upper") %in% colnames(obj$data) & obj$task.desc$type %in% c("surv", "regr") &
+                 length(features) < 3L & geom == "line")
 
-  if (obj$task.desc$type == "classif" & all(obj$target %in% obj$task.desc$class.levels)) {
-    if (length(feature) > 1L & !obj$interaction) {
-      ## suppress warnings for reshaping vectors of different types
-      ## factors are coerced to numeric/integers
-      ## not a way to avoid this with facetting since everything is on one scale
-      id = colnames(obj$data)[!colnames(obj$data) %in% obj$features]
-      out = reshape2::melt(obj$data, id.vars = id, variable = "Feature", value.name = "Value", na.rm = TRUE)
-      if (length(unique(out$Class)) == 2L)
-        out = out[out$Class == obj$task.desc$positive, ]
-      if (!obj$individual)
-        plt = ggplot(out, aes_string("Value", "Probability", group = "Class", color = "Class"))
+  if (geom == "line") {
+    obj$data = melt(obj$data, id.vars = colnames(obj$data)[!colnames(obj$data) %in% features],
+                    variable = "Feature", value.name = "Value", na.rm = TRUE)
+    if (!obj$individual) {
+      if (obj$task.desc$type %in% c("regr", "surv"))
+        plt = ggplot(obj$data, aes_string("Value", target))
       else
-        plt = ggplot(out, aes_string("Value", "Probability", group = "idx", color = "Class"))
-      plt = plt + facet_wrap(as.formula("~ Feature"), scales = "free_x")
+        plt = ggplot(obj$data, aes_string("Value", "Probability", group = "Class", color = "Class"))
     } else {
-      if (!obj$individual)
-        plt = ggplot(obj$data, aes_string(feature, "Probability", group = "Class", color = "Class"))
+      if (obj$task.desc$type %in% c("regr", "surv"))
+        plt = ggplot(obj$data, aes_string("Value", target, group = "idx"))
       else
-        plt = ggplot(obj$data, aes_string(feature, "Probability", group = "idx", color = "Class"))
+        plt = ggplot(obj$data, aes_string("Value", "Probability", group = "idx", color = "Class"))
     }
-  } else {
-    if (length(feature) > 1L) {
-      id = c(target, colnames(obj$data)[!colnames(obj$data) %in% obj$features])
-      out = reshape2::melt(obj$data, id.vars = id, variable = "Feature", value.name = "Value", na.rm = TRUE)
-      if (!obj$individual)
-        plt = ggplot(out, aes_string("Value", target))
+
+    if (length(features) == 1L) {
+      if (obj$task.desc$type %in% c("regr", "surv"))
+        plt = plt + labs(x = features, y = target)
       else
-        plt = ggplot(out, aes_string("Value", target, group = "idx"))
-    } else {
-      if (!obj$individual)
-        plt = ggplot(obj$data, aes_string(feature, target))
-      else
-        plt = ggplot(obj$data, aes_string(feature, target, group = "idx"))
+        plt = plt + labs(x = features)
     }
+
+    if (obj$individual)
+      plt = plt + geom_line(alpha = .25)
+    else
+      plt = plt + geom_line() + geom_point()
+
+    if (bounds)
+      plt = plt + geom_ribbon(aes_string(ymin = "lower", ymax = "upper"), alpha = .5)
+
+    if (obj$center)
+      plt = plt + ylab(paste(target, "(centered)"))
+
+    if (obj$derivative)
+      plt = plt + ylab(paste(target, "(derivative)"))
+  } else { ## tiling
+    plt = ggplot(obj$data, aes_string(x = features[1], y = features[2], z = target))
+    plt = plt + geom_tile(aes_string(fill = target))
+    if (!do_not_contour)
+      plt = plt + stat_contour()
   }
-  if (!obj$individual)
-    plt = plt + geom_line() + geom_point()
-  else
-    plt = plt + geom_line(alpha = .25)
-
-  if (bounds)
-    plt = plt + geom_ribbon(aes_string(ymin = "lower", ymax = "upper"), alpha = .5)
 
   if (!is.null(facet))
     plt = plt + facet_wrap(as.formula(paste0("~ ", facet)), scales = scales)
 
-  if (obj$center)
-    plt = plt + ylab(paste(target, "(centered)"))
-
-  if (obj$derivative)
-    plt = plt + ylab(paste(target, "(derivative)"))
-
   plt
 }
-#' @title Plot a partial prediction using ggvis
+#' @title Plot a partial prediction using ggvis.
 #' @description
 #' Plot a partial prediction from \code{\link{generatePartialPredictionData}} using ggvis.
 #'

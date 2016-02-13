@@ -2,8 +2,7 @@
 makeRLearner.regr.glmnet = function() {
   makeRLearnerRegr(
     cl = "regr.glmnet",
-    # FIXME: Required for predict to work properly :(
-    package = "!glmnet",
+    package = "glmnet",
     par.set = makeParamSet(
       makeDiscreteLearnerParam(id = "family", values = c("gaussian", "poisson"), default = "gaussian"),
       makeNumericLearnerParam(id = "alpha", default = 1, lower = 0, upper = 1),
@@ -39,7 +38,7 @@ makeRLearner.regr.glmnet = function() {
     par.vals = list(s = 0.01),
     name = "GLM with Lasso or Elasticnet Regularization",
     short.name = "glmnet",
-    note = "Factors automatically get converted to dummy columns, ordered factors to integer"
+    note = "Factors automatically get converted to dummy columns, ordered factors to integer."
   )
 }
 

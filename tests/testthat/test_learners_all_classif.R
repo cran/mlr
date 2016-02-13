@@ -1,3 +1,4 @@
+context("learners_all_classif")
 
 test_that("learners work: classif ", {
 
@@ -52,7 +53,7 @@ test_that("learners work: classif ", {
   task = subsetTask(binaryclass.task, subset = c(1:10, 180:190),
     features = getTaskFeatureNames(binaryclass.task)[12:15])
   lrns = mylist(task, properties = "prob")
-  lrns = lapply(lrns, makeLearner, predict.type = "prob")
+  lrns = lapply(lrns$class, makeLearner, predict.type = "prob")
   lapply(lrns, function(lrn) {
     lrn = fixHyperPars(lrn)
     m = train(lrn, task)
@@ -65,7 +66,7 @@ test_that("learners work: classif ", {
   task = makeClassifTask(data = binaryclass.df, target = binaryclass.target)
   task = subsetTask(task, subset = c(1:10, 150:160), features = getTaskFeatureNames(task)[1:2])
   lrns = mylist(task, properties = "weights")
-  lrns = lapply(lrns, makeLearner)
+  lrns = lapply(lrns$class, makeLearner)
   lapply(lrns, function(lrn) {
     lrn = fixHyperPars(lrn)
     m = train(lrn, task, weights = 1:getTaskSize(task))
@@ -111,7 +112,7 @@ test_that("weightedClassWrapper on all binary learners",  {
   }
 
   learners = listLearners(binaryclass.task, "class.weights")
-  x = lapply(learners, function(lrn) {
+  x = lapply(learners$class, function(lrn) {
     cm1 = f(lrn, 0.001)
     cm2 = f(lrn, 1)
     cm3 = f(lrn, 1000)
@@ -132,7 +133,7 @@ test_that("WeightedClassWrapper on all multiclass learners",  {
   }
 
   learners = listLearners(multiclass.task, "class.weights")
-  x = lapply(learners, function(lrn) {
+  x = lapply(learners$class, function(lrn) {
     classes = getTaskFactorLevels(multiclass.task)[[multiclass.target]]
     n = length(classes)
     cm1 = f(lrn, setNames(object = c(10000, 1, 1), classes))

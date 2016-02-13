@@ -25,6 +25,7 @@ makeRLearner.classif.xgboost = function() {
       makeNumericLearnerParam(id = "missing", default = 0),
       makeIntegerLearnerParam(id = "nthread", default = 16,lower = 1),
       makeIntegerLearnerParam(id = "nrounds", default = 1, lower = 1),
+      makeUntypedLearnerParam(id = "feval", default = NULL),
       makeIntegerLearnerParam(id = "verbose", default = 2, lower = 0, upper = 2),
       makeIntegerLearnerParam(id = "print.every.n", default = 1, lower = 1),
       makeIntegerLearnerParam(id = "early.stop.round", default = 1, lower = 1),
@@ -34,7 +35,7 @@ makeRLearner.classif.xgboost = function() {
     properties = c("twoclass", "multiclass", "numerics", "factors", "prob", "weights"),
     name = "eXtreme Gradient Boosting",
     short.name = "xgboost",
-    note = "All setting are passed directly, rather than through xgboost's 'param'. 'rounds' set to 1 by default"
+    note = "All settings are passed directly, rather than through `xgboost`'s `params` argument. `nrounds` has been set to `1` by default."
   )
 }
 
@@ -49,11 +50,11 @@ trainLearner.classif.xgboost = function(.learner, .task, .subset, .weights = NUL
   if (length(td$class.levels) == 2L) {
     parlist = list(...)
     obj = parlist$objective
-    if (testNull(obj)) {
+    if (is.null(obj)) {
       obj = "binary:logistic"
     }
 
-    if (testNull(.weights)) {
+    if (is.null(.weights)) {
       xgboost::xgboost(data = data, label = target, objective = obj, ...)
     } else {
       xgb.dmat = xgboost::xgb.DMatrix(data = data, label = target, weight = .weights)
@@ -62,12 +63,12 @@ trainLearner.classif.xgboost = function(.learner, .task, .subset, .weights = NUL
   } else {
     parlist = list(...)
     obj = parlist$objective
-    if (testNull(obj)) {
+    if (is.null(obj)) {
       obj = "multi:softprob"
     }
     num_class = length(td$class.levels)
 
-    if (testNull(.weights)) {
+    if (is.null(.weights)) {
       xgboost::xgboost(data = data, label = target, objective = obj, num_class = num_class, ...)
     } else {
       xgb.dmat = xgboost::xgb.DMatrix(data = data, label = target, weight = .weights)
