@@ -39,16 +39,17 @@ convertBMRToRankMatrix = function(bmr, measure = NULL, ties.method = "average", 
   # calculate ranks, rank according to minimize option of the measure
   if (!measure$minimize)
     df$x = -df$x
-  df = ddply(df, "task.id", function(d) {
+  df = plyr::ddply(df, "task.id", function(d) {
     d$alg.rank = rank(d$x, ties.method = ties.method)
     return(d)
   })
 
   # convert into matrix, rows = leaner, cols = tasks
-  df = melt(df, c("task.id", "learner.id"), "alg.rank")
-  df = dcast(df, learner.id ~ task.id )
-  rownames(df) = df$learner.id
-  mat = as.matrix(df[,colnames(df) != "learner.id"])
-
+  df = reshape2::melt(df, c("task.id", "learner.id"), "alg.rank")
+  df = reshape2::dcast(df, learner.id ~ task.id )
+  task.id.names = setdiff(colnames(df), "learner.id")
+  mat = as.matrix(df[, task.id.names])
+  rownames(mat) = df$learner.id
+  colnames(mat) = task.id.names
   return(mat)
 }

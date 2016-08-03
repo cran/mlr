@@ -50,7 +50,7 @@ friedmanPostHocTestBMR = function(bmr, measure = NULL, p.value = 0.05, aggregati
   }
   # Perform Friedman Test
   f.test = friedmanTestBMR(bmr, measure)
-  if(!is.na(f.test$p.value)) {
+  if (!is.na(f.test$p.value)) {
     f.rejnull = f.test$p.value < p.value
     if (!f.rejnull)
       warning("Cannot reject null hypothesis of overall Friedman test,
@@ -67,7 +67,7 @@ friedmanPostHocTestBMR = function(bmr, measure = NULL, p.value = 0.05, aggregati
   cd.bd = q.bd * sqrt(n.learners * (n.learners + 1L) / (6L * n.tasks))
   
   if (f.rejnull) {
-    form = as.formula(paste(aggr.meas, " ~ learner.id | task.id", sep = ""))
+    form = as.formula(stri_paste(aggr.meas, " ~ learner.id | task.id", sep = ""))
     nem.test = PMCMR::posthoc.friedman.nemenyi.test(form, data = df)
     nem.test$crit.difference = list("nemenyi" = cd.nemenyi, "bd" = cd.bd)
     nem.test$f.rejnull = f.rejnull

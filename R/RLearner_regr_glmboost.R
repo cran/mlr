@@ -14,6 +14,7 @@ makeRLearner.regr.glmboost = function() {
       makeDiscreteLearnerParam(id = "m", default = "mstop", values = c("mstop", "cv", "aic"))
       ),
     par.vals = list(m = "mstop"),
+    # FIXME Parameter m not found in help of glmboost() or mboost_fit() nor in mstop(), par.vals and LernerParam default are same
     properties = c("numerics", "factors", "weights"),
     name = "Boosting for GLMs",
     short.name = "glmboost",
@@ -21,8 +22,8 @@ makeRLearner.regr.glmboost = function() {
   )
 }
 #' @export
-trainLearner.regr.glmboost = function(.learner, .task, .subset, .weights = NULL, mstop, nu, m, risk, ...) {
-  ctrl = learnerArgsToControl(mboost::boost_control, mstop, nu, risk)
+trainLearner.regr.glmboost = function(.learner, .task, .subset, .weights = NULL, mstop, nu, m, risk, trace, stopintern, ...) {
+  ctrl = learnerArgsToControl(mboost::boost_control, mstop, nu, risk, trace, stopintern)
   d = getTaskData(.task, .subset)
   f = getTaskFormula(.task)
   if (is.null(.weights)) {

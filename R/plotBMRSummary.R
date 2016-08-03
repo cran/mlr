@@ -20,13 +20,15 @@
 #' @param jitter [\code{numeric(1)}]\cr
 #'   Small vertical jitter to deal with overplotting in case of equal scores.
 #'   Default is 0.05.
+#' @template arg_prettynames
 #' @template ret_gg2
 #' @family benchmark
 #' @family plot
 #' @export
 #' @examples
 #' # see benchmark
-plotBMRSummary = function(bmr, measure = NULL, trafo = "none", order.tsks = NULL, pointsize = 4L, jitter = 0.05) {
+plotBMRSummary = function(bmr, measure = NULL, trafo = "none", order.tsks = NULL,
+  pointsize = 4L, jitter = 0.05, pretty.names = TRUE) {
   assertClass(bmr, "BenchmarkResult")
   measure = checkBMRMeasure(measure, bmr)
   assertChoice(trafo, c("none", "rank"))
@@ -41,11 +43,11 @@ plotBMRSummary = function(bmr, measure = NULL, trafo = "none", order.tsks = NULL
 
   # trafo to ranks manually here
   if (trafo == "rank") {
-    df = ddply(df, "task.id", function(d) {
+    df = plyr::ddply(df, "task.id", function(d) {
       d[, meas.name] = rank(d[, meas.name], ties.method = "average")
       return(d)
     })
-    xlab.string = paste("rank of", xlab.string)
+    xlab.string = stri_paste("rank of", xlab.string, sep = " ")
   }
 
   df = orderBMRTasks(bmr, df, order.tsks)
@@ -55,6 +57,10 @@ plotBMRSummary = function(bmr, measure = NULL, trafo = "none", order.tsks = NULL
   # we dont need y label, the task names speak for themselves
   p = p + ylab("")
   p = p + xlab(xlab.string)
+  if (pretty.names) {
+    lrns.short = getBMRLearnerShortNames(bmr)
+    p = p + scale_colour_discrete(labels = lrns.short)
+  }
   return(p)
 }
 

@@ -1,3 +1,12 @@
+library(checkmate)
+
+requirePackagesOrSkip = function (packs, default.method = "attach") {
+  ok = requirePackages(packs, why = "unit test", stop = FALSE, suppress.warnings = TRUE, default.method = default.method)
+  if (any(!ok))
+    skip(sprintf("Required packages not installed: %s", collapse(names(ok)[!ok])))
+  invisible(TRUE)
+}
+
 e1071CVToMlrCV = function(e1071.tune.result) {
   tr = e1071.tune.result
   inds = tr$train.ind
@@ -48,19 +57,27 @@ testSimple = function(t.name, df, target, train.inds, old.predicts, parset = lis
     task = makeClassifTask(data = df, target = target)
   else if (is.data.frame(df[, target]) && is.numeric(df[, target[1L]]) && is.logical(df[, target[2L]]))
     task = makeSurvTask(data = df, target = target)
+  else if (is.data.frame(df[, target]) && is.logical(df[, target[1L]]))
+    task = makeMultilabelTask(data = df, target = target)
   else
     stop("Should not happen!")
   m = try(train(lrn, task, subset = inds))
 
-  if(inherits(m, "FailureModel")){
+  if (inherits(m, "FailureModel")){
     expect_is(old.predicts, "try-error")
   } else {
     cp = predict(m, newdata = test)
+    # Multilabel has a special data structure
+    if (class(task)[1] == "MultilabelTask") {
+      rownames(cp$data) = NULL
+      expect_equal(unname(cp$data[, substr(colnames(cp$data), 1, 8) == "response"]), unname(old.predicts))
+    } else {
     # to avoid issues with dropped levels in the class factor we only check the elements as chars
     if (is.numeric(cp$data$response) && is.numeric(old.predicts))
       expect_equal(unname(cp$data$response), unname(old.predicts), tol = 1e-5)
     else
       expect_equal(as.character(cp$data$response), as.character(old.predicts))
+    }
   }
 }
 
@@ -81,9 +98,12 @@ testProb = function(t.name, df, target, train.inds, old.probs, parset = list()) 
   inds = train.inds
   train = df[inds,]
   test = df[-inds,]
-
-  task = makeClassifTask(data = df, target = target)
-
+  
+  if(length(target) == 1) {
+    task = makeClassifTask(data = df, target = target)
+  } else {
+    task = makeMultilabelTask(data = df, target = target)
+  }
   lrn = do.call("makeLearner", c(t.name, parset, predict.type = "prob"))
   m = try(train(lrn, task, subset = inds))
 
@@ -204,4 +224,9 @@ mylist = function(..., create = FALSE) {
     ids = lrns$class
     return(lrns[!grepl("mock", ids),])
   }
+}
+
+testFacetting = function(obj, nrow = NULL, ncol = NULL) {
+  expect_equal(obj$facet$nrow, nrow)
+  expect_equal(obj$facet$ncol, ncol)
 }

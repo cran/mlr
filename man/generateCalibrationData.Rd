@@ -68,8 +68,9 @@ Other calibration: \code{\link{plotCalibration}}
 
 Other generate_plot_data: \code{\link{generateCritDifferencesData}},
   \code{\link{generateFilterValuesData}},
+  \code{\link{generateFunctionalANOVAData}},
   \code{\link{generateLearningCurveData}},
-  \code{\link{generatePartialPredictionData}},
+  \code{\link{generatePartialDependenceData}},
   \code{\link{generateThreshVsPerfData}},
   \code{\link{getFilterValues}}
 }
