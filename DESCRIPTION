@@ -17,42 +17,48 @@ Authors@R: c(
     person("Jakob", "Richter", email = "code@jakob-r.de", role = "aut"),
     person("Zachary", "Jones", email = "zmj@zmjones.com", role = "aut"),
     person("Giuseppe", "Casalicchio", email = "giuseppe.casalicchio@stat.uni-muenchen.de", role = "aut"),
+    person("Mason", "Gallo", email = "masonagallo@gmail.com", role = "aut"),
     person("Jakob", "Bossek", email = "jakob.bossek@tu-dortmund.de", role = "ctb"),
     person("Erich", "Studerus", email = "erich.studerus@upkbs.ch", role = "ctb"),
     person("Leonard","Judt", email = "leonard.judt@tu-dortmund.de", role = "ctb"),
     person("Tobias", "Kuehn", email = "tobi.kuehn@gmx.de", role = "ctb"),
     person("Pascal", "Kerschke", email = "kerschke@uni-muenster.de", role = "ctb"),
-    person("Florian", "Fendt", email = "flo_fendt@gmx.de", role = "ctb"))
+    person("Florian", "Fendt", email = "flo_fendt@gmx.de", role = "ctb"),
+    person("Philipp", "Probst", email = "philipp_probst@gmx.de", role = "ctb"),
+    person("Xudong", "Sun", email = "xudong.sun@stat.uni-muenchen.de", role = "ctb"),
+    person("Janek", "Thomas", email = "janek.thomas@stat.uni-muenchen.de", role = "ctb"),
+    person("Bruno", "Vieira", email = "bruno.hebling.vieira@usp.br", role = "ctb"))
 URL: https://github.com/mlr-org/mlr
 BugReports: https://github.com/mlr-org/mlr/issues
 License: BSD_2_clause + file LICENSE
 Encoding: UTF-8
-Depends: R (>= 3.0.2), BBmisc (>= 1.10), ggplot2, ParamHelpers (>=
-        1.8), stats, stringi
-Imports: checkmate (>= 1.8.1), data.table, ggvis, methods, parallelMap
-        (>= 1.3), plyr, reshape2, shiny, survival, utils
+Depends: R (>= 3.0.2), ParamHelpers (>= 1.8)
+Imports: BBmisc (>= 1.10), backports, ggplot2, stats, stringi,
+        checkmate (>= 1.8.1), data.table, methods, parallelMap (>=
+        1.3), survival, utils
 Suggests: ada, adabag, bartMachine, brnn, bst, C50, care, caret (>=
-        6.0-57), class, clue, cluster, clusterSim, clValid, cmaes,
-        CoxBoost, crs, Cubist, deepnet, DiceKriging, DiceOptim,
-        DiscriMiner, e1071, earth, elasticnet, elmNN, emoa, extraTrees,
-        flare, fields, FNN, fpc, frbs, FSelector, gbm, GenSA, glmnet,
-        h2o (>= 3.6.0.8), GPfit, Hmisc, irace (>= 1.0.7), kernlab,
-        kknn, klaR, knitr, kohonen, laGP, LiblineaR, lqa, MASS, mboost,
-        mco, mda, mlbench, modeltools, mRMRe, nnet, nodeHarvest (>=
-        0.7-3), neuralnet, numDeriv, pamr, party, penalized (>=
-        0.9-47), pls, PMCMR (>= 4.1), pROC (>= 1.8), randomForest,
-        randomForestSRC (>= 2.2.0), ranger (>= 0.5.0), RCurl, rFerns,
-        rjson, rknn, rmarkdown, robustbase, ROCR, rotationForest,
-        rpart, RRF, rrlda, rsm, RSNNS, RWeka, sda, smoof,
-        sparsediscrim, sparseLDA, stepPlr, SwarmSVM, svglite, testthat,
-        tgp, TH.data, xgboost, XML
+        6.0-57), class, clue, cluster, clusterSim (>= 0.44-5), clValid,
+        cmaes, CoxBoost, crs, Cubist, deepnet, DiceKriging, DiceOptim,
+        DiscriMiner, e1071, earth, elasticnet, elmNN, emoa, evtree,
+        extraTrees, flare, fields, FNN, fpc, frbs, FSelector, gbm,
+        GenSA, ggvis, glmnet, h2o (>= 3.6.0.8), GPfit, Hmisc, ipred,
+        irace (>= 2.0), kernlab, kknn, klaR, knitr, kohonen, laGP,
+        LiblineaR, lqa, MASS, mboost, mco, mda, mlbench, mldr,
+        modeltools, mRMRe, nnet, nodeHarvest (>= 0.7-3), neuralnet,
+        numDeriv, pamr, party, penalized (>= 0.9-47), pls, PMCMR (>=
+        4.1), pROC (>= 1.8), randomForest, randomForestSRC (>= 2.2.0),
+        ranger (>= 0.6.0), RCurl, Rfast, rFerns, rjson, rknn,
+        rmarkdown, robustbase, ROCR, rotationForest, rpart, RRF, rrlda,
+        rsm, RSNNS, RWeka, sda, shiny, smoof, sparsediscrim, sparseLDA,
+        stepPlr, SwarmSVM, svglite, testthat, tgp, TH.data, xgboost (>=
+        0.6-2), XML
 LazyData: yes
 ByteCompile: yes
-Version: 2.9
+Version: 2.10
 VignetteBuilder: knitr
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 NeedsCompilation: yes
-Packaged: 2016-08-03 15:07:14 UTC; bischl
+Packaged: 2017-02-06 21:24:04 UTC; bischl
 Author: Bernd Bischl [aut, cre],
   Michel Lang [aut],
   Lars Kotthoff [aut],
@@ -60,12 +66,17 @@ Author: Bernd Bischl [aut, cre],
   Jakob Richter [aut],
   Zachary Jones [aut],
   Giuseppe Casalicchio [aut],
+  Mason Gallo [aut],
   Jakob Bossek [ctb],
   Erich Studerus [ctb],
   Leonard Judt [ctb],
   Tobias Kuehn [ctb],
   Pascal Kerschke [ctb],
-  Florian Fendt [ctb]
+  Florian Fendt [ctb],
+  Philipp Probst [ctb],
+  Xudong Sun [ctb],
+  Janek Thomas [ctb],
+  Bruno Vieira [ctb]
 Maintainer: Bernd Bischl <bernd_bischl@gmx.net>
 Repository: CRAN
-Date/Publication: 2016-08-03 18:03:22
+Date/Publication: 2017-02-07 10:08:42

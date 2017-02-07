@@ -12,7 +12,7 @@
 
 <meta name="author" content="Bernd Bischl, Michel Lang, Jakob Richter, Jakob Bossek, Leonard Judt, Tobias Kuehn, Erich Studerus, Lars Kotthoff" />
 
-<meta name="date" content="2016-08-03" />
+<meta name="date" content="2017-02-06" />
 
 <title>mlr: Machine Learning in R</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">mlr: Machine Learning in R</h1>
 <h4 class="author"><em>Bernd Bischl, Michel Lang, Jakob Richter, Jakob Bossek, Leonard Judt, Tobias Kuehn, Erich Studerus, Lars Kotthoff</em></h4>
-<h4 class="date"><em>2016-08-03</em></h4>
+<h4 class="date"><em>2017-02-06</em></h4>
 
 
 
@@ -108,10 +108,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <h2>Quick Start</h2>
 <p>To highlight the main principles of <code>mlr</code> we give a quick introduction to the package. We demonstrate how to simply perform a classification analysis using a stratified cross validation, which illustrates some of the major building blocks of the <code>mlr</code> workflow, namely tasks and learners.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(mlr)</code></pre></div>
-<pre><code>## Loading required package: BBmisc</code></pre>
-<pre><code>## Loading required package: ggplot2</code></pre>
 <pre><code>## Loading required package: ParamHelpers</code></pre>
-<pre><code>## Loading required package: stringi</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(iris)
 
 ## Define the task:
@@ -146,25 +143,33 @@ rdesc =<span class="st"> </span><span class="kw">makeResampleDesc</span>(<span c
 
 ## Do the resampling:
 r =<span class="st"> </span><span class="kw">resample</span>(<span class="dt">learner =</span> lrn, <span class="dt">task =</span> task, <span class="dt">resampling =</span> rdesc)</code></pre></div>
-<pre><code>## [Resample] cross-validation iter: 1</code></pre>
-<pre><code>## [Resample] cross-validation iter: 2</code></pre>
-<pre><code>## [Resample] cross-validation iter: 3</code></pre>
-<pre><code>## [Resample] cross-validation iter: 4</code></pre>
-<pre><code>## [Resample] cross-validation iter: 5</code></pre>
-<pre><code>## [Resample] cross-validation iter: 6</code></pre>
-<pre><code>## [Resample] cross-validation iter: 7</code></pre>
-<pre><code>## [Resample] cross-validation iter: 8</code></pre>
-<pre><code>## [Resample] cross-validation iter: 9</code></pre>
-<pre><code>## [Resample] cross-validation iter: 10</code></pre>
-<pre><code>## [Resample] Result: mmce.test.mean=0.02</code></pre>
+<pre><code>## [Resample] cross-validation iter 1:</code></pre>
+<pre><code>## mmce.test.mean=   0</code></pre>
+<pre><code>## [Resample] cross-validation iter 2:</code></pre>
+<pre><code>## mmce.test.mean=   0</code></pre>
+<pre><code>## [Resample] cross-validation iter 3:</code></pre>
+<pre><code>## mmce.test.mean=   0</code></pre>
+<pre><code>## [Resample] cross-validation iter 4:</code></pre>
+<pre><code>## mmce.test.mean=   0</code></pre>
+<pre><code>## [Resample] cross-validation iter 5:</code></pre>
+<pre><code>## mmce.test.mean=   0</code></pre>
+<pre><code>## [Resample] cross-validation iter 6:</code></pre>
+<pre><code>## mmce.test.mean=0.0667</code></pre>
+<pre><code>## [Resample] cross-validation iter 7:</code></pre>
+<pre><code>## mmce.test.mean=   0</code></pre>
+<pre><code>## [Resample] cross-validation iter 8:</code></pre>
+<pre><code>## mmce.test.mean=   0</code></pre>
+<pre><code>## [Resample] cross-validation iter 9:</code></pre>
+<pre><code>## mmce.test.mean=0.0667</code></pre>
+<pre><code>## [Resample] cross-validation iter 10:</code></pre>
+<pre><code>## mmce.test.mean=0.0667</code></pre>
+<pre><code>## [Resample] Aggr. Result: mmce.test.mean=0.02</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">print</span>(r)</code></pre></div>
 <pre><code>## Resample Result
 ## Task: tutorial
 ## Learner: classif.lda
-## mmce.aggr: 0.02
-## mmce.mean: 0.02
-## mmce.sd: 0.04
-## Runtime: 0.219985</code></pre>
+## Aggr perf: mmce.test.mean=0.02
+## Runtime: 0.177216</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## Get the mean misclassification error:
 r$aggr</code></pre></div>
 <pre><code>## mmce.test.mean 
@@ -184,112 +189,115 @@ r$aggr</code></pre></div>
 <h2>Thanks</h2>
 <p>We would like to thank the authors of all packages which <code>mlr</code> uses under the hood:</p>
 <ul>
-<li><a href="http://cran.r-project.org/package=BBmisc">BBmisc</a></li>
-<li><a href="http://cran.r-project.org/package=C50">C50</a></li>
-<li><a href="http://cran.r-project.org/package=CoxBoost">CoxBoost</a></li>
-<li><a href="http://cran.r-project.org/package=Cubist">Cubist</a></li>
-<li><a href="http://cran.r-project.org/package=DiceKriging">DiceKriging</a></li>
-<li><a href="http://cran.r-project.org/package=DiceOptim">DiceOptim</a></li>
-<li><a href="http://cran.r-project.org/package=DiscriMiner">DiscriMiner</a></li>
-<li><a href="http://cran.r-project.org/package=FNN">FNN</a></li>
-<li><a href="http://cran.r-project.org/package=FSelector">FSelector</a></li>
-<li><a href="http://cran.r-project.org/package=GPfit">GPfit</a></li>
-<li><a href="http://cran.r-project.org/package=GenSA">GenSA</a></li>
-<li><a href="http://cran.r-project.org/package=Hmisc">Hmisc</a></li>
-<li><a href="http://cran.r-project.org/package=LiblineaR">LiblineaR</a></li>
-<li><a href="http://cran.r-project.org/package=MASS">MASS</a></li>
-<li><a href="http://cran.r-project.org/package=PMCMR">PMCMR</a></li>
-<li><a href="http://cran.r-project.org/package=ParamHelpers">ParamHelpers</a></li>
-<li><a href="http://cran.r-project.org/package=RCurl">RCurl</a></li>
-<li><a href="http://cran.r-project.org/package=ROCR">ROCR</a></li>
-<li><a href="http://cran.r-project.org/package=RRF">RRF</a></li>
-<li><a href="http://cran.r-project.org/package=RSNNS">RSNNS</a></li>
-<li><a href="http://cran.r-project.org/package=RWeka">RWeka</a></li>
-<li><a href="http://cran.r-project.org/package=SwarmSVM">SwarmSVM</a></li>
-<li><a href="http://cran.r-project.org/package=TH.data">TH.data</a></li>
-<li><a href="http://cran.r-project.org/package=XML">XML</a></li>
-<li><a href="http://cran.r-project.org/package=ada">ada</a></li>
-<li><a href="http://cran.r-project.org/package=adabag">adabag</a></li>
-<li><a href="http://cran.r-project.org/package=bartMachine">bartMachine</a></li>
-<li><a href="http://cran.r-project.org/package=brnn">brnn</a></li>
-<li><a href="http://cran.r-project.org/package=bst">bst</a></li>
-<li><a href="http://cran.r-project.org/package=care">care</a></li>
-<li><a href="http://cran.r-project.org/package=caret">caret</a></li>
-<li><a href="http://cran.r-project.org/package=checkmate">checkmate</a></li>
-<li><a href="http://cran.r-project.org/package=clValid">clValid</a></li>
-<li><a href="http://cran.r-project.org/package=class">class</a></li>
-<li><a href="http://cran.r-project.org/package=clue">clue</a></li>
-<li><a href="http://cran.r-project.org/package=cluster">cluster</a></li>
-<li><a href="http://cran.r-project.org/package=clusterSim">clusterSim</a></li>
-<li><a href="http://cran.r-project.org/package=cmaes">cmaes</a></li>
-<li><a href="http://cran.r-project.org/package=crs">crs</a></li>
-<li><a href="http://cran.r-project.org/package=data.table">data.table</a></li>
-<li><a href="http://cran.r-project.org/package=deepnet">deepnet</a></li>
-<li><a href="http://cran.r-project.org/package=e1071">e1071</a></li>
-<li><a href="http://cran.r-project.org/package=earth">earth</a></li>
-<li><a href="http://cran.r-project.org/package=elasticnet">elasticnet</a></li>
-<li><a href="http://cran.r-project.org/package=elmNN">elmNN</a></li>
-<li><a href="http://cran.r-project.org/package=emoa">emoa</a></li>
-<li><a href="http://cran.r-project.org/package=extraTrees">extraTrees</a></li>
-<li><a href="http://cran.r-project.org/package=fields">fields</a></li>
-<li><a href="http://cran.r-project.org/package=flare">flare</a></li>
-<li><a href="http://cran.r-project.org/package=fpc">fpc</a></li>
-<li><a href="http://cran.r-project.org/package=frbs">frbs</a></li>
-<li><a href="http://cran.r-project.org/package=gbm">gbm</a></li>
-<li><a href="http://cran.r-project.org/package=ggplot2">ggplot2</a></li>
-<li><a href="http://cran.r-project.org/package=ggvis">ggvis</a></li>
-<li><a href="http://cran.r-project.org/package=glmnet">glmnet</a></li>
-<li><a href="http://cran.r-project.org/package=h2o">h2o</a></li>
-<li><a href="http://cran.r-project.org/package=irace">irace</a></li>
-<li><a href="http://cran.r-project.org/package=kernlab">kernlab</a></li>
-<li><a href="http://cran.r-project.org/package=kknn">kknn</a></li>
-<li><a href="http://cran.r-project.org/package=klaR">klaR</a></li>
-<li><a href="http://cran.r-project.org/package=knitr">knitr</a></li>
-<li><a href="http://cran.r-project.org/package=kohonen">kohonen</a></li>
-<li><a href="http://cran.r-project.org/package=laGP">laGP</a></li>
-<li><a href="http://cran.r-project.org/package=lqa">lqa</a></li>
-<li><a href="http://cran.r-project.org/package=mRMRe">mRMRe</a></li>
-<li><a href="http://cran.r-project.org/package=mboost">mboost</a></li>
-<li><a href="http://cran.r-project.org/package=mco">mco</a></li>
-<li><a href="http://cran.r-project.org/package=mda">mda</a></li>
-<li><a href="http://cran.r-project.org/package=mlbench">mlbench</a></li>
-<li><a href="http://cran.r-project.org/package=modeltools">modeltools</a></li>
-<li><a href="http://cran.r-project.org/package=neuralnet">neuralnet</a></li>
-<li><a href="http://cran.r-project.org/package=nnet">nnet</a></li>
-<li><a href="http://cran.r-project.org/package=nodeHarvest">nodeHarvest</a></li>
-<li><a href="http://cran.r-project.org/package=numDeriv">numDeriv</a></li>
-<li><a href="http://cran.r-project.org/package=pROC">pROC</a></li>
-<li><a href="http://cran.r-project.org/package=pamr">pamr</a></li>
-<li><a href="http://cran.r-project.org/package=parallelMap">parallelMap</a></li>
-<li><a href="http://cran.r-project.org/package=party">party</a></li>
-<li><a href="http://cran.r-project.org/package=penalized">penalized</a></li>
-<li><a href="http://cran.r-project.org/package=pls">pls</a></li>
-<li><a href="http://cran.r-project.org/package=plyr">plyr</a></li>
-<li><a href="http://cran.r-project.org/package=rFerns">rFerns</a></li>
-<li><a href="http://cran.r-project.org/package=randomForest">randomForest</a></li>
-<li><a href="http://cran.r-project.org/package=randomForestSRC">randomForestSRC</a></li>
-<li><a href="http://cran.r-project.org/package=ranger">ranger</a></li>
-<li><a href="http://cran.r-project.org/package=reshape2">reshape2</a></li>
-<li><a href="http://cran.r-project.org/package=rjson">rjson</a></li>
-<li><a href="http://cran.r-project.org/package=rknn">rknn</a></li>
-<li><a href="http://cran.r-project.org/package=rmarkdown">rmarkdown</a></li>
-<li><a href="http://cran.r-project.org/package=robustbase">robustbase</a></li>
-<li><a href="http://cran.r-project.org/package=rotationForest">rotationForest</a></li>
-<li><a href="http://cran.r-project.org/package=rpart">rpart</a></li>
-<li><a href="http://cran.r-project.org/package=rrlda">rrlda</a></li>
-<li><a href="http://cran.r-project.org/package=rsm">rsm</a></li>
-<li><a href="http://cran.r-project.org/package=sda">sda</a></li>
-<li><a href="http://cran.r-project.org/package=shiny">shiny</a></li>
-<li><a href="http://cran.r-project.org/package=smoof">smoof</a></li>
-<li><a href="http://cran.r-project.org/package=sparseLDA">sparseLDA</a></li>
-<li><a href="http://cran.r-project.org/package=sparsediscrim">sparsediscrim</a></li>
-<li><a href="http://cran.r-project.org/package=stepPlr">stepPlr</a></li>
-<li><a href="http://cran.r-project.org/package=stringi">stringi</a></li>
-<li><a href="http://cran.r-project.org/package=survival">survival</a></li>
-<li><a href="http://cran.r-project.org/package=svglite">svglite</a></li>
-<li><a href="http://cran.r-project.org/package=testthat">testthat</a></li>
-<li><a href="http://cran.r-project.org/package=tgp">tgp</a></li>
-<li><a href="http://cran.r-project.org/package=xgboost">xgboost</a></li>
+<li><a href="https://cran.r-project.org/package=BBmisc">BBmisc</a></li>
+<li><a href="https://cran.r-project.org/package=C50">C50</a></li>
+<li><a href="https://cran.r-project.org/package=CoxBoost">CoxBoost</a></li>
+<li><a href="https://cran.r-project.org/package=Cubist">Cubist</a></li>
+<li><a href="https://cran.r-project.org/package=DiceKriging">DiceKriging</a></li>
+<li><a href="https://cran.r-project.org/package=DiceOptim">DiceOptim</a></li>
+<li><a href="https://cran.r-project.org/package=DiscriMiner">DiscriMiner</a></li>
+<li><a href="https://cran.r-project.org/package=FNN">FNN</a></li>
+<li><a href="https://cran.r-project.org/package=FSelector">FSelector</a></li>
+<li><a href="https://cran.r-project.org/package=GPfit">GPfit</a></li>
+<li><a href="https://cran.r-project.org/package=GenSA">GenSA</a></li>
+<li><a href="https://cran.r-project.org/package=Hmisc">Hmisc</a></li>
+<li><a href="https://cran.r-project.org/package=LiblineaR">LiblineaR</a></li>
+<li><a href="https://cran.r-project.org/package=MASS">MASS</a></li>
+<li><a href="https://cran.r-project.org/package=PMCMR">PMCMR</a></li>
+<li><a href="https://cran.r-project.org/package=ParamHelpers">ParamHelpers</a></li>
+<li><a href="https://cran.r-project.org/package=RCurl">RCurl</a></li>
+<li><a href="https://cran.r-project.org/package=ROCR">ROCR</a></li>
+<li><a href="https://cran.r-project.org/package=RRF">RRF</a></li>
+<li><a href="https://cran.r-project.org/package=RSNNS">RSNNS</a></li>
+<li><a href="https://cran.r-project.org/package=RWeka">RWeka</a></li>
+<li><a href="https://cran.r-project.org/package=Rfast">Rfast</a></li>
+<li><a href="https://cran.r-project.org/package=SwarmSVM">SwarmSVM</a></li>
+<li><a href="https://cran.r-project.org/package=TH.data">TH.data</a></li>
+<li><a href="https://cran.r-project.org/package=XML">XML</a></li>
+<li><a href="https://cran.r-project.org/package=ada">ada</a></li>
+<li><a href="https://cran.r-project.org/package=adabag">adabag</a></li>
+<li><a href="https://cran.r-project.org/package=backports">backports</a></li>
+<li><a href="https://cran.r-project.org/package=bartMachine">bartMachine</a></li>
+<li><a href="https://cran.r-project.org/package=brnn">brnn</a></li>
+<li><a href="https://cran.r-project.org/package=bst">bst</a></li>
+<li><a href="https://cran.r-project.org/package=care">care</a></li>
+<li><a href="https://cran.r-project.org/package=caret">caret</a></li>
+<li><a href="https://cran.r-project.org/package=checkmate">checkmate</a></li>
+<li><a href="https://cran.r-project.org/package=clValid">clValid</a></li>
+<li><a href="https://cran.r-project.org/package=class">class</a></li>
+<li><a href="https://cran.r-project.org/package=clue">clue</a></li>
+<li><a href="https://cran.r-project.org/package=cluster">cluster</a></li>
+<li><a href="https://cran.r-project.org/package=clusterSim">clusterSim</a></li>
+<li><a href="https://cran.r-project.org/package=cmaes">cmaes</a></li>
+<li><a href="https://cran.r-project.org/package=crs">crs</a></li>
+<li><a href="https://cran.r-project.org/package=data.table">data.table</a></li>
+<li><a href="https://cran.r-project.org/package=deepnet">deepnet</a></li>
+<li><a href="https://cran.r-project.org/package=e1071">e1071</a></li>
+<li><a href="https://cran.r-project.org/package=earth">earth</a></li>
+<li><a href="https://cran.r-project.org/package=elasticnet">elasticnet</a></li>
+<li><a href="https://cran.r-project.org/package=elmNN">elmNN</a></li>
+<li><a href="https://cran.r-project.org/package=emoa">emoa</a></li>
+<li><a href="https://cran.r-project.org/package=evtree">evtree</a></li>
+<li><a href="https://cran.r-project.org/package=extraTrees">extraTrees</a></li>
+<li><a href="https://cran.r-project.org/package=fields">fields</a></li>
+<li><a href="https://cran.r-project.org/package=flare">flare</a></li>
+<li><a href="https://cran.r-project.org/package=fpc">fpc</a></li>
+<li><a href="https://cran.r-project.org/package=frbs">frbs</a></li>
+<li><a href="https://cran.r-project.org/package=gbm">gbm</a></li>
+<li><a href="https://cran.r-project.org/package=ggplot2">ggplot2</a></li>
+<li><a href="https://cran.r-project.org/package=ggvis">ggvis</a></li>
+<li><a href="https://cran.r-project.org/package=glmnet">glmnet</a></li>
+<li><a href="https://cran.r-project.org/package=h2o">h2o</a></li>
+<li><a href="https://cran.r-project.org/package=ipred">ipred</a></li>
+<li><a href="https://cran.r-project.org/package=irace">irace</a></li>
+<li><a href="https://cran.r-project.org/package=kernlab">kernlab</a></li>
+<li><a href="https://cran.r-project.org/package=kknn">kknn</a></li>
+<li><a href="https://cran.r-project.org/package=klaR">klaR</a></li>
+<li><a href="https://cran.r-project.org/package=knitr">knitr</a></li>
+<li><a href="https://cran.r-project.org/package=kohonen">kohonen</a></li>
+<li><a href="https://cran.r-project.org/package=laGP">laGP</a></li>
+<li><a href="https://cran.r-project.org/package=lqa">lqa</a></li>
+<li><a href="https://cran.r-project.org/package=mRMRe">mRMRe</a></li>
+<li><a href="https://cran.r-project.org/package=mboost">mboost</a></li>
+<li><a href="https://cran.r-project.org/package=mco">mco</a></li>
+<li><a href="https://cran.r-project.org/package=mda">mda</a></li>
+<li><a href="https://cran.r-project.org/package=mlbench">mlbench</a></li>
+<li><a href="https://cran.r-project.org/package=mldr">mldr</a></li>
+<li><a href="https://cran.r-project.org/package=modeltools">modeltools</a></li>
+<li><a href="https://cran.r-project.org/package=neuralnet">neuralnet</a></li>
+<li><a href="https://cran.r-project.org/package=nnet">nnet</a></li>
+<li><a href="https://cran.r-project.org/package=nodeHarvest">nodeHarvest</a></li>
+<li><a href="https://cran.r-project.org/package=numDeriv">numDeriv</a></li>
+<li><a href="https://cran.r-project.org/package=pROC">pROC</a></li>
+<li><a href="https://cran.r-project.org/package=pamr">pamr</a></li>
+<li><a href="https://cran.r-project.org/package=parallelMap">parallelMap</a></li>
+<li><a href="https://cran.r-project.org/package=party">party</a></li>
+<li><a href="https://cran.r-project.org/package=penalized">penalized</a></li>
+<li><a href="https://cran.r-project.org/package=pls">pls</a></li>
+<li><a href="https://cran.r-project.org/package=rFerns">rFerns</a></li>
+<li><a href="https://cran.r-project.org/package=randomForest">randomForest</a></li>
+<li><a href="https://cran.r-project.org/package=randomForestSRC">randomForestSRC</a></li>
+<li><a href="https://cran.r-project.org/package=ranger">ranger</a></li>
+<li><a href="https://cran.r-project.org/package=rjson">rjson</a></li>
+<li><a href="https://cran.r-project.org/package=rknn">rknn</a></li>
+<li><a href="https://cran.r-project.org/package=rmarkdown">rmarkdown</a></li>
+<li><a href="https://cran.r-project.org/package=robustbase">robustbase</a></li>
+<li><a href="https://cran.r-project.org/package=rotationForest">rotationForest</a></li>
+<li><a href="https://cran.r-project.org/package=rpart">rpart</a></li>
+<li><a href="https://cran.r-project.org/package=rrlda">rrlda</a></li>
+<li><a href="https://cran.r-project.org/package=rsm">rsm</a></li>
+<li><a href="https://cran.r-project.org/package=sda">sda</a></li>
+<li><a href="https://cran.r-project.org/package=shiny">shiny</a></li>
+<li><a href="https://cran.r-project.org/package=smoof">smoof</a></li>
+<li><a href="https://cran.r-project.org/package=sparseLDA">sparseLDA</a></li>
+<li><a href="https://cran.r-project.org/package=sparsediscrim">sparsediscrim</a></li>
+<li><a href="https://cran.r-project.org/package=stepPlr">stepPlr</a></li>
+<li><a href="https://cran.r-project.org/package=stringi">stringi</a></li>
+<li><a href="https://cran.r-project.org/package=survival">survival</a></li>
+<li><a href="https://cran.r-project.org/package=svglite">svglite</a></li>
+<li><a href="https://cran.r-project.org/package=testthat">testthat</a></li>
+<li><a href="https://cran.r-project.org/package=tgp">tgp</a></li>
+<li><a href="https://cran.r-project.org/package=xgboost">xgboost</a></li>
 </ul>
 </div>
 </div>

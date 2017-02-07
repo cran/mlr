@@ -11,8 +11,8 @@ getNestedTuneResultsOptPathDf(r, trafo = FALSE)
 The result of resampling of a tuning wrapper.}
 
 \item{trafo}{[\code{logical(1)}]\cr
-Should the units of the hyperparameter path be converted to the 
-transformed scale? This is only necessary when trafo was used to create 
+Should the units of the hyperparameter path be converted to the
+transformed scale? This is only necessary when trafo was used to create
 the \code{opt.path}s. Note that \code{opt.path}s are always stored on the
 untransformed scale.
 Default is \code{FALSE}.}
@@ -38,4 +38,3 @@ Other tune: \code{\link{TuneControl}},
   \code{\link{makeTuneWrapper}}, \code{\link{tuneParams}},
   \code{\link{tuneThreshold}}
 }
-
