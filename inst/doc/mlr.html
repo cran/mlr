@@ -12,7 +12,7 @@
 
 <meta name="author" content="Bernd Bischl, Michel Lang, Jakob Richter, Jakob Bossek, Leonard Judt, Tobias Kuehn, Erich Studerus, Lars Kotthoff" />
 
-<meta name="date" content="2017-02-06" />
+<meta name="date" content="2017-03-14" />
 
 <title>mlr: Machine Learning in R</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">mlr: Machine Learning in R</h1>
 <h4 class="author"><em>Bernd Bischl, Michel Lang, Jakob Richter, Jakob Bossek, Leonard Judt, Tobias Kuehn, Erich Studerus, Lars Kotthoff</em></h4>
-<h4 class="date"><em>2017-02-06</em></h4>
+<h4 class="date"><em>2017-03-14</em></h4>
 
 
 
@@ -146,13 +146,13 @@ r =<span class="st"> </span><span class="kw">resample</span>(<span class="dt">le
 <pre><code>## [Resample] cross-validation iter 1:</code></pre>
 <pre><code>## mmce.test.mean=   0</code></pre>
 <pre><code>## [Resample] cross-validation iter 2:</code></pre>
-<pre><code>## mmce.test.mean=   0</code></pre>
+<pre><code>## mmce.test.mean=0.0667</code></pre>
 <pre><code>## [Resample] cross-validation iter 3:</code></pre>
 <pre><code>## mmce.test.mean=   0</code></pre>
 <pre><code>## [Resample] cross-validation iter 4:</code></pre>
 <pre><code>## mmce.test.mean=   0</code></pre>
 <pre><code>## [Resample] cross-validation iter 5:</code></pre>
-<pre><code>## mmce.test.mean=   0</code></pre>
+<pre><code>## mmce.test.mean=0.0667</code></pre>
 <pre><code>## [Resample] cross-validation iter 6:</code></pre>
 <pre><code>## mmce.test.mean=0.0667</code></pre>
 <pre><code>## [Resample] cross-validation iter 7:</code></pre>
@@ -160,16 +160,16 @@ r =<span class="st"> </span><span class="kw">resample</span>(<span class="dt">le
 <pre><code>## [Resample] cross-validation iter 8:</code></pre>
 <pre><code>## mmce.test.mean=   0</code></pre>
 <pre><code>## [Resample] cross-validation iter 9:</code></pre>
-<pre><code>## mmce.test.mean=0.0667</code></pre>
+<pre><code>## mmce.test.mean=   0</code></pre>
 <pre><code>## [Resample] cross-validation iter 10:</code></pre>
-<pre><code>## mmce.test.mean=0.0667</code></pre>
+<pre><code>## mmce.test.mean=   0</code></pre>
 <pre><code>## [Resample] Aggr. Result: mmce.test.mean=0.02</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">print</span>(r)</code></pre></div>
 <pre><code>## Resample Result
 ## Task: tutorial
 ## Learner: classif.lda
 ## Aggr perf: mmce.test.mean=0.02
-## Runtime: 0.177216</code></pre>
+## Runtime: 0.150228</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## Get the mean misclassification error:
 r$aggr</code></pre></div>
 <pre><code>## mmce.test.mean 
@@ -218,6 +218,7 @@ r$aggr</code></pre></div>
 <li><a href="https://cran.r-project.org/package=adabag">adabag</a></li>
 <li><a href="https://cran.r-project.org/package=backports">backports</a></li>
 <li><a href="https://cran.r-project.org/package=bartMachine">bartMachine</a></li>
+<li><a href="https://cran.r-project.org/package=batchtools">batchtools</a></li>
 <li><a href="https://cran.r-project.org/package=brnn">brnn</a></li>
 <li><a href="https://cran.r-project.org/package=bst">bst</a></li>
 <li><a href="https://cran.r-project.org/package=care">care</a></li>
@@ -263,6 +264,7 @@ r$aggr</code></pre></div>
 <li><a href="https://cran.r-project.org/package=mda">mda</a></li>
 <li><a href="https://cran.r-project.org/package=mlbench">mlbench</a></li>
 <li><a href="https://cran.r-project.org/package=mldr">mldr</a></li>
+<li><a href="https://cran.r-project.org/package=mlrMBO">mlrMBO</a></li>
 <li><a href="https://cran.r-project.org/package=modeltools">modeltools</a></li>
 <li><a href="https://cran.r-project.org/package=neuralnet">neuralnet</a></li>
 <li><a href="https://cran.r-project.org/package=nnet">nnet</a></li>
