@@ -12,7 +12,7 @@ Description: Interface to a large number of classification and regression
 Authors@R: c(
     person("Bernd", "Bischl", email = "bernd_bischl@gmx.net", role = c("aut", "cre")),
     person("Michel", "Lang", email = "michellang@gmail.com", role = "aut"),
-    person("Lars", "Kotthoff", email = "larsko@cs.ubc.ca", role = "aut"),
+    person("Lars", "Kotthoff", email = "larsko@uwyo.edu", role = "aut"),
     person("Julia", "Schiffner", email = "schiffner@math.uni-duesseldorf.de", role = "aut"),
     person("Jakob", "Richter", email = "code@jakob-r.de", role = "aut"),
     person("Zachary", "Jones", email = "zmj@zmjones.com", role = "aut"),
@@ -32,38 +32,40 @@ Authors@R: c(
     person("Quay", "Au", email = "quay.au@stat.uni-muenchen.de", role = "ctb"),
     person("Martin", "Binder", email = "ma.binder@campus.lmu.de", role = "ctb"),
     person("Florian", "Pfisterer", email = "pfistererf@googlemail.com", role = "ctb"),
-    person("Stefan", "Coors", email = "stefan.coors@gmx.net", role = "ctb"))
+    person("Stefan", "Coors", email = "stefan.coors@gmx.net", role = "ctb"),
+    person("Patrick", "Schratz", email = "patrick.schratz@gmail.com", role = "ctb"),
+    person("Steve", "Bronder", email = "sab2287@columbia.edu", role = "ctb"))
 URL: https://github.com/mlr-org/mlr
 BugReports: https://github.com/mlr-org/mlr/issues
 License: BSD_2_clause + file LICENSE
 Encoding: UTF-8
 Depends: R (>= 3.0.2), ParamHelpers (>= 1.10)
-Imports: BBmisc (>= 1.11), backports, ggplot2, stats, stringi,
-        checkmate (>= 1.8.2), data.table, methods, parallelMap (>=
-        1.3), survival, utils
+Imports: BBmisc (>= 1.11), backports (>= 1.1.0), ggplot2, stats,
+        stringi, checkmate (>= 1.8.2), data.table, methods, parallelMap
+        (>= 1.3), survival, utils, XML
 Suggests: ada, adabag, bartMachine, batchtools, brnn, bst, C50, care,
         caret (>= 6.0-57), class, clue, cluster, clusterSim (>=
         0.44-5), clValid, cmaes, CoxBoost, crs, Cubist, deepnet,
         DiceKriging, DiceOptim, DiscriMiner, e1071, earth, elasticnet,
-        elmNN, emoa, evtree, extraTrees, flare, fields, FNN, fpc, frbs,
-        FSelector, gbm, GenSA, ggvis, glmnet, h2o (>= 3.6.0.8), GPfit,
-        Hmisc, ipred, irace (>= 2.0), kernlab, kknn, klaR, knitr,
-        kohonen, laGP, LiblineaR, lqa, MASS, mboost, mco, mda, mlbench,
-        mldr, mlrMBO, modeltools, mRMRe, nnet, nodeHarvest (>= 0.7-3),
-        neuralnet, numDeriv, pamr, party, penalized (>= 0.9-47), pls,
-        PMCMR (>= 4.1), pROC (>= 1.8), randomForest, randomForestSRC
-        (>= 2.2.0), ranger (>= 0.6.0), RCurl, Rfast, rFerns, rjson,
-        rknn, rmarkdown, robustbase, ROCR, rotationForest, rpart, RRF,
-        rrlda, rsm, RSNNS, RWeka, sda, shiny, smoof, sparsediscrim,
-        sparseLDA, stepPlr, SwarmSVM, svglite, testthat, tgp, TH.data,
-        xgboost (>= 0.6-2), XML
+        elmNN, emoa, evtree, extraTrees, fda.usc, FDboost, flare,
+        fields, FNN, fpc, frbs, FSelector, gbm, GenSA, glmnet, h2o (>=
+        3.6.0.8), GPfit, Hmisc, ipred, irace (>= 2.0), kernlab, kknn,
+        klaR, knitr, laGP, LiblineaR, lintr (>= 1.0.0.9001), lqa, MASS,
+        mboost, mco, mda, mlbench, mldr, mlrMBO, mmpf, modeltools,
+        mRMRe, nnet, nodeHarvest (>= 0.7-3), neuralnet, numDeriv, pamr,
+        party, penalized (>= 0.9-47), pls, PMCMR (>= 4.1),
+        randomForest, randomForestSRC (>= 2.2.0), ranger (>= 0.8.0),
+        refund, rex, rFerns, rknn, rmarkdown, robustbase, ROCR,
+        rotationForest, rpart, RRF, rrlda, rsm, RSNNS, RWeka, sda,
+        shiny, smoof, sparseLDA, stepPlr, survAUC, SwarmSVM, svglite,
+        testthat, tgp, TH.data, wavelets, xgboost (>= 0.6-2)
 LazyData: yes
 ByteCompile: yes
-Version: 2.11
+Version: 2.12
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
 NeedsCompilation: yes
-Packaged: 2017-03-14 20:07:19 UTC; bischl
+Packaged: 2018-03-07 23:14:02 UTC; bischl
 Author: Bernd Bischl [aut, cre],
   Michel Lang [aut],
   Lars Kotthoff [aut],
@@ -86,7 +88,9 @@ Author: Bernd Bischl [aut, cre],
   Quay Au [ctb],
   Martin Binder [ctb],
   Florian Pfisterer [ctb],
-  Stefan Coors [ctb]
+  Stefan Coors [ctb],
+  Patrick Schratz [ctb],
+  Steve Bronder [ctb]
 Maintainer: Bernd Bischl <bernd_bischl@gmx.net>
 Repository: CRAN
-Date/Publication: 2017-03-15 08:49:11
+Date/Publication: 2018-03-11 00:07:42 UTC

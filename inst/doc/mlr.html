@@ -4,7 +4,7 @@
 
 <head>
 
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 
@@ -12,7 +12,7 @@
 
 <meta name="author" content="Bernd Bischl, Michel Lang, Jakob Richter, Jakob Bossek, Leonard Judt, Tobias Kuehn, Erich Studerus, Lars Kotthoff" />
 
-<meta name="date" content="2017-03-14" />
+<meta name="date" content="2018-03-07" />
 
 <title>mlr: Machine Learning in R</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">mlr: Machine Learning in R</h1>
 <h4 class="author"><em>Bernd Bischl, Michel Lang, Jakob Richter, Jakob Bossek, Leonard Judt, Tobias Kuehn, Erich Studerus, Lars Kotthoff</em></h4>
-<h4 class="date"><em>2017-03-14</em></h4>
+<h4 class="date"><em>2018-03-07</em></h4>
 
 
 
@@ -119,11 +119,12 @@ task =<span class="st"> </span><span class="kw">makeClassifTask</span>(<span cla
 ## Target: Species
 ## Observations: 150
 ## Features:
-## numerics  factors  ordered 
-##        4        0        0 
+##    numerics     factors     ordered functionals 
+##           4           0           0           0 
 ## Missings: FALSE
 ## Has weights: FALSE
 ## Has blocking: FALSE
+## Has coordinates: FALSE
 ## Classes: 3
 ##     setosa versicolor  virginica 
 ##         50         50         50 
@@ -143,35 +144,29 @@ rdesc =<span class="st"> </span><span class="kw">makeResampleDesc</span>(<span c
 
 ## Do the resampling:
 r =<span class="st"> </span><span class="kw">resample</span>(<span class="dt">learner =</span> lrn, <span class="dt">task =</span> task, <span class="dt">resampling =</span> rdesc)</code></pre></div>
-<pre><code>## [Resample] cross-validation iter 1:</code></pre>
-<pre><code>## mmce.test.mean=   0</code></pre>
-<pre><code>## [Resample] cross-validation iter 2:</code></pre>
-<pre><code>## mmce.test.mean=0.0667</code></pre>
-<pre><code>## [Resample] cross-validation iter 3:</code></pre>
-<pre><code>## mmce.test.mean=   0</code></pre>
-<pre><code>## [Resample] cross-validation iter 4:</code></pre>
-<pre><code>## mmce.test.mean=   0</code></pre>
-<pre><code>## [Resample] cross-validation iter 5:</code></pre>
-<pre><code>## mmce.test.mean=0.0667</code></pre>
-<pre><code>## [Resample] cross-validation iter 6:</code></pre>
-<pre><code>## mmce.test.mean=0.0667</code></pre>
-<pre><code>## [Resample] cross-validation iter 7:</code></pre>
-<pre><code>## mmce.test.mean=   0</code></pre>
-<pre><code>## [Resample] cross-validation iter 8:</code></pre>
-<pre><code>## mmce.test.mean=   0</code></pre>
-<pre><code>## [Resample] cross-validation iter 9:</code></pre>
-<pre><code>## mmce.test.mean=   0</code></pre>
-<pre><code>## [Resample] cross-validation iter 10:</code></pre>
-<pre><code>## mmce.test.mean=   0</code></pre>
-<pre><code>## [Resample] Aggr. Result: mmce.test.mean=0.02</code></pre>
+<pre><code>## Resampling: cross-validation</code></pre>
+<pre><code>## Measures:             mmce</code></pre>
+<pre><code>## [Resample] iter 1:    0.0000000</code></pre>
+<pre><code>## [Resample] iter 2:    0.0000000</code></pre>
+<pre><code>## [Resample] iter 3:    0.0666667</code></pre>
+<pre><code>## [Resample] iter 4:    0.0666667</code></pre>
+<pre><code>## [Resample] iter 5:    0.0000000</code></pre>
+<pre><code>## [Resample] iter 6:    0.0000000</code></pre>
+<pre><code>## [Resample] iter 7:    0.0666667</code></pre>
+<pre><code>## [Resample] iter 8:    0.0000000</code></pre>
+<pre><code>## [Resample] iter 9:    0.0000000</code></pre>
+<pre><code>## [Resample] iter 10:   0.0000000</code></pre>
+<pre><code>## </code></pre>
+<pre><code>## Aggregated Result: mmce.test.mean=0.0200000</code></pre>
+<pre><code>## </code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">print</span>(r)</code></pre></div>
 <pre><code>## Resample Result
 ## Task: tutorial
 ## Learner: classif.lda
-## Aggr perf: mmce.test.mean=0.02
-## Runtime: 0.150228</code></pre>
+## Aggr perf: mmce.test.mean=0.0200000
+## Runtime: 0.0647471</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## Get the mean misclassification error:
-r$aggr</code></pre></div>
+r<span class="op">$</span>aggr</code></pre></div>
 <pre><code>## mmce.test.mean 
 ##           0.02</code></pre>
 </div>
@@ -196,6 +191,7 @@ r$aggr</code></pre></div>
 <li><a href="https://cran.r-project.org/package=DiceKriging">DiceKriging</a></li>
 <li><a href="https://cran.r-project.org/package=DiceOptim">DiceOptim</a></li>
 <li><a href="https://cran.r-project.org/package=DiscriMiner">DiscriMiner</a></li>
+<li><a href="https://cran.r-project.org/package=FDboost">FDboost</a></li>
 <li><a href="https://cran.r-project.org/package=FNN">FNN</a></li>
 <li><a href="https://cran.r-project.org/package=FSelector">FSelector</a></li>
 <li><a href="https://cran.r-project.org/package=GPfit">GPfit</a></li>
@@ -205,12 +201,10 @@ r$aggr</code></pre></div>
 <li><a href="https://cran.r-project.org/package=MASS">MASS</a></li>
 <li><a href="https://cran.r-project.org/package=PMCMR">PMCMR</a></li>
 <li><a href="https://cran.r-project.org/package=ParamHelpers">ParamHelpers</a></li>
-<li><a href="https://cran.r-project.org/package=RCurl">RCurl</a></li>
 <li><a href="https://cran.r-project.org/package=ROCR">ROCR</a></li>
 <li><a href="https://cran.r-project.org/package=RRF">RRF</a></li>
 <li><a href="https://cran.r-project.org/package=RSNNS">RSNNS</a></li>
 <li><a href="https://cran.r-project.org/package=RWeka">RWeka</a></li>
-<li><a href="https://cran.r-project.org/package=Rfast">Rfast</a></li>
 <li><a href="https://cran.r-project.org/package=SwarmSVM">SwarmSVM</a></li>
 <li><a href="https://cran.r-project.org/package=TH.data">TH.data</a></li>
 <li><a href="https://cran.r-project.org/package=XML">XML</a></li>
@@ -240,13 +234,13 @@ r$aggr</code></pre></div>
 <li><a href="https://cran.r-project.org/package=emoa">emoa</a></li>
 <li><a href="https://cran.r-project.org/package=evtree">evtree</a></li>
 <li><a href="https://cran.r-project.org/package=extraTrees">extraTrees</a></li>
+<li><a href="https://cran.r-project.org/package=fda.usc">fda.usc</a></li>
 <li><a href="https://cran.r-project.org/package=fields">fields</a></li>
 <li><a href="https://cran.r-project.org/package=flare">flare</a></li>
 <li><a href="https://cran.r-project.org/package=fpc">fpc</a></li>
 <li><a href="https://cran.r-project.org/package=frbs">frbs</a></li>
 <li><a href="https://cran.r-project.org/package=gbm">gbm</a></li>
 <li><a href="https://cran.r-project.org/package=ggplot2">ggplot2</a></li>
-<li><a href="https://cran.r-project.org/package=ggvis">ggvis</a></li>
 <li><a href="https://cran.r-project.org/package=glmnet">glmnet</a></li>
 <li><a href="https://cran.r-project.org/package=h2o">h2o</a></li>
 <li><a href="https://cran.r-project.org/package=ipred">ipred</a></li>
@@ -255,8 +249,8 @@ r$aggr</code></pre></div>
 <li><a href="https://cran.r-project.org/package=kknn">kknn</a></li>
 <li><a href="https://cran.r-project.org/package=klaR">klaR</a></li>
 <li><a href="https://cran.r-project.org/package=knitr">knitr</a></li>
-<li><a href="https://cran.r-project.org/package=kohonen">kohonen</a></li>
 <li><a href="https://cran.r-project.org/package=laGP">laGP</a></li>
+<li><a href="https://cran.r-project.org/package=lintr">lintr</a></li>
 <li><a href="https://cran.r-project.org/package=lqa">lqa</a></li>
 <li><a href="https://cran.r-project.org/package=mRMRe">mRMRe</a></li>
 <li><a href="https://cran.r-project.org/package=mboost">mboost</a></li>
@@ -265,12 +259,12 @@ r$aggr</code></pre></div>
 <li><a href="https://cran.r-project.org/package=mlbench">mlbench</a></li>
 <li><a href="https://cran.r-project.org/package=mldr">mldr</a></li>
 <li><a href="https://cran.r-project.org/package=mlrMBO">mlrMBO</a></li>
+<li><a href="https://cran.r-project.org/package=mmpf">mmpf</a></li>
 <li><a href="https://cran.r-project.org/package=modeltools">modeltools</a></li>
 <li><a href="https://cran.r-project.org/package=neuralnet">neuralnet</a></li>
 <li><a href="https://cran.r-project.org/package=nnet">nnet</a></li>
 <li><a href="https://cran.r-project.org/package=nodeHarvest">nodeHarvest</a></li>
 <li><a href="https://cran.r-project.org/package=numDeriv">numDeriv</a></li>
-<li><a href="https://cran.r-project.org/package=pROC">pROC</a></li>
 <li><a href="https://cran.r-project.org/package=pamr">pamr</a></li>
 <li><a href="https://cran.r-project.org/package=parallelMap">parallelMap</a></li>
 <li><a href="https://cran.r-project.org/package=party">party</a></li>
@@ -280,7 +274,8 @@ r$aggr</code></pre></div>
 <li><a href="https://cran.r-project.org/package=randomForest">randomForest</a></li>
 <li><a href="https://cran.r-project.org/package=randomForestSRC">randomForestSRC</a></li>
 <li><a href="https://cran.r-project.org/package=ranger">ranger</a></li>
-<li><a href="https://cran.r-project.org/package=rjson">rjson</a></li>
+<li><a href="https://cran.r-project.org/package=refund">refund</a></li>
+<li><a href="https://cran.r-project.org/package=rex">rex</a></li>
 <li><a href="https://cran.r-project.org/package=rknn">rknn</a></li>
 <li><a href="https://cran.r-project.org/package=rmarkdown">rmarkdown</a></li>
 <li><a href="https://cran.r-project.org/package=robustbase">robustbase</a></li>
@@ -292,13 +287,14 @@ r$aggr</code></pre></div>
 <li><a href="https://cran.r-project.org/package=shiny">shiny</a></li>
 <li><a href="https://cran.r-project.org/package=smoof">smoof</a></li>
 <li><a href="https://cran.r-project.org/package=sparseLDA">sparseLDA</a></li>
-<li><a href="https://cran.r-project.org/package=sparsediscrim">sparsediscrim</a></li>
 <li><a href="https://cran.r-project.org/package=stepPlr">stepPlr</a></li>
 <li><a href="https://cran.r-project.org/package=stringi">stringi</a></li>
+<li><a href="https://cran.r-project.org/package=survAUC">survAUC</a></li>
 <li><a href="https://cran.r-project.org/package=survival">survival</a></li>
 <li><a href="https://cran.r-project.org/package=svglite">svglite</a></li>
 <li><a href="https://cran.r-project.org/package=testthat">testthat</a></li>
 <li><a href="https://cran.r-project.org/package=tgp">tgp</a></li>
+<li><a href="https://cran.r-project.org/package=wavelets">wavelets</a></li>
 <li><a href="https://cran.r-project.org/package=xgboost">xgboost</a></li>
 </ul>
 </div>
@@ -311,7 +307,7 @@ r$aggr</code></pre></div>
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>

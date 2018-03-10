@@ -7,14 +7,14 @@
 getTaskDesc(x)
 }
 \arguments{
-\item{x}{[\code{\link{Task}} | \code{\link{TaskDesc}}]\cr
+\item{x}{(\link{Task} | \link{TaskDesc})\cr
 Task or its description object.}
 }
 \value{
-[\code{\link{TaskDesc}}].
+ret_taskdesc
 }
 \description{
-Get a summarizing task description.
+See title.
 }
 \seealso{
 Other task: \code{\link{getTaskClassLevels}},
