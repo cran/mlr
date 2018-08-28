@@ -7,7 +7,7 @@
 #' The measure itself knows whether it wants to be minimized or maximized and for what tasks it is applicable.
 #'
 #' All supported measures can be found by [listMeasures] or as a table
-#' in the tutorial appendix: <http://mlr-org.github.io/mlr-tutorial/release/html/measures/>.
+#' in the tutorial appendix: <https://mlr-org.github.io/mlr/articles/measures.html>.
 #'
 #' If you want a measure for a misclassification cost matrix, look at [makeCostMeasure].
 #' If you want to implement your own measure, look at [makeMeasure].
@@ -1370,7 +1370,7 @@ cindex = makeMeasure(id = "cindex", minimize = FALSE, best = 1, worst = 0,
 #' @references
 #' H. Uno et al.
 #' *On the C-statistics for Evaluating Overall Adequacy of Risk Prediction Procedures with Censored Survival Data*
-#' Statistics in medicine. 2011;30(10):1105-1117. <http://dx.doi.org/10.1002/sim.4154>.
+#' Statistics in medicine. 2011;30(10):1105-1117. <https://doi.org/10.1002/sim.4154>.
 cindex.uno = makeMeasure(id = "cindex.uno", minimize = FALSE, best = 1, worst = 0,
   properties = c("surv", "req.pred", "req.truth", "req.model", "req.task"),
   name = "Uno's Concordance index",
@@ -1417,7 +1417,7 @@ iauc.uno = makeMeasure(id = "iauc.uno", minimize = FALSE, best = 1, worst = 0,
 ibrier = makeMeasure(id = "ibrier", minimize = TRUE, best = 0, worst = 1,
   properties = c("surv", "req.truth", "req.model", "req.task"),
   name = "Integrated brier score using Kaplan-Meier estimator for weighting",
-  note = "To set an upper time limit, set argument max.time (defaults to max time in test data). Implemented in pec::pec",
+  note = "Only works for methods for which probabilities are provided via pec::predictSurvProb. Currently these are only coxph and randomForestSRC. To set an upper time limit, set argument max.time (defaults to max time in test data). Implemented in pec::pec",
   fun = function(task, model, pred, feats, extra.args) {
     requirePackages(c("survival", "pec"))
     targets = getTaskTargets(task)
@@ -1427,11 +1427,11 @@ ibrier = makeMeasure(id = "ibrier", minimize = TRUE, best = 0, worst = 1,
     max.time = extra.args$max.time %??% max(newdata[[tn[1L]]])
     grid = seq(0, max.time, length.out = extra.args$resolution)
 
-    probs = predictSurvProb(model$learner.model, newdata = newdata, times = grid)
+    probs = predictSurvProb(getLearnerModel(model, more.unwrap = TRUE), newdata = newdata, times = grid)
     perror = pec(probs, f, data = newdata[, tn], times = grid, exact = FALSE, exactness = 99L,
-      maxtime = max.time, verbose = FALSE)
+      maxtime = max.time, verbose = FALSE, reference = FALSE)
+    
 
-    # FIXME: what is the difference between reference and matrix?
     # FIXME: this might be the wrong number!
     crps(perror, times = max.time)[1L, ]
   },

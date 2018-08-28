@@ -1,3 +1,26 @@
+# mlr 2.13:
+
+## general
+* Disabled unit tests for CRAN, we test on travis only now
+* Suppress messages with show.learner.output = FALSE
+
+## functions - general
+* plotHyperParsEffect: add colors
+
+## functions - new
+* getResamplingIndices
+* createSpatialResamplingPlots
+
+## learners - general
+*  regr.nnet: Removed unneeded params linout, entropy, softmax and censored
+*  regr.ranger: Add weight handling
+
+## learners - removed
+* {classif,regr}.blackboost: broke API with new release
+* regr.elmNN : package was removed from CRAN
+* classif.lqa : package was removed from CRAN
+
+
 # mlr 2.12:
 
 ## general
@@ -35,6 +58,7 @@
   matrix should be computed for "train", "test", or "both" (default)
 * PlotBMRSummary: Add parameter "shape"
 * plotROCCurves: Add faceting argument
+* PreprocWrapperCaret: Add param "ppc.corr", "ppc.zv", "ppc.nzv", "ppc.n.comp", "ppc.cutoff", "ppc.freqCut", "ppc.uniqueCut"
 
 ## functions - new
 * makeClassificationViaRegressionWrapper
@@ -408,7 +432,7 @@
   this is the new API:
   plotBMRSummary, plotBMRBoxplots, plotBMRRanksAsBarChart
 
-# mlr_2.6:
+# mlr 2.6:
 * cluster.kmeans: added support for fuzzy clustering (property "prob")
 * regr.lm: removed some erroneous param settings
 * regr.glmnet: added 'family' param and allowed 'gaussian', but also 'poisson'
@@ -883,8 +907,6 @@
 * makeSurvTask
 * impute, reimpute, makeImputeWrapper, lots of impute<Method>, makeImputeMethod
 
-# mlr 1.1:
+# mlr 1.1-18:
 * Initial release to CRAN
-
-
 
