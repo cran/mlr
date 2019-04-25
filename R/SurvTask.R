@@ -1,4 +1,8 @@
-#' @rdname Task
+#' @title Create a survival task.
+#' @inheritParams Task
+#' @seealso [Task] [ClassifTask] [ClusterTask] [CostSensTask] [MultilabelTask] [RegrTask]
+#' @rdname SurvTask
+#' @aliases SurvTask
 #' @export
 makeSurvTask = function(id = deparse(substitute(data)), data, target, weights = NULL, blocking = NULL, coordinates = NULL, fixup.data = "warn", check.data = TRUE) {
   assertString(id)
