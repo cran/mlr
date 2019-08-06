@@ -19,23 +19,23 @@ makeRLearner.classif.gbm = function() {
     par.vals = list(keep.data = FALSE),
     name = "Gradient Boosting Machine",
     short.name = "gbm",
-    note = "`keep.data` is set to FALSE to reduce memory requirements. Note on param 'distribution': gbm will select 'bernoulli' by default for 2 classes, and 'multinomial' for
-      multiclass problems. The latter is the only setting that works for > 2 classes.",
+    note = "`keep.data` is set to FALSE to reduce memory requirements. Note on param 'distribution': gbm will select 'bernoulli' by default for 2 classes, and 'multinomial' for multiclass problems. The latter is the only setting that works for > 2 classes. It is recommended to NOT use the 'multinomial' setting, see https://github.com/mlr-org/mlr/issues/2612",
     callees = "gbm"
   )
 }
 
 #' @export
-trainLearner.classif.gbm = function(.learner, .task, .subset, .weights = NULL,  ...) {
+trainLearner.classif.gbm = function(.learner, .task, .subset, .weights = NULL, ...) {
   td = getTaskDesc(.task)
-  if (length(td$class.levels) == 2L)
+  if (length(td$class.levels) == 2L) {
     d = getTaskData(.task, .subset, recode.target = "01")
-  else
+  } else {
     d = getTaskData(.task, .subset)
+  }
   if (is.null(.weights)) {
     f = getTaskFormula(.task)
     gbm::gbm(f, data = d, ...)
-  } else  {
+  } else {
     f = getTaskFormula(.task)
     gbm::gbm(f, data = d, weights = .weights, ...)
   }

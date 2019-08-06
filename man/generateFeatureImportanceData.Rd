@@ -8,7 +8,7 @@
 generateFeatureImportanceData(task, method = "permutation.importance",
   learner, features = getTaskFeatureNames(task), interaction = FALSE,
   measure, contrast = function(x, y) x - y, aggregation = mean,
-  nmc = 50L, replace = TRUE, local = FALSE)
+  nmc = 50L, replace = TRUE, local = FALSE, show.info = FALSE)
 }
 \arguments{
 \item{task}{(\link{Task})\cr
@@ -61,6 +61,9 @@ The default is \code{TRUE}.}
 \item{local}{(\code{logical(1)})\cr
 Whether to compute the per-observation importance.
 The default is \code{FALSE}.}
+
+\item{show.info}{(\code{logical(1)})\cr
+Whether progress output (feature name, time elapsed) should be displayed.}
 }
 \value{
 (\code{FeatureImportance}). A named list which contains the computed feature importance and the input arguments.
@@ -102,7 +105,6 @@ lrn = makeLearner("classif.rpart", predict.type = "prob")
 fit = train(lrn, iris.task)
 imp = generateFeatureImportanceData(iris.task, "permutation.importance",
   lrn, "Petal.Width", nmc = 10L, local = TRUE)
-
 }
 \references{
 Jerome Friedman; Greedy Function Approximation: A Gradient Boosting Machine, Annals of Statistics, Vol. 29, No. 5 (Oct., 2001), pp. 1189-1232.

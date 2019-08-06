@@ -1,3 +1,59 @@
+# mlr 2.15.0
+
+## Breaking
+
+- Instead of a wide `data.frame` filter values are now returned in a long (tidy) `tibble`. This makes it easier to apply post-processing methods (like `group_by()`, etc) (@pat-s, #2456)
+- `benchmark()` does not store the tuning results (`$extract` slot) anymore by default.
+  If you want to keep this slot (e.g. for post tuning analysis), set `keep.extract = TRUE`.
+  This change originated from the fact that the size of `BenchmarkResult` objects with extensive tuning got very large (~ GB) which can cause memory problems during runtime if multiple `benchmark()` calls are executed on HPCs.
+- `benchmark()` does not store the created models (`$models` slot) anymore by default.
+  The reason is the same as for the `$extract` slot above.
+  Storing can be enabled using `models = TRUE`.
+
+## functions - general
+
+- `generateFeatureImportanceData()` gains argument `show.info` which shows the name of the current feature being calculated, its index in the queue and the elapsed time for each feature (@pat-s, #26222)
+
+## learners - general
+
+- `classif.liquidSVM` and `regr.liquidSVM` have been removed because `liquidSVM` has been removed from CRAN.
+- fixed a bug that caused an incorrect aggregation of probabilities in some cases. The bug existed since quite some time and was exposed due to the change of `data.table`s default in `rbindlist()`. See #2578 for more information. (@mllg, #2579)
+- `regr.randomForest` gains three new methods to estimate the standard error:
+  - `se.method = "jackknife"`
+  - `se.method = "bootstrap"`
+  - `se.method = "sd"`  
+  See `?regr.randomForest` for more details.  
+  `regr.ranger` relies on the functions provided by the package ("jackknife" and "infjackknife" (default))  
+  (@jakob-r, #1784)
+- `regr.gbm` now supports `quantile distribution` (@bthieurmel, #2603)
+- `classif.plsdaCaret` now supports multiclass classification (@GegznaV, #2621)
+
+## functions - general
+- `getClassWeightParam()` now also works for Wrapper* Models and ensemble models (@ja-thomas, #891)
+- added `getLearnerNote()` to query the "Note" slot of a learner (@alona-sydorova, #2086)
+- `e1071::svm()` now only uses the formula interface if factors are present. This change is supposed to prevent from "stack overflow" issues some users encountered when using large datasets. See #1738 for more information. (@mb706, #1740)
+
+## learners - new
+- add learner `cluster.MiniBatchKmeans` from package _ClusterR_ (@Prasiddhi, #2554)
+
+## function - general
+- `plotHyperParsEffect()` now supports facet visualization of hyperparam effects for nested cv (@MasonGallo, #1653)
+- fixed a bug that caused an incorrect aggregation of probabilities in some cases. The bug existed since quite some time and was exposed due to the change of `data.table`s default in `rbindlist()`. See #2578 for more information. (@mllg, #2579)
+- fixed a bug in which `options(on.learner.error)` was not respected in `benchmark()`. This caused `benchmark()` to stop even if it should have continued including `FailureModels` in the result (@dagola, #1984)
+- `getClassWeightParam()` now also works for Wrapper* Models and ensemble models (@ja-thomas, #891)
+- added `getLearnerNote()` to query the "Note" slot of a learner (@alona-sydorova, #2086)
+
+## filters - general
+
+- Filter `praznik_mrmr` also supports `regr` and `surv` tasks
+- `plotFilterValues()` got a bit "smarter" and easier now regarding the ordering of multiple facets. (@pat-s, #2456)
+- `filterFeatures()`, `generateFilterValuesData()` and `makeFilterWrapper()` gained new examples. (@pat-s, #2456)
+
+## filters - new
+
+- Ensemble features are now supported. These filters combine multiple single filters to create a final ranking based on certain statistical operations. All new filters are listed in a dedicated section "ensemble filters" in the [tutorial](https://mlr.mlr-org.com/articles/tutorial/filter_methods.html).
+Tuning of simple features is not supported yet because of a [missing feature](https://github.com/berndbischl/ParamHelpers/pull/206) in _ParamHelpers_. (@pat-s, #2456)
+
 # mlr 2.14.0
 
 ## general
@@ -29,8 +85,8 @@
 * FSelectorRcpp_information.gain
 * FSelectorRcpp_symuncert
 
-Additionally, filter names have been harmonized using the following scheme: <pkgname>_<filtername>. 
-Exeptions are filters included in base R packages. 
+Additionally, filter names have been harmonized using the following scheme: <pkgname>_<filtername>.
+Exeptions are filters included in base R packages.
 In this case, the package name is omitted.
 
 ## filter - general
@@ -47,9 +103,9 @@ In this case, the package name is omitted.
   - `randomForestSRC.rfsrc` -> `randomForestSRC_importance`
   - `randomForestSRC.var.select` -> `randomForestSRC_var.select`
   - `randomForest.importance` -> `randomForest_importance`
-  
+
 * fixed a bug related to the loading of namespaces for required filter packages (@pat-s, #2483)
-  
+
 ## learners - new
 * classif.liquidSVM (@PhilippPro, #2428)
 * regr.liquidSVM (@PhilippPro, #2428)

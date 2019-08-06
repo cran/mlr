@@ -36,8 +36,11 @@ makeRLearner.regr.cforest = function() {
 trainLearner.regr.cforest = function(.learner, .task, .subset, .weights = NULL,
   ntree, mtry, replace, fraction, trace, teststat, testtype, mincriterion, minsplit,
   minbucket, stump, nresample, maxsurrogate, maxdepth, savesplitstats, ...) {
+
   f = getTaskFormula(.task)
   d = getTaskData(.task, .subset)
+
+  # default handling necessary because the default of controls is `cforest_unbiased()` which does not allow all parameters (e.g. replace)
   defaults = getDefaults(getParamSet(.learner))
   if (missing(teststat)) teststat = defaults$teststat
   if (missing(testtype)) testtype = defaults$testtype
@@ -48,6 +51,7 @@ trainLearner.regr.cforest = function(.learner, .task, .subset, .weights = NULL,
     trace, teststat, testtype, mincriterion,
     minsplit, minbucket, stump,
     nresample, maxsurrogate, maxdepth, savesplitstats)
+
   party::cforest(f, data = d, controls = ctrl, weights = .weights, ...)
 }
 

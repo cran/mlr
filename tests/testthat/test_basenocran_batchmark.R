@@ -47,11 +47,14 @@ test_that("batchmark", {
   expect_equal(unique(preds$iter), 1:2)
 
   reg = makeExperimentRegistry(file.dir = NA, make.default = FALSE, seed = 1)
-  res = batchmark(learners = learners, task = tasks, resampling = rin, reg = reg)
+  res = batchmark(learners = learners, tasks = tasks, resamplings = rin, reg = reg)
   submitJobs(reg = reg)
   expect_true(waitForJobs(reg = reg))
 
   res = reduceBatchmarkResults(reg = reg)
+
+  # check if keep.extract = FALSE really throws away the tuning results
+  expect_true(all(sapply(res$results$binary[[1]]$extract, function(x) is.null(x))))
 
   expect_true("BenchmarkResult" %in% class(res))
 
@@ -100,7 +103,8 @@ test_that("batchmark", {
   measures = list(mmce, acc)
 
   reg = makeExperimentRegistry(file.dir = NA, make.default = FALSE, seed = 1)
-  res = batchmark(learners = learners, tasks = tasks, resamplings = resamplings, measures = measures, reg = reg)
+  res = batchmark(learners = learners, tasks = tasks, resamplings = resamplings,
+    measures = measures, reg = reg, keep.extract = TRUE)
   submitJobs(reg = reg)
   expect_true(waitForJobs(reg = reg))
   expect_data_table(findErrors(reg = reg), nrow = 0L)
@@ -203,6 +207,7 @@ test_that("batchmark", {
   expect_equal(unique(tffd$iter), 1:2)
 
   f = function(tmp, cl) {
+
     context(sprintf("batchmark: extracting %s", cl))
     expect_true(is.list(tmp))
     expect_true(setequal(names(tmp), task.names))
@@ -238,7 +243,7 @@ test_that("keep.preds and models are passed down to resample()", {
   expect_list(x$models, types = "WrappedModel")
   expect_is(x$pred, "ResamplePrediction")
 
-  ##test getter function for models
+  ## test getter function for models
   models = getBMRModels(res)
   expect_true(is.list(models))
   expect_true(setequal(names(models), "binary"))
@@ -289,13 +294,19 @@ test_that("batchmark works with incomplete results", {
   ids = batchmark(learners = learners, task = task, resampling = rin, reg = reg)
   submitJobs(1:6, reg = reg)
   expect_true(waitForJobs(reg = reg))
-  expect_warning({res = reduceBatchmarkResults(ids = 1:6, reg = reg, keep.pred = FALSE)}, "subset")
+  expect_warning({
+    res = reduceBatchmarkResults(ids = 1:6, reg = reg, keep.pred = FALSE)
+  }, "subset")
   expect_set_equal(getBMRLearnerIds(res), c("classif.lda", "classif.rpart"))
 
-  expect_warning({res = reduceBatchmarkResults(ids = 1:3, reg = reg, keep.pred = FALSE)}, "subset")
+  expect_warning({
+    res = reduceBatchmarkResults(ids = 1:3, reg = reg, keep.pred = FALSE)
+  }, "subset")
   expect_set_equal(getBMRLearnerIds(res), "classif.lda")
 
-  expect_warning({res = reduceBatchmarkResults(ids = data.table(job.id = 5), reg = reg, keep.pred = FALSE)}, "subset")
+  expect_warning({
+    res = reduceBatchmarkResults(ids = data.table(job.id = 5), reg = reg, keep.pred = FALSE)
+  }, "subset")
   expect_set_equal(getBMRLearnerIds(res), "classif.rpart")
 })
 

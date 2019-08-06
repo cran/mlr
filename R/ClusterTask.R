@@ -11,8 +11,8 @@ makeClusterTask = function(id = deparse(substitute(data)), data, weights = NULL,
   assertFlag(check.data)
 
   task = makeUnsupervisedTask("cluster", data = data, weights = weights,
-                              blocking = blocking, fixup.data = fixup.data,
-                              check.data = check.data, coordinates = coordinates)
+    blocking = blocking, fixup.data = fixup.data,
+    check.data = check.data, coordinates = coordinates)
   task$task.desc = makeClusterTaskDesc(id, data, weights, blocking, coordinates)
   addClasses(task, "ClusterTask")
 }

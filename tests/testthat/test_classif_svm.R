@@ -1,12 +1,12 @@
 context("classif_svm")
 
 # we cannot do a prob test, as set.seed sems not to work on e1071 svm for the prob parameters!
-#requirePackagesOrSkip("e1071", default.method = "load")
-#set.seed(1)
-#m1=svm(Species~., data=iris, probability=T)
-#set.seed(1)
-#m2=svm(Species~., data=iris, probability=T)
-#all.equal(m1, m2)
+# requirePackagesOrSkip("e1071", default.method = "load")
+# set.seed(1)
+# m1=svm(Species~., data=iris, probability=T)
+# set.seed(1)
+# m2=svm(Species~., data=iris, probability=T)
+# all.equal(m1, m2)
 
 test_that("classif_svm", {
   requirePackagesOrSkip("e1071", default.method = "load")
@@ -34,8 +34,8 @@ test_that("classif_svm", {
   }
 
   testSimpleParsets("classif.svm", multiclass.df, multiclass.target,
-    multiclass.train.inds, old.predicts.list,  parset.list)
-  #testProbParsets("classif.svm", multiclass.df, multiclass.target,
+    multiclass.train.inds, old.predicts.list, parset.list)
+  # testProbParsets("classif.svm", multiclass.df, multiclass.target,
   #  multiclass.train.inds, old.probs.list, parset.list)
 
   tt = function(formula, data, subset = 1:150, ...) {
@@ -53,4 +53,12 @@ test_that("classif_svm", {
   model = train(lrn, multiclass.task)
   preds = predict(model, multiclass.task)
   expect_lt(performance(preds), 0.3)
+})
+
+test_that("classif_svm with many features", {
+  set.seed(8008135)
+  xt = cbind(as.data.frame(matrix(rnorm(4e4), ncol = 2e4)), x = as.factor(c("a", "b")))
+  xt.task = makeClassifTask("xt", xt, "x")
+  # the given task has many features, the formula interface fails
+  train("classif.svm", xt.task)
 })
