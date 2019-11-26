@@ -1,6 +1,6 @@
 Package: mlr
 Title: Machine Learning in R
-Version: 2.15.0
+Version: 2.16.0
 Authors@R: 
     c(person(given = "Bernd",
              family = "Bischl",
@@ -161,9 +161,9 @@ VignetteBuilder: knitr
 ByteCompile: yes
 Encoding: UTF-8
 LazyData: yes
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.0
 NeedsCompilation: yes
-Packaged: 2019-08-06 09:10:20 UTC; pjs
+Packaged: 2019-11-25 08:56:09 UTC; pjs
 Author: Bernd Bischl [aut] (<https://orcid.org/0000-0001-6002-6980>),
   Michel Lang [aut] (<https://orcid.org/0000-0001-9754-0393>),
   Lars Kotthoff [aut],
@@ -193,4 +193,4 @@ Author: Bernd Bischl [aut] (<https://orcid.org/0000-0001-6002-6980>),
   Christoph Molnar [ctb]
 Maintainer: Patrick Schratz <patrick.schratz@gmail.com>
 Repository: CRAN
-Date/Publication: 2019-08-06 15:10:02 UTC
+Date/Publication: 2019-11-26 14:50:03 UTC

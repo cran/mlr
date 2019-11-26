@@ -1,3 +1,32 @@
+# mlr 2.16.0
+
+## package infrastructure
+
+- There is now a reference grouping for all functions on the pkgdown site (https://mlr.mlr-org.com/reference/index.html)
+- CI testing now only on Circle CI (previously Travis CI)
+
+## learners - general
+
+- fixed a bug in `classif.xgboost` which prevented passing a watchlist for binary tasks. This was caused by a suboptimal internal label inversion approach. Thanks to @001ben for reporting (#32) (@mllg)
+- update `fda.usc` learners to work with package version >=2.0
+- update `glmnet` learners to upstream package version 3.0.0
+- update `xgboost` learners to upstream version 0.90.2 (@pat-s & @be-marc, #2681)
+- Updated ParamSet for learners `classif.gbm` and `regr.gbm`. Specifically, param `shrinkage` now defaults to 0.1 instead of 0.001. Also more choices for param `distribution` have been added. Internal parallelization by the package is now suppressed (param `n.cores`). (@pat-s, #2651)
+- Update parameters for `h2o.deeplearning` learners (@albersonmiranda, #2668)
+
+## misc
+
+- Add `configureMlr()` to `.onLoad()`, possibly fixing some edge cases (#2585) (@pat-s, #2637)
+
+## learners - bugfixes
+
+- `h2o.gbm` learners were not running until `wcol` was passed somehow due to an internal bug. In addition, this bug caused another issue during prediction where the prediction `data.frame` was somehow formatted as a character rather a numeric. Thanks to @nagdevAmruthnath for bringing this up in #2630.
+
+## filters - general
+
+- Bugfix: Allow `method = "vh"` for filter `randomForestSRC_var.select` and return informative error message for not supported values. Also argument `conservative` can now be passed. See #2646 and #2639 for more information (@pat-s, #2649)
+* Bugfix: With the new _praznik_ v7.0.0 release filter `praznik_CMIM` does no longer return a result for logical features. See https://gitlab.com/mbq/praznik/issues/19 for more information
+
 # mlr 2.15.0
 
 ## Breaking

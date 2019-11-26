@@ -7,21 +7,27 @@ test_that("fixed in single resampling", {
     blocking = fixed)
 
   # test blocking in single resample
+  set.seed(getOption("mlr.debug.seed"))
   lrn = makeLearner("classif.lda")
   rdesc = makeResampleDesc("CV", fixed = TRUE)
   p = resample(lrn, ct, rdesc)$pred
 
   # check if all test.inds are unique
   expect_length(unique(unlist(p$instance$test.inds, use.names = FALSE)), 150)
+
   # check if correct indices are together (one fold is enough)
-  expect_equal(p$instance$test.inds[[1]], c(23, 53, 83, 113, 143))
+  # (to make this seed-agnostic, we just check for a numerical diff of 30 between the vector values)
+  # this is somewhat ugly but I see no easier way right now (Patrick)
+  ind = p$instance$test.inds[[1]]
+  ind_diff = viapply(seq_along(ind), function(x) ind[x] - ind[x + 1])[-length(ind)]
+  expect_equal(ind_diff, rep(-30, 4))
 })
 
 test_that("fixed in nested resampling", {
   df = multiclass.df
-  fixed_inds = as.factor(rep(1:5, rep(30, 5)))
+  fixed.inds = as.factor(rep(1:5, rep(30, 5)))
   ct = makeClassifTask(target = multiclass.target, data = df,
-    blocking = fixed_inds)
+    blocking = fixed.inds)
 
   # test fixed in nested resampling
   lrn = makeLearner("classif.lda")
@@ -29,10 +35,10 @@ test_that("fixed in nested resampling", {
   ps = makeParamSet(makeNumericParam("nu", lower = 2, upper = 20))
   inner = makeResampleDesc("CV", iters = 4, fixed = TRUE)
   outer = makeResampleDesc("CV", iters = 5, fixed = TRUE)
-  tune_wrapper = makeTuneWrapper(lrn, resampling = inner, par.set = ps,
+  tune.wrapper = makeTuneWrapper(lrn, resampling = inner, par.set = ps,
     control = ctrl, show.info = FALSE)
 
-  p = resample(tune_wrapper, ct, outer, show.info = FALSE,
+  p = resample(tune.wrapper, ct, outer, show.info = FALSE,
     extract = getTuneResult)
 
   # check if all outer test.inds are unique
@@ -50,9 +56,9 @@ test_that("fixed in nested resampling", {
   # check that a combination of fixed and normal random sampling works
   inner = makeResampleDesc("CV", iters = 6)
   outer = makeResampleDesc("CV", fixed = TRUE)
-  tune_wrapper = makeTuneWrapper(lrn, resampling = inner, par.set = ps,
+  tune.wrapper = makeTuneWrapper(lrn, resampling = inner, par.set = ps,
     control = ctrl, show.info = FALSE)
-  p = resample(tune_wrapper, ct, outer, show.info = FALSE,
+  p = resample(tune.wrapper, ct, outer, show.info = FALSE,
     extract = getTuneResult)
   expect_length(getResamplingIndices(p, inner = TRUE)[[1]][[1]], 6)
 })
