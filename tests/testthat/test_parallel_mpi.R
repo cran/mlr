@@ -57,6 +57,7 @@ test_that("parallel featsel", {
 test_that("parallel exporting of options works", {
   skip_on_ci()
   doit = function(mode, level) {
+
     data = iris
     data[, 1] = 1 # this is going to crash lda
     task = makeClassifTask(data = data, target = "Species")
@@ -66,7 +67,8 @@ test_that("parallel exporting of options works", {
     on.exit(configureMlr(on.learner.error = "stop"))
     parallelStart(mode = mode, cpus = 2L, level = level, show.info = FALSE)
     on.exit(parallelStop())
-    # if the option is not exported, we cannot pass the next line without error on slave
+    # if the option is not exported, we cannot pass the next line without error
+    # on slave
     r = resample(lrn, task, rdesc)
   }
   doit("socket", as.character(NA))

@@ -6,7 +6,7 @@ test_that("caching works with most filters", {
   filter.list.classif = as.character(filter.list$id)[filter.list$task.classif]
   filter.list.classif = setdiff(filter.list.classif, c(
     "univariate.model.score", "permutation.importance", "auc",
-    "univariate", "rf.importance", "rf.min.depth"))
+    "univariate", "rf.importance", "randomForestSRC_var.select"))
   filter.list.regr = as.character(filter.list$id)[!filter.list$task.classif & filter.list$task.regr]
 
   # tune over various filters using all possible caching options
@@ -15,18 +15,16 @@ test_that("caching works with most filters", {
     tune.out = lapply(filter.list.regr, function(.x) {
       lrn = makeFilterWrapper(learner = "regr.ksvm", fw.method = .x, cache = i)
       ps = makeParamSet(makeNumericParam("fw.perc", lower = 0, upper = 1),
-        makeNumericParam("C", lower = -10, upper = 10,
+        makeNumericParam("C", lower = -1, upper = 1,
           trafo = function(x) 2^x),
-        makeNumericParam("sigma", lower = -10, upper = 10,
+        makeNumericParam("sigma", lower = -1, upper = 1,
           trafo = function(x) 2^x)
       )
-      rdesc = makeResampleDesc("CV", iters = 3)
-
-      # print(.x)
+      rdesc = makeResampleDesc("CV", iters = 2)
 
       tuneParams(lrn, task = regr.num.task, resampling = rdesc, par.set = ps,
-        control = makeTuneControlRandom(maxit = 5),
-        show.info = FALSE)
+        control = makeTuneControlRandom(maxit = 2),
+        show.info = FALSE, measures = getDefaultMeasure(regr.num.task))
     })
 
   })

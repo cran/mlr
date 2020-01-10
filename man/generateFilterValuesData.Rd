@@ -5,8 +5,13 @@
 \alias{FilterValues}
 \title{Calculates feature filter values.}
 \usage{
-generateFilterValuesData(task, method = "randomForestSRC_importance",
-  nselect = getTaskNFeats(task), ..., more.args = list())
+generateFilterValuesData(
+  task,
+  method = "randomForestSRC_importance",
+  nselect = getTaskNFeats(task),
+  ...,
+  more.args = list()
+)
 }
 \arguments{
 \item{task}{(\link{Task})\cr
@@ -19,14 +24,16 @@ See the examples for more information.
 Default is \dQuote{randomForestSRC_importance}.}
 
 \item{nselect}{(\code{integer(1)})\cr
-Number of scores to request. Scores are getting calculated for all features per default.}
+Number of scores to request. Scores are getting calculated for all features
+per default.}
 
 \item{...}{(any)\cr
-Passed down to selected method. Can only be use if \code{method} contains one element.}
+Passed down to selected method. Can only be use if \code{method} contains one
+element.}
 
 \item{more.args}{(named \link{list})\cr
-Extra args passed down to filter methods. List elements are named with the filter
-\code{method} name the args should be passed down to.
+Extra args passed down to filter methods. List elements are named with the
+filter \code{method} name the args should be passed down to.
 A more general and flexible option than \code{...}.
 Default is empty list.}
 }
@@ -51,9 +58,10 @@ For a list of features, use \link{listFilterMethods}.
 \section{Simple and ensemble filters}{
 
 
-Besides passing (multiple) simple filter methods you can also pass an ensemble
-filter method (in a list). The ensemble method will use the simple methods to
-calculate its ranking. See \code{listFilterEnsembleMethods()} for available ensemble methods.
+Besides passing (multiple) simple filter methods you can also pass an
+ensemble filter method (in a list). The ensemble method will use the simple
+methods to calculate its ranking. See \code{listFilterEnsembleMethods()} for
+available ensemble methods.
 }
 
 \examples{
@@ -62,24 +70,28 @@ fval = generateFilterValuesData(iris.task,
   method = c("FSelectorRcpp_gain.ratio", "FSelectorRcpp_information.gain"))
 # using ensemble method "E-mean"
 fval = generateFilterValuesData(iris.task,
-  method = list("E-mean", c("FSelectorRcpp_gain.ratio", "FSelectorRcpp_information.gain")))
+  method = list("E-mean", c("FSelectorRcpp_gain.ratio",
+    "FSelectorRcpp_information.gain")))
 }
 \seealso{
-Other generate_plot_data: \code{\link{generateCalibrationData}},
-  \code{\link{generateCritDifferencesData}},
-  \code{\link{generateFeatureImportanceData}},
-  \code{\link{generateLearningCurveData}},
-  \code{\link{generatePartialDependenceData}},
-  \code{\link{generateThreshVsPerfData}},
-  \code{\link{plotFilterValues}}
+Other generate_plot_data: 
+\code{\link{generateCalibrationData}()},
+\code{\link{generateCritDifferencesData}()},
+\code{\link{generateFeatureImportanceData}()},
+\code{\link{generateLearningCurveData}()},
+\code{\link{generatePartialDependenceData}()},
+\code{\link{generateThreshVsPerfData}()},
+\code{\link{plotFilterValues}()}
 
-Other filter: \code{\link{filterFeatures}},
-  \code{\link{getFilteredFeatures}},
-  \code{\link{listFilterEnsembleMethods}},
-  \code{\link{listFilterMethods}},
-  \code{\link{makeFilterEnsemble}},
-  \code{\link{makeFilterWrapper}},
-  \code{\link{makeFilter}}, \code{\link{plotFilterValues}}
+Other filter: 
+\code{\link{filterFeatures}()},
+\code{\link{getFilteredFeatures}()},
+\code{\link{listFilterEnsembleMethods}()},
+\code{\link{listFilterMethods}()},
+\code{\link{makeFilterEnsemble}()},
+\code{\link{makeFilterWrapper}()},
+\code{\link{makeFilter}()},
+\code{\link{plotFilterValues}()}
 }
 \concept{filter}
 \concept{generate_plot_data}

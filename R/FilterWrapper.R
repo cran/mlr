@@ -5,34 +5,48 @@
 #' [filterFeatures] before every model fit.
 #'
 #' @template arg_learner
-#' @param fw.method (`character(1)`)\cr Filter method. See [listFilterMethods].
+#' @param fw.method (`character(1)`)\cr
+#'   Filter method. See [listFilterMethods].
 #'   Default is \dQuote{randomForestSRC_importance}.
-#' @param fw.base.methods (`character(1)`)\cr Simple Filter methods for ensemble
-#'   filters. See [listFilterMethods]. Can only be used in combination with
-#'   ensemble filters. See [listFilterEnsembleMethods].
-#' @param fw.perc (`numeric(1)`)\cr If set, select `fw.perc`*100 top scoring
-#'   features. Mutually exclusive with arguments `fw.abs` and `fw.threshold`.
-#' @param fw.abs (`numeric(1)`)\cr If set, select `fw.abs` top scoring features.
-#'   Mutually exclusive with arguments `fw.perc` and `fw.threshold`.
-#' @param fw.threshold (`numeric(1)`)\cr If set, select features whose score
-#'   exceeds `fw.threshold`. Mutually exclusive with arguments `fw.perc` and
-#'   `fw.abs`.
-#' @param fw.mandatory.feat ([character])\cr Mandatory features which are always
+#' @param fw.base.methods (`character(1)`)\cr
+#'   Simple Filter methods for ensemble filters. See [listFilterMethods]. Can
+#'   only be used in combination with ensemble filters. See
+#'   [listFilterEnsembleMethods].
+#' @param fw.perc (`numeric(1)`)\cr
+#'   If set, select `fw.perc`*100 top scoring features. Mutually exclusive with
+#'   arguments `fw.abs`, `fw.threshold` and `fw.fun.
+#' @param fw.abs (`numeric(1)`)\cr
+#'   If set, select `fw.abs` top scoring features.
+#'   Mutually exclusive with arguments `fw.perc`, `fw.threshold` and `fw.fun`.
+#' @param fw.threshold (`numeric(1)`)\cr
+#'   If set, select features whose score exceeds `fw.threshold`. Mutually
+#'   exclusive with arguments `fw.perc`, `fw.abs` and `fw.fun`.
+#' @param fw.fun (`function)`)\cr
+#'   If set, select features via a custom thresholding function, which must
+#'   return the number of top scoring features to select. Mutually exclusive
+#'   with arguments `fw.perc`, `fw.abs` and `fw.threshold`.
+#' @param fw.fun.args (any)\cr
+#'   Arguments passed to the custom thresholding function
+#' @param fw.mandatory.feat ([character])\cr
+#'   Mandatory features which are always
 #'   included regardless of their scores
-#' @param cache (`character(1)` | [logical])\cr Whether to use caching during
+#' @param cache (`character(1)` | [logical])\cr
+#'   Whether to use caching during
 #'   filter value creation. See details.
-#' @param ... (any)\cr Additional parameters passed down to the filter. If you
-#'   are using more than one filter method, you need to pass the arguments in a
-#'   named list via `more.args`. For example `more.args =
-#'   list("FSelectorRcpp_information.gain" = list(equal = TRUE))`.
+#' @param ... (any)\cr
+#'   Additional parameters passed down to the filter. If you are using more than
+#'   one filter method, you need to pass the arguments in a named list via
+#'   `more.args`. For example `more.args = list("FSelectorRcpp_information.gain"
+#'   = list(equal = TRUE))`.
 #'
-#' @section Caching: If `cache = TRUE`, the default mlr cache directory is used
-#'   to cache filter values. The directory is operating system dependent and can
-#'   be checked with `getCacheDir()`. Alternatively a custom directory can be
-#'   passed to store the cache. The cache can be cleared with
-#'   `deleteCacheDir()`. Caching is disabled by default. Care should be taken
-#'   when operating on large clusters due to possible write conflicts to disk if
-#'   multiple workers try to write the same cache at the same time.
+#' @section Caching:
+#'   If `cache = TRUE`, the default mlr cache directory is used to cache filter
+#'   values. The directory is operating system dependent and can be checked with
+#'   `getCacheDir()`. Alternatively a custom directory can be passed to store
+#'   the cache. The cache can be cleared with `deleteCacheDir()`. Caching is
+#'   disabled by default. Care should be taken when operating on large clusters
+#'   due to possible write conflicts to disk if multiple workers try to write
+#'   the same cache at the same time.
 #'
 #' @template ret_learner
 #' @export
@@ -72,9 +86,32 @@
 #'   getFilteredFeatures(model)
 #' })
 #' print(r$extract)
+#'
+#' # usage of a custom thresholding function
+#' biggest_gap = function(values, diff) {
+#'   gap_size = 0
+#'   gap_location = 0
+#'
+#'   for (i in (diff + 1):length(values)) {
+#'     gap = values[[i - diff]] - values[[i]]
+#'     if (gap > gap_size) {
+#'       gap_size = gap
+#'       gap_location = i - 1
+#'     }
+#'   }
+#'   return(gap_location)
+#' }
+#'
+#' lrn = makeLearner("classif.lda")
+#' lrn = makeFilterWrapper(lrn, fw.method = "randomForestSRC_importance",
+#'   fw.fun = biggest_gap, fw.fun.args = list("diff" = 1))
+#' r = resample(lrn, task, outer, extract = function(model) {
+#'   getFilteredFeatures(model)
+#' })
+#' print(r$extract)
 makeFilterWrapper = function(learner, fw.method = "randomForestSRC_importance",
   fw.base.methods = NULL, fw.perc = NULL, fw.abs = NULL, fw.threshold = NULL,
-  fw.mandatory.feat = NULL, cache = FALSE, ...) {
+  fw.fun = NULL, fw.fun.args = NULL, fw.mandatory.feat = NULL, cache = FALSE, ...) {
 
   learner = checkLearner(learner)
 
@@ -115,11 +152,14 @@ makeFilterWrapper = function(learner, fw.method = "randomForestSRC_importance",
       makeNumericLearnerParam(id = "fw.perc", lower = 0, upper = 1),
       makeIntegerLearnerParam(id = "fw.abs", lower = 0),
       makeNumericLearnerParam(id = "fw.threshold"),
+      makeFunctionLearnerParam(id = "fw.fun"),
+      makeUntypedLearnerParam(id = "fw.fun.args", default = NULL),
       makeUntypedLearnerParam(id = "fw.mandatory.feat")
     ),
     par.vals = filterNull(list(fw.method = fw.method,
       fw.base.methods = fw.base.methods, fw.perc = fw.perc,
       fw.abs = fw.abs, fw.threshold = fw.threshold,
+      fw.fun = fw.fun, fw.fun.args = fw.fun.args,
       fw.mandatory.feat = fw.mandatory.feat)),
     learner.subclass = "FilterWrapper", model.subclass = "FilterModel",
     cache = cache)
@@ -128,13 +168,15 @@ makeFilterWrapper = function(learner, fw.method = "randomForestSRC_importance",
 }
 
 #' @export
-trainLearner.FilterWrapper = function(.learner, .task, .subset = NULL, .weights = NULL,
-  fw.method = "randomForestSRC_importance", fw.base.methods = NULL, fw.perc = NULL, fw.abs = NULL,
-  fw.threshold = NULL, fw.mandatory.feat = NULL, ...) {
+trainLearner.FilterWrapper = function(.learner, .task, .subset = NULL,
+  .weights = NULL, fw.method = "randomForestSRC_importance",
+  fw.base.methods = NULL, fw.perc = NULL, fw.abs = NULL, fw.threshold = NULL,
+  fw.fun = NULL, fw.fun.args = NULL, fw.mandatory.feat = NULL, ...) {
   .task = subsetTask(.task, subset = .subset)
   .task = do.call(filterFeatures, c(list(task = .task, method = fw.method,
     base.methods = fw.base.methods,
     perc = fw.perc, abs = fw.abs, threshold = fw.threshold,
+    fun = fw.fun, fun.args = fw.fun.args,
     mandatory.feat = fw.mandatory.feat,
     cache = .learner$cache), .learner$more.args))
   m = train(.learner$next.learner, .task, weights = .weights)

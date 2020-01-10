@@ -1,6 +1,7 @@
 context("learners_all_surv")
 
 test_that("learners work: surv ", {
+  requirePackagesOrSkip("Hmisc", default.method = "load")
 
   # settings to make learners faster and deal with small sample size
   hyperpars = list(
@@ -12,15 +13,18 @@ test_that("learners work: surv ", {
     features = getTaskFeatureNames(surv.task)[c(1, 2)])
   lrns = listLearnersCustom("surv", create = TRUE)
   lapply(lrns, testThatLearnerParamDefaultsAreInParamSet)
-  lapply(lrns, testBasicLearnerProperties, task = sub.task, hyperpars = hyperpars)
+  lapply(lrns, testBasicLearnerProperties, task = sub.task,
+    hyperpars = hyperpars)
 
   # survival analysis with factors
   lrns = listLearnersCustom("surv", properties = "factors", create = TRUE)
-  lapply(lrns, testThatLearnerHandlesFactors, task = sub.task, hyperpars = hyperpars)
+  lapply(lrns, testThatLearnerHandlesFactors, task = sub.task,
+    hyperpars = hyperpars)
 
   # survival analysis with ordered factors
   lrns = listLearnersCustom("surv", properties = "ordered", create = TRUE)
-  lapply(lrns, testThatLearnerHandlesFactors, task = sub.task, hyperpars = hyperpars)
+  lapply(lrns, testThatLearnerHandlesFactors, task = sub.task,
+    hyperpars = hyperpars)
 
   # surv with weights
   # normal size of surv.task necessary otherwise cvglmnet does not converge
@@ -33,7 +37,8 @@ test_that("learners work: surv ", {
 
   # survival with missings
   lrns = listLearnersCustom("surv", properties = "missings", create = TRUE)
-  lapply(lrns, testThatLearnerHandlesMissings, task = sub.task, hyperpars = hyperpars)
+  lapply(lrns, testThatLearnerHandlesMissings, task = sub.task,
+    hyperpars = hyperpars)
 
   # surv with oobpreds
   lrns = listLearnersCustom("surv", properties = "oobpreds", create = TRUE)
@@ -41,6 +46,8 @@ test_that("learners work: surv ", {
 
   # survival variable importance
   lrns = listLearnersCustom("surv", properties = "featimp", create = TRUE)
-  lapply(lrns, testThatLearnerHandlesMissings, task = surv.task, hyperpars = hyperpars)
-  lapply(lrns, testThatLearnerCanCalculateImportance, task = surv.task, hyperpars = hyperpars)
+  lapply(lrns, testThatLearnerHandlesMissings, task = surv.task,
+    hyperpars = hyperpars)
+  lapply(lrns, testThatLearnerCanCalculateImportance, task = surv.task,
+    hyperpars = hyperpars)
 })
