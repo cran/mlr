@@ -1,5 +1,6 @@
 context("filterFeatures_praznik")
 
+cat("praznik")
 test_that("filterFeatures_praznik", {
   a = c(1, 2, 5.3, 6, -2, 4, 8.3, 9.2, 10.1) # numeric vector
   b = c("one", "two", "three") # character vector
@@ -8,7 +9,7 @@ test_that("filterFeatures_praznik", {
   f = rep(c("c1", "c2"), 9)
   df = data.frame(a = a, b = b, c = c, d = d, target = f)
   # makeClassifTask does not support logicals
-  df = convertDataFrameCols(df, logicals.as.factor = TRUE)
+  df = convertDataFrameCols(df, logicals.as.factor = TRUE, chars.as.factor = TRUE)
   task = makeClassifTask(data = df, target = "target")
 
   candidates = as.character(listFilterMethods()$id)
@@ -38,6 +39,10 @@ test_that("filterFeatures_praznik", {
 })
 
 test_that("FilterWrapper with praznik mutual information, resample", {
+
+  # FSelector not avail
+  skip_on_os("windows")
+
   candidates = as.character(listFilterMethods()$id)
   candidates = candidates[startsWith(candidates, "praznik_")]
   lapply(candidates, function(x) {
@@ -67,7 +72,8 @@ test_that("FilterWrapper with praznik mutual information, resample", {
   mod = train(lrn, binaryclass.task)
   feat.imp = getFeatureImportance(mod)$res
   expect_data_frame(feat.imp,
-    types = rep("numeric", getTaskNFeats(binaryclass.task)),
-    any.missing = FALSE, nrows = 1, ncols = getTaskNFeats(binaryclass.task))
-  expect_equal(colnames(feat.imp), mod$features)
+    types = c("character", "numeric"),
+    any.missing = FALSE, nrows = getTaskNFeats(binaryclass.task),
+    ncols = 2)
+  expect_equal(colnames(feat.imp), c("variable", "importance"))
 })

@@ -98,6 +98,7 @@ test_that("ber with faulty model produces NA", {
 })
 
 test_that("db with single cluster doesn't give warnings", {
+  requirePackagesOrSkip("clusterSim", default.method = "load")
   # using mtcars instead of agri task here because agri conflicts with
   # warning when column names inherit 'x' or 'y'
   expect_warning(crossval("cluster.kmeans", mtcars.task), NA)
@@ -134,6 +135,12 @@ test_that("listMeasures", {
 })
 
 test_that("check measure calculations", {
+  requirePackagesOrSkip("clusterSim", default.method = "load")
+
+  # RWeka not avail
+  skip_on_cran()
+  skip_on_os("windows")
+
   requirePackagesOrSkip("Hmisc", default.method = "load")
 
   # tiny datasets for testing
@@ -280,23 +287,6 @@ test_that("check measure calculations", {
     expect_warning(measureRSQ(c(1, 1, 1, 1), c(1, 2, 3, 4)))
   })
   expect_silent(measureRSQ(c(1, 1, 1, 0), c(2, 2, 2, 2)))
-
-  # arsq
-  arsq.test = 1 - (1 - rsq.test) * (2L / (4L - 2L - 1L))
-  arsq.perf = performance(pred.regr, measures = arsq,
-    model = mod.regr)
-  expect_equal(arsq.test, arsq$fun(pred = pred.regr, model = mod.regr))
-  expect_equal(arsq.test, as.numeric(arsq.perf))
-
-  task.regr.arsq = subsetTask(task = task.regr, subset = 1:3)
-  mod.regr.arsq = train(lrn.regr, task.regr.arsq)
-  pred.regr.arsq = predict(mod.regr.arsq, task.regr.arsq)
-  suppressWarnings({
-    expect_equal(NA_real_, as.numeric(performance(pred.regr.arsq, measures = arsq,
-      model = mod.regr.arsq)))
-    expect_warning(performance(pred.regr.arsq, measures = arsq,
-      model = mod.regr.arsq))
-  })
 
   # expvar
   expvar.test = sum((pred.art.regr - mean(tar.regr))^2L) / sum((tar.regr - mean(tar.regr))^2L)
@@ -850,18 +840,6 @@ test_that("check measure calculations", {
   expect_equal(db.test, db$fun(task = task.cluster,
     pred = pred.cluster, feats = data.cluster))
   expect_equal(db.test, as.numeric(db.perf))
-
-  # dunn
-  exdist = min(sqrt(sum((c(1, 3) - c(3, 1))^2)), sqrt(sum((c(2, 4) - c(3, 1))^2)),
-    sqrt(sum((c(4, 3) - c(3, 2))^2)))
-  indist = max(sqrt(sum((c(1, 3) - c(2, 4))^2)), sqrt(sum((c(1, 3) - c(4, 2))^2)),
-    sqrt(sum((c(2, 4) - c(4, 2))^2)))
-  dunn.test = exdist / indist
-  dunn.perf = performance(pred.cluster, measures = dunn,
-    model = mod.cluster, feats = data.cluster)
-  expect_equal(dunn.test,
-    dunn$fun(pred = pred.cluster, feats = data.cluster))
-  expect_equal(dunn.test, as.numeric(dunn.perf))
 
   # g1 index
   exsum = sqrt(sum((c(1, 3) - c(3, 1))^2)) + sqrt(sum((c(2, 4) - c(3, 1))^2)) +

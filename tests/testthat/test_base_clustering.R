@@ -1,6 +1,10 @@
 context("clustering")
 
 test_that("clustering predict", {
+
+  # RWeka causes problems
+  skip_on_cran()
+
   lrn = makeLearner("cluster.cmeans", predict.type = "prob")
   model = train(lrn, noclass.task)
   pred = predict(model, task = noclass.task)
@@ -13,31 +17,56 @@ test_that("clustering predict", {
 
 
 test_that("clustering performance", {
+  requirePackagesOrSkip("clusterSim", default.method = "load")
+
+  # RWeka causes problems
+  skip_on_cran()
+  # RWeka not avail
+  skip_on_os("windows")
+
   lrn = makeLearner("cluster.SimpleKMeans")
   model = train(lrn, noclass.task)
   pred = predict(model, task = noclass.task)
 
-  expect_true(is.numeric(performance(pred, task = noclass.task, measures = db)))
-  expect_true(is.numeric(performance(pred, task = noclass.task, measures = dunn)))
-  expect_true(is.numeric(performance(pred, task = noclass.task, measures = G1)))
-  expect_true(is.numeric(performance(pred, task = noclass.task, measures = G2)))
-  expect_true(is.numeric(performance(pred, task = noclass.task, measures = silhouette)))
+  expect_true(is.numeric(performance(pred, task = noclass.task,
+    measures = db)))
+  expect_true(is.numeric(performance(pred, task = noclass.task,
+    measures = G1)))
+  expect_true(is.numeric(performance(pred, task = noclass.task,
+    measures = G2)))
+  expect_true(is.numeric(performance(pred, task = noclass.task,
+    measures = silhouette)))
 })
 
 test_that("clustering performance with missing clusters", {
+  requirePackagesOrSkip("clusterSim", default.method = "load")
+
+  # RWeka causes problems
+  skip_on_cran()
+  # RWeka not avail
+  skip_on_os("windows")
+
   lrn = makeLearner("cluster.SimpleKMeans")
   model = train(lrn, noclass.task)
   pred = predict(model, task = noclass.task)
-  pred$data$response = sample(c(1, 3, 4), length(pred$data$response), replace = TRUE)
+  pred$data$response = sample(c(1, 3, 4), length(pred$data$response),
+    replace = TRUE)
 
   expect_warning(performance(pred, task = noclass.task, measures = db), NA)
-  expect_warning(performance(pred, task = noclass.task, measures = dunn), NA)
   expect_warning(performance(pred, task = noclass.task, measures = G1), NA)
   expect_warning(performance(pred, task = noclass.task, measures = G2), NA)
-  expect_warning(performance(pred, task = noclass.task, measures = silhouette), NA)
+  expect_warning(performance(pred, task = noclass.task, measures = silhouette),
+    NA)
 })
 
 test_that("clustering resample", {
+  requirePackagesOrSkip("clusterSim", default.method = "load")
+
+  # RWeka causes problems
+  skip_on_cran()
+  # RWeka not avail
+  skip_on_os("windows")
+
   rdesc = makeResampleDesc("Subsample", split = 0.3, iters = 2)
   lrn = makeLearner("cluster.SimpleKMeans")
   res = resample(lrn, noclass.task, rdesc)
@@ -47,13 +76,21 @@ test_that("clustering resample", {
 })
 
 test_that("clustering benchmark", {
+  requirePackagesOrSkip("clusterSim", default.method = "load")
+
+  # RWeka causes problems
+  skip_on_cran()
+  # RWeka not avail
+  skip_on_os("windows")
+
   task.names = "noclass"
   tasks = list(noclass.task)
   learner.names = "cluster.SimpleKMeans"
   learners = lapply(learner.names, makeLearner)
   rin = makeResampleDesc("CV", iters = 2L)
 
-  res = benchmark(learners = learners, task = tasks, resamplings = makeResampleDesc("CV", iters = 2L))
+  res = benchmark(learners = learners, task = tasks,
+    resamplings = makeResampleDesc("CV", iters = 2L))
   expect_true("BenchmarkResult" %in% class(res))
 })
 
@@ -63,6 +100,13 @@ test_that("clustering downsample", {
 })
 
 test_that("clustering tune", {
+  requirePackagesOrSkip("clusterSim", default.method = "load")
+
+  # RWeka causes problems
+  skip_on_cran()
+  # RWeka not avail
+  skip_on_os("windows")
+
   lrn = makeLearner("cluster.SimpleKMeans")
   rdesc = makeResampleDesc("Holdout")
   ps = makeParamSet(

@@ -2,6 +2,9 @@ context("learners_all_classif")
 
 test_that("learners work: classif", {
 
+  # because of missing rJava for bartMachine
+  skip_on_os("windows")
+
   # settings to make learners faster and deal with small data size
   hyperpars = list(
     classif.boosting = list(mfinal = 2L),
@@ -20,6 +23,12 @@ test_that("learners work: classif", {
   task = subsetTask(binaryclass.task, subset = c(10:20, 180:190),
     features = getTaskFeatureNames(binaryclass.task)[12:15])
   lrns = listLearnersCustom(task, create = TRUE)
+  # some learners are not avail on windows
+  if (Sys.info()[["sysname"]] == "Windows") {
+    names = vapply(lrns, function(x) x$id, FUN.VALUE = character(1))
+    row_ids = which(names %in% "classif.IBk")
+    lrns[row_ids] = NULL
+  }
   lapply(lrns, testThatLearnerParamDefaultsAreInParamSet)
   lapply(lrns, testBasicLearnerProperties, task = task, hyperpars = hyperpars)
 

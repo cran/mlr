@@ -2,7 +2,12 @@
 
 context("filterFeatures")
 
+cat("filters")
 test_that("filterFeatures 1", {
+
+  # FSelector not avail
+  skip_on_os("windows")
+
   # Loop through all filters
   # univariate.model.score, permutation.importance and auc are handled extra test below
   # 'univariate', 'randomForest_importance' and 'rfsrc_var.select' are deprecated
@@ -108,8 +113,9 @@ test_that("randomForestSRC_var.select minimal depth filter returns NA for featur
   dat = generateFilterValuesData(task = multiclass.task,
     method = "randomForestSRC_var.select",
     nselect = 5,
-    more.args = list("randomForestSRC_var.select" = list(method = "md", nrep = 5)))
-  expect_equal(is.na(dat$data$value[dat$data$name %in% c("Sepal.Length", "Sepal.width")]), TRUE)
+    more.args = list(method = "md", nrep = 5))
+  expect_equal(all(is.na(dat$data$value[dat$data$name %in% c("Sepal.Length", "Sepal.Width")])), TRUE)
+  expect_equal(all(is.na(dat$data$value[dat$data$name %in% c("Petal.Length", "Petal.Width")])), FALSE)
 })
 
 test_that("ensemble filters subset the task correctly", {

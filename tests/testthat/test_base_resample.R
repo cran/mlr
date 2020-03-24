@@ -66,7 +66,6 @@ test_that("resampling, predicting train set works", {
   expect_false(is.na(r$aggr["mmce.train.mean"]))
   expect_false(anyNA(r$pred$time))
   expect_false(is.null(r$pred$predict.type))
-  expect_false(is.null(r$pred$threshold))
   expect_equal(getTaskDesc(multiclass.task), r$pred$task.desc)
 
   rdesc = makeResampleDesc("CV", iters = 2, predict = "both")
@@ -78,7 +77,6 @@ test_that("resampling, predicting train set works", {
   expect_false(is.na(r$aggr["mmce.test.mean"]))
   expect_false(anyNA(r$pred$time))
   expect_false(is.null(r$pred$predict.type))
-  expect_false(is.null(r$pred$threshold))
   expect_equal(getTaskDesc(multiclass.task), r$pred$task.desc)
 })
 
@@ -190,7 +188,8 @@ test_that("resample printer respects show.info", {
 test_that("resample drops unseen factors in predict data set", {
   data = data.frame(a = c("a", "b", "a", "b", "a", "c"),
     b = c(1, 1, 2, 2, 2, 1),
-    trg = c("a", "b", "a", "b", "a", "b"))
+    trg = c("a", "b", "a", "b", "a", "b"),
+    stringsAsFactors = TRUE)
   task = makeClassifTask("unseen.factors", data, "trg")
   resinst = makeResampleInstance("Holdout", task)
   resinst$train.inds[[1]] = 1:4
