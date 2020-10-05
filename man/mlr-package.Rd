@@ -13,11 +13,11 @@ Interface to a large number of classification and
     descriptions. There is also an experimental extension for survival
     analysis, clustering and general, example-specific cost-sensitive
     learning. Generic resampling, including cross-validation,
-    bootstrapping and subsampling. Hyperparameter tuning with modern
+    bootstrapping and subsampling.  Hyperparameter tuning with modern
     optimization techniques, for single- and multi-objective problems.
     Filter and wrapper methods for feature selection. Extension of basic
     learners with additional operations common in machine learning, also
-    allowing for easy nested resampling. Most operations can be
+    allowing for easy nested resampling.  Most operations can be
     parallelized.
 }
 \seealso{

@@ -59,7 +59,8 @@ Custom y axis breaks}
 corresponding labels.
 }
 \description{
-Visualize partitioning of resample objects with spatial information.
+Visualize partitioning of resample objects with spatial
+information.
 }
 \details{
 If a named list is given to \code{resample}, names will appear in the title of
@@ -90,7 +91,7 @@ Due to a limited axis space in the resulting grid (especially on the x-axis),
 the data will by default projected into a lat/lon projection, specifically
 EPSG 4326.
 If other projections are desired for the resulting map, please set argument
-\code{datum} accordingly. This argument will be passed onto \link[ggplot2:coord_sf]{ggplot2::coord_sf}.
+\code{datum} accordingly. This argument will be passed onto \link[ggplot2:ggsf]{ggplot2::coord_sf}.
 }
 
 \examples{
@@ -136,17 +137,17 @@ cowplot::plot_grid(plotlist = plots[["Plots"]], ncol = 5, nrow = 2,
 ## Complex arrangements of multiple named resample inputs with 5 folds and 1 repetition
 ## -------------------------------------------------------------------------------------
 
-p1 = plot_grid(plist[["Plots"]][[1]], plist[["Plots"]][[2]],
-  plist[["Plots"]][[3]], ncol = 3, nrow = 1, labels = plist[["Labels"]][1:3],
+p1 = cowplot::plot_grid(plots[["Plots"]][[1]], plots[["Plots"]][[2]],
+  plots[["Plots"]][[3]], ncol = 3, nrow = 1, labels = plots[["Labels"]][1:3],
   label_size = 18)
-p12 = plot_grid(plist[["Plots"]][[4]], plist[["Plots"]][[5]], ncol = 2,
-  nrow = 1, labels = plist[["Labels"]][4:5], label_size = 18)
+p12 = cowplot::plot_grid(plots[["Plots"]][[4]], plots[["Plots"]][[5]],
+  ncol = 2, nrow = 1, labels = plots[["Labels"]][4:5], label_size = 18)
 
-p2 = plot_grid(plist[["Plots"]][[6]], plist[["Plots"]][[7]],
-  plist[["Plots"]][[8]], ncol = 3, nrow = 1, labels = plist[["Labels"]][6:8],
+p2 = cowplot::plot_grid(plots[["Plots"]][[6]], plots[["Plots"]][[7]],
+  plots[["Plots"]][[8]], ncol = 3, nrow = 1, labels = plots[["Labels"]][6:8],
   label_size = 18)
-p22 = plot_grid(plist[["Plots"]][[9]], plist[["Plots"]][[10]], ncol = 2,
-  nrow = 1, labels = plist[["Labels"]][9:10], label_size = 18)
+p22 = cowplot::plot_grid(plots[["Plots"]][[9]], plots[["Plots"]][[10]],
+  ncol = 2, nrow = 1, labels = plots[["Labels"]][9:10], label_size = 18)
 
 cowplot::plot_grid(p1, p12, p2, p22, ncol = 1)
 }
