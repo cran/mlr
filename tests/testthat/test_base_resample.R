@@ -1,4 +1,3 @@
-context("resample")
 
 test_that("resample", {
   rin1 = makeResampleInstance(makeResampleDesc("Bootstrap", iters = 4), task = multiclass.task)
@@ -82,12 +81,12 @@ test_that("resampling, predicting train set works", {
 
 test_that("ResampleInstance can bew created from string", {
   rin = makeResampleInstance("CV", size = 100)
-  expect_is(rin$desc, "CVDesc")
+  expect_s3_class(rin$desc, "CVDesc")
   expect_equal(rin$size, 100)
   expect_equal(rin$desc$iters, 10)
 
   rin = makeResampleInstance("CV", task = iris.task, iters = 17, stratify = TRUE)
-  expect_is(rin$desc, "CVDesc")
+  expect_s3_class(rin$desc, "CVDesc")
   expect_equal(rin$size, 150)
   expect_equal(rin$desc$iters, 17)
 })
@@ -177,7 +176,7 @@ test_that("resample printer respects show.info", {
   lrn = makeLearner("regr.lm")
 
   configureMlr(show.info = TRUE)
-  expect_message(resample(lrn, bh.task, cv10, list(mape, medae, mse)))
+  suppressMessages(expect_message(resample(lrn, bh.task, cv10, list(mape, medae, mse))))
 
   configureMlr(show.info = FALSE)
   expect_silent(resample(lrn, bh.task, cv10, list(mape, medae, mse)))
@@ -186,7 +185,8 @@ test_that("resample printer respects show.info", {
 })
 
 test_that("resample drops unseen factors in predict data set", {
-  data = data.frame(a = c("a", "b", "a", "b", "a", "c"),
+  data = data.frame(
+    a = c("a", "b", "a", "b", "a", "c"),
     b = c(1, 1, 2, 2, 2, 1),
     trg = c("a", "b", "a", "b", "a", "b"),
     stringsAsFactors = TRUE)
@@ -202,6 +202,13 @@ test_that("resample drops unseen factors in predict data set", {
 
   lrn = makeLearner("classif.logreg", fix.factors.prediction = TRUE)
   model = train(lrn, subsetTask(task, 1:4))
-  predict(model, subsetTask(task, 5:6))
-  resample(lrn, task, resinst)
+  expect_warning(predict(model, subsetTask(task, 5:6)), "produced NAs because of new factor levels")
+  expect_warning(resample(lrn, task, resinst), "produced NAs because of new factor levels")
+
+  # do it manually
+  train_task = makeClassifTask("unseen.factors", data[1:4,], "trg", fixup = "quiet") # quiet becasue
+  # we get dropped factors warning (which we want here)
+  model = train(lrn, train_task)
+  expect_warning(predict(model, newdata = data[5:6,]), "produced NAs because of new factor levels")
 })
+

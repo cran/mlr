@@ -1,8 +1,5 @@
 # this is a long test suite that is used to test the validity of ALL filters
 
-context("filterFeatures")
-
-cat("filters")
 test_that("filterFeatures 1", {
 
   # FSelector not avail
@@ -79,7 +76,7 @@ test_that("randomForestSRC_var.select filter handles user choices correctly", {
 
   # method = "vh.imp" is not supported
   expect_error(
-    fv = suppressWarnings(generateFilterValuesData(task = multiclass.task,
+    suppressWarnings(generateFilterValuesData(task = multiclass.task,
       method = "randomForestSRC_var.select",
       more.args = list("randomForestSRC_var.select" = c(method = "vh.imp"))))
   )
@@ -106,7 +103,7 @@ test_that("Custom threshold function for filtering works correctly", {
     fun.args = list("diff" = 1)
   )
   feats = getTaskFeatureNames(ftask)
-  expect_equal(feats, c("Petal.Length"))
+  expect_equal(feats, "Petal.Length")
 })
 
 test_that("randomForestSRC_var.select minimal depth filter returns NA for features below the threshold", {

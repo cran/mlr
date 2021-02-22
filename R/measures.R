@@ -1375,7 +1375,7 @@ cindex = makeMeasure(
 #' @references
 #' H. Uno et al.
 #' *On the C-statistics for Evaluating Overall Adequacy of Risk Prediction Procedures with Censored Survival Data*
-#' Statistics in medicine. 2011;30(10):1105-1117. <https://doi.org/10.1002/sim.4154>.
+#' Statistics in medicine. 2011;30(10):1105-1117. \doi{10.1002/sim.4154}.
 cindex.uno = makeMeasure(
   id = "cindex.uno", minimize = FALSE, best = 1, worst = 0,
   properties = c("surv", "req.pred", "req.truth", "req.model", "req.task"),
@@ -1442,12 +1442,10 @@ ibrier = makeMeasure(
 
     probs = predictSurvProb(getLearnerModel(model, more.unwrap = TRUE), newdata = newdata, times = grid)
     perror = pec(probs, f,
-      data = newdata[, tn], times = grid, exact = FALSE, exactness = 99L,
+      data = newdata[, tn, with = FALSE], times = grid, exact = FALSE, exactness = 99L,
       maxtime = max.time, verbose = FALSE, reference = FALSE)
 
-
-    # FIXME: this might be the wrong number!
-    crps(perror, times = max.time)[1L, ]
+    crps(perror, times = max.time)[[1]]
   },
   extra.args = list(max.time = NULL, resolution = 1000L)
 )

@@ -1,4 +1,3 @@
-context("filterFeatures_fselectorrcpp")
 
 test_that("filterFeatures_fselectorrcpp", {
   a = c(1, 2, 5.3, 6, -2, 4, 8.3, 9.2, 10.1) # numeric vector
@@ -17,7 +16,7 @@ test_that("filterFeatures_fselectorrcpp", {
     expect_class(fv, "FilterValues")
     expect_data_frame(fv$data, nrow = getTaskNFeats(task))
     expect_set_equal(fv$data$name, getTaskFeatureNames(task))
-    expect_numeric(fv$data$value, any.missing = FALSE, lower = 0, finite = TRUE)
+    expect_numeric(fv$data$value, any.missing = FALSE, finite = TRUE)
   }
 
   lrn = makeLearner("classif.rpart")
