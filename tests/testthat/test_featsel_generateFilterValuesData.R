@@ -40,9 +40,8 @@ test_that("filterFeatures", {
   expect_equal(ns, feat.imp.old$data$name)
 
   f = filterFeatures(binaryclass.task, method = "variance", abs = 5L)
-  expect_true(setequal(getTaskFeatureNames(f), head(sortByCol(feat.imp.old$data,
-    "value",
-    asc = FALSE), 5L)$name))
+  expect_true(setequal(getTaskFeatureNames(f),
+    head(setorder(feat.imp.old$dat, -value), 5L)$name))
 
   # now check that we get the same result by operating on
   # generateFilterValuesData
@@ -63,7 +62,7 @@ test_that("filterFeatures", {
   f = filterFeatures(binaryclass.task, method = "variance", abs = 5L)
   expect_true(setequal(
     getTaskFeatureNames(f),
-    head(sortByCol(feat.imp.new$data, "value", asc = FALSE), 5L)$name))
+    head(setorder(feat.imp.old$dat, -value), 5L)$name))
 
   # now check that we get the same result by operating on generateFilterValuesData
   feat.imp.new = generateFilterValuesData(binaryclass.task, method = "variance")
@@ -73,8 +72,7 @@ test_that("filterFeatures", {
   expect_equal(f, ff)
 
   f1 = filterFeatures(binaryclass.task,
-    abs = 1L, mandatory.feat = "V1",
-    ntree = 1L)
+    abs = 1L, mandatory.feat = "V1")
   f2 = subsetTask(binaryclass.task, features = "V1")
   f1$env = NULL
   f2$env = NULL
@@ -172,7 +170,8 @@ test_that("filter values are named and ordered correctly", {
       names(d) = ns
       d = c(d[-1], d[1])
       d
-    })
+    }
+  )
   fv = generateFilterValuesData(regr.task, method = "mock.filter")
   expect_equal(fv$data$name, ns)
   expect_equal(fv$data$value, seq_along(ns))

@@ -12,7 +12,6 @@ test_that("learners work: classif", {
     classif.earth = list(degree = 3L, nprune = 2L),
     classif.gbm = list(bag.fraction = 1, n.minobsinnode = 1),
     classif.lssvm = list(kernel = "rbfdot", reduced = FALSE),
-    classif.nodeHarvest = list(nodes = 100L, nodesize = 5L),
     classif.xyf = list(ydim = 2L),
     classif.h2o.deeplearning = list(hidden = 2L),
     classif.FDboost = list(mstop = 2L)
@@ -92,16 +91,13 @@ test_that("learners work: classif", {
     y = as.factor(rep(c("a", "b"), each = 5))), target = "y")
   lrns = listLearnersCustom(min.task, create = TRUE)
   # FIXME: classif.boosting: Remove if bug is removed in adabag!
-  # FIXME: classif.quaDA: Remove if bug is removed in DiscriMiner::quaDA!
-  # FIXME: classif.rknn: Remove if bug is removed in rknn::rknn!
   # classif.cvglmnet does not claim to work for 1d problems
-  # classif.dbnDNN, classif.evtree, classif.geoDA, classif.linDA, classif.lqa
+  # classif.dbnDNN, classif.evtree, classif.lqa
   # (not im mlr anymore),
   # classif.lvq1, classif.mda (maybe only subset error),
   # classif.pamr (maybe only subset error),
   # classif.plsdaCaret (error maybe fixable in caret),
   # classif.rotationForest (gives some error, no one would use it for 1d anyway),
-  # classif.rrlda error eccours in the learner.
   # classif.cforest: fraction of 0.000000 is too small (only travis?)
   not.working = c(
     "classif.boosting",
@@ -109,17 +105,13 @@ test_that("learners work: classif", {
     "classif.cvglmnet",
     "classif.dbnDNN",
     "classif.evtree",
-    "classif.geoDA",
     "classif.glmnet",
-    "classif.linDA",
     "classif.lvq1",
     "classif.mda",
     "classif.pamr",
     "classif.plsdaCaret",
-    "classif.quaDA",
-    "classif.rotationForest",
-    "classif.rrlda",
-    "classif.rknn")
+    "classif.rotationForest"
+  )
   lrns_sub = lrns[extractSubList(lrns, "id", simplify = TRUE) %nin% not.working]
   foo = suppressWarnings(lapply(lrns_sub, testBasicLearnerProperties,
     task = min.task,

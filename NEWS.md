@@ -1,3 +1,32 @@
+<!-- NEWS.md is maintained by https://cynkra.github.io/fledge, do not edit -->
+
+# mlr 2.19.1
+
+## Bug fixes
+
+- Adjust behavior of `"positive"` arg for `classif.logreg` (#2846)
+
+- Consistent naming for dummy feature encoding of variables with different levels count (#2847)
+
+- Remove {nodeHarvest} learners (#2841)
+
+- Remove {rknn} learner (#2842)
+
+- Remove all {DiscriMiner} learners (#2840)
+
+- Remove {extraTrees} learner (#2839)
+
+- Remove depcrecated {rrlda} learner
+
+- Resolve some {ggplot} deprecation warnings
+
+- Fixed `information.gain` filter calculation.
+  Before, `chi.squared` was calculated even though `information.gain` was requested due to a glitch in the filter naming (#2816, @jokokojote)
+
+- Make `helpLearnerParam()`'s HTML parsing more robust (#2843)
+
+- Add HTML5 support for help pages
+
 # mlr 2.19.0
 
 - Add filter `FSelectoRcpp::relief()`. This C++ based implementation of the RelieF filter algorithm is way faster than the Java based one from the {FSelector} package (#2804)
